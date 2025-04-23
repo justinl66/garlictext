@@ -1,0 +1,94 @@
+import os
+import base64
+import io
+from typing import List, Optional
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+import uvicorn
+from PIL import Image
+import numpy as np
+
+from diffusion_model import ImageTextToImageModel
+from utils import save_images
+
+app = FastAPI(
+    title="Image+Text to Image API",
+    description="API for generating images using stable diffusion with image and text inputs",
+    version="1.0.0",
+)
+
+model = None
+
+class GenerationSettings(BaseModel):
+    prompt: str
+    negative_prompt: Optional[str] = None
+    strength: float = 0.75
+    guidance_scale: float = 7.5
+    num_images: int = 1
+    seed: Optional[int] = None
+
+
+class GenerationResponse(BaseModel):
+    images: List[str]
+    paths: List[str]
+
+
+@app.on_event("startup")
+async def startup_event():
+    global model
+    model = ImageTextToImageModel()
+
+
+@app.post("/generate/", response_model=GenerationResponse)
+async def generate_images(
+    image: UploadFile = File(...),
+    prompt: str = Form(...),
+    negative_prompt: Optional[str] = Form(None),
+    strength: float = Form(0.75),
+    guidance_scale: float = Form(7.5),
+    num_images: int = Form(1),
+    seed: Optional[int] = Form(None),
+):
+    if not model:
+        raise HTTPException(status_code=500, detail="Model not initialized")
+    
+    try:
+        contents = await image.read()
+        input_image = Image.open(io.BytesIO(contents)).convert("RGB")
+        
+        generated_images = model.generate(
+            input_image=input_image,
+            prompt=prompt,
+            negative_prompt=negative_prompt,
+            strength=strength,
+            guidance_scale=guidance_scale,
+            num_images=num_images,
+            seed=seed
+        )
+        
+        saved_paths = save_images(generated_images)
+        
+        base64_images = []
+        for img in generated_images:
+            buffered = io.BytesIO()
+            img.save(buffered, format="PNG")
+            base64_string = base64.b64encode(buffered.getvalue()).decode("utf-8")
+            base64_images.append(f"data:image/png;base64,{base64_string}")
+        
+        return GenerationResponse(
+            images=base64_images,
+            paths=saved_paths
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating images: {str(e)}")
+
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "model_loaded": model is not None}
+
+
+if __name__ == "__main__":
+    uvicorn.run("api_server:app", host="0.0.0.0", port=8000, reload=True)
