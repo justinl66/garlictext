@@ -1,0 +1,4 @@
+/__pycache__/
+.env*.local
+src/.env
+/node_modules
