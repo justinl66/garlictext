@@ -1,0 +1,14 @@
+services:
+  garlictext:
+    build: ./frontend
+    depends_on:
+      - python_service
+    ports:
+      - "5173:5173"
+    environment:
+      - REACT_APP_PYTHON_SERVICE_URL=http://python_service:8000
+
+  python_service:
+    build: ./python_backend
+    ports:
+      - "8000:8000"
