@@ -1,10 +1,12 @@
-import {useState, useRef} from "react";
+import {useState, useRef, useContext} from "react";
 import { useNavigate } from 'react-router-dom';
-import { register } from "../../firebase/authFunctions";
+import {AuthContext} from "../../firebase/firebaseAuth";
 
 export default function SignUpPage() {
     const navigate = useNavigate();
 
+    const {register} = useContext<any>(AuthContext);
+    
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -54,16 +56,15 @@ export default function SignUpPage() {
         }
 
         const result = await register(username, email, password);
-        if(result !== "success"){
+        if(result != "success"){
             setError(result);
             setLoading(false);
-            alert(result);
+            // alert(result);
             return;
         }
 
         setError("");
         navigate("../");
-
         
     }
 
@@ -102,7 +103,8 @@ export default function SignUpPage() {
                         <input ref={confirmPasswordRef} value={confirmPassword} onChange={(e)=>setConfirmPassword(e.target.value)} onKeyDown={(e)=>{if(e.key="Enter"){handleLogin()}}} type="password" id="confPassword" className={`w-full h-10 border-2 ${error == ''? 'border-gray-300 focus:border-[#00F5D4]': 'border-red-500'} rounded-md mt-2 px-2 transition duration-200 focus:outline-hidden  text-black`}/>
                         </div>
                     </div>
-                    <button onClick={handleLogin} className="w-full max-w-sm h-10 mt-10 bg-[#00CCB1] text-white font-sans font-semibold rounded-md hover:opacity-80 transition duration-200">Sign up</button>
+                    <p className="text-red-500 text-sm font-sans font-semibold mt-3">{error}</p>
+                    <button onClick={handleLogin} className="w-full max-w-sm h-10 mt-8 bg-[#00CCB1] text-white font-sans font-semibold rounded-md hover:opacity-80 transition duration-200">Sign up</button>
                     {/* <p className="text-black text-xl font-semibold  mt-7">Or</p> */}
                     <div className="w-full flex flex-col mt-10">
                         <div className="w-full flex flex-row justify-center mt-4">
