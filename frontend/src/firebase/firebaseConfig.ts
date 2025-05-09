@@ -4,13 +4,13 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 
 const app = initializeApp({
-  apiKey: "AIzaSyDf_dA9Yc-lZpkdd46Uf6LIBeJH2xB9OLM",
-  authDomain: "garlic-text.firebaseapp.com",
-  projectId: "garlic-text",
-  storageBucket: "garlic-text.firebasestorage.app",
-  messagingSenderId: "734733266033",
-  appId: "1:734733266033:web:f26afa8be82faa09e6ffd0",
-  measurementId: "G-0F1K50L53J"
+  apiKey: import.meta.env.VITE_API_KEY,
+  authDomain: import.meta.env.VITE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_APP_ID,
+  measurementId: import.meta.env.VITE_MEASUREMENT_ID
 });
 
 export const auth = getAuth(app);
