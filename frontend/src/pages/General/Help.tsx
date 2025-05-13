@@ -1,11 +1,14 @@
 import { Link, useNavigate } from 'react-router-dom';
+import NavBar from './NavBar.tsx';
 
 export default function Help() {
+
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#9B5DE5] to-[#F15BB5] via-[#00BBF9] pt-10">
-      <div className="max-w-4xl mx-auto p-8 bg-white rounded-xl shadow-xl h-full">
+    <div className="min-h-screen bg-gradient-to-br from-[#9B5DE5] to-[#F15BB5] via-[#00BBF9]">
+      <NavBar />
+      <div className="max-w-4xl mx-auto p-8 bg-white rounded-xl shadow-xl h-full mt-10 pt-10">
         <h1 className="text-4xl font-bold text-[#00B8F5] mb-6">How to Play</h1>
         
         <div className="space-y-6 text-gray-700">
