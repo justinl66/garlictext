@@ -7,7 +7,7 @@ export default function NavBar() {
   const profilePicUrl = user ? user.photoURL : "";
 
   return (
-    <nav className="bg-gradient-to-r from-[#9B5DE5] via-[#00BBF9] to-[#F15BB5] px-6 py-3 flex justify-between items-center shadow-lg">
+    <nav className="w-full bg-gradient-to-r from-[#9B5DE5] via-[#00BBF9] to-[#F15BB5] px-6 py-3 flex justify-between items-center shadow-lg">
       
       <div className="flex items-center">
         {profilePicUrl ? (
