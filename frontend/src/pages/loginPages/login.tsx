@@ -1,6 +1,7 @@
 import {useState, useRef, useContext} from "react";
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from "../../firebase/firebaseAuth.tsx";
+import NavBar from "../General/NavBar.tsx";
 
 export default function LoginPage() {
     const navigate = useNavigate();
@@ -43,6 +44,7 @@ export default function LoginPage() {
 
     return (
         <div className="w-screen h-screen flex flex-col bg-linear-to-br from-[#9B5DE5] to-[#F15BB5] via-[#00BBF9] ">
+            < NavBar />
             <div className="w-full flex flex-row justify-center mt-8 items-center">
                 <h2 className="text-5xl font-sans font-semibold text-[#FEE440] text-shadow-md text-shadow-slate-500">Garlic Text</h2>
                 <img src={"/garlicTextNoBackground.png"} alt="garlicTextIcon" width={60} height={60} className=" animate-[--custom-bounce_0.65s_ease-in-out_infinite] ml-2"/>
