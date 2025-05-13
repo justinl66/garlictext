@@ -1,4 +1,3 @@
-'use client'
 import {useState, useRef, useContext} from "react";
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from "../../firebase/firebaseAuth.tsx";
@@ -60,7 +59,7 @@ export default function LoginPage() {
                         <label htmlFor="password" className="text-black text-lg font-sans font-semibold mt-4">Password</label>
                         <input ref={passwordRef} value={password} onChange={(e)=>setPassword(e.target.value)} onKeyDown={(e)=>{if(e.key == "Enter"){handleLogin()}}} type="password" id="password" className={`w-full h-10 border-2 ${error == ''? 'border-gray-300 focus:border-[#00F5D4]': 'border-red-500'} rounded-md mt-2 px-2 transition duration-200 focus:outline-hidden  text-black`}/>
                         <p className="text-red-500 text-sm font-sans font-semibold mt-1">{error}</p>
-                        <p className="text-black text-sm font-sans font-semibold mt-2">Forgot your password? <span className="text-[#00CCB1] cursor-pointer">Reset it</span></p>
+                        <button onClick={()=>navigate('../resetPassword')} className="text-black text-sm font-sans font-semibold mt-2">Forgot your password? <span className="text-[#00CCB1] cursor-pointer">Reset it</span></button>
                     </div>
                     <div className="w-full flex flex-col mt-8">
                         <button onClick={handleLogin} className="w-full h-10 bg-[#00CCB1] text-white font-sans font-semibold rounded-md hover:opacity-80 transition duration-200">Sign in</button>
