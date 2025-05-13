@@ -23,6 +23,7 @@ const App = () => {
           <Route path="/resetPasswordSuccess" element={<ForgotPasswordSuccessPage />}/>
           <Route path="/help" element={<Help />} />
           <Route path="/profile" element={<ProfilePage />} />
+        </Routes>
       </Router>
     </AuthContextWrapper>
   );
