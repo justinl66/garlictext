@@ -6,12 +6,14 @@ import ForgotPasswordPage from './pages/loginPages/forgotPassword.tsx';
 import ForgotPasswordSuccessPage from './pages/loginPages/forgotPasswordSuccess.tsx';
 import ProfilePage from './pages/user/myProfile.tsx';
 import HomePage from './pages/home/home';
+import NavBar from './pages/NavBar.tsx';
 import {AuthContextWrapper} from './firebase/firebaseAuth.tsx';
 
 const App = () => {
   return (
     <AuthContextWrapper>
       <Router>
+        <NavBar />
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
