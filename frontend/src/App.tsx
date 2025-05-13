@@ -2,6 +2,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LoginPage from './pages/loginPages/login';
 import SignUpPage from './pages/loginPages/signup';
+import ForgotPasswordPage from './pages/loginPages/forgotPassword.tsx';
+import ForgotPasswordSuccessPage from './pages/loginPages/forgotPasswordSuccess.tsx';
 import HomePage from './pages/home/home';
 import {AuthContextWrapper} from './firebase/firebaseAuth.tsx';
 
@@ -13,6 +15,8 @@ const App = () => {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUpPage />} />
+          <Route path="/resetPassword" element={<ForgotPasswordPage />} />
+          <Route path="/resetPasswordSuccess" element={<ForgotPasswordSuccessPage />}/>
         </Routes>
       </Router>
     </AuthContextWrapper>
