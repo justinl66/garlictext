@@ -12,3 +12,17 @@ services:
     build: ./python_backend
     ports:
       - "8000:8000"
+  db:
+    image: postres:14
+    restart: always
+    environment:
+      POSTGRES_USER: garlictext
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    
+    
+    
+
