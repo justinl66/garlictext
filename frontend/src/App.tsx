@@ -7,20 +7,23 @@ import ForgotPasswordSuccessPage from './pages/loginPages/forgotPasswordSuccess.
 import ProfilePage from './pages/user/myProfile.tsx';
 import HomePage from './pages/home/home';
 import Help from './pages/General/Help.tsx';
+import GameLobby from './pages/game/GameLobby.tsx';
+import GamePlay from './pages/game/GamePlay.tsx';
 import {AuthContextWrapper} from './firebase/firebaseAuth.tsx';
 
 const App = () => {
   return (
     <AuthContextWrapper>
-      <Router>
-        <Routes>
+      <Router>        <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/resetPassword" element={<ForgotPasswordPage />} />
           <Route path="/resetPasswordSuccess" element={<ForgotPasswordSuccessPage />}/>
-          <Route path="/help" element={<Help />} />
-          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/help" element={<Help />} />          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/game/lobby" element={<GameLobby />} />
+          <Route path="/game/lobby/:roomId" element={<GameLobby />} />
+          <Route path="/game/play" element={<GamePlay />} />
         </Routes>
       </Router>
     </AuthContextWrapper>
