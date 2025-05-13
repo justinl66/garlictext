@@ -5,7 +5,7 @@ import { AuthContext } from "../../firebase/firebaseAuth.tsx";
 export default function LoginPage() {
     const navigate = useNavigate();
 
-    const {login, user} = useContext<any>(AuthContext);
+    const {login} = useContext<any>(AuthContext);
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
