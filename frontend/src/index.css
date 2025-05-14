@@ -1,18 +1,30 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap');
 @import "tailwindcss";
 
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Nunito', sans-serif;
   line-height: 1.5;
-  font-weight: 400;
+  font-weight: 700;
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
   background-color: #9B5DE5;
-
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Force all elements to use bold font */
+*, *::before, *::after {
+  font-weight: 700 !important;
+}
+
+/* Even stronger weight for headings */
+h1, h2, h3, h4, h5, h6, 
+.font-bold, .font-semibold, 
+button, .text-xl, .text-2xl, .text-3xl, .text-4xl, .text-5xl, .text-6xl {
+  font-weight: 900 !important;
 }
 
 @keyframes --custom-bounce {
