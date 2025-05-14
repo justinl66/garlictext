@@ -68,11 +68,11 @@ export default function HomePage() {
                             <button 
                                 onClick={() => setShowJoinModal(true)}
                                 className="mt-2 text-[#9B5DE5] font-medium hover:underline"
-                            >
-                                Join with a code
-                            </button>
-                        </div>                    </div>                </div>
-                <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-[#F15BB5] rounded-full opacity-20"></div>
+                            >Join with a code</button>                        
+                        </div>                    
+                    </div>                
+                </div>
+                
                 {showJoinModal && (
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                         <div className="bg-white rounded-xl p-6 w-full max-w-md relative shadow-2xl">
