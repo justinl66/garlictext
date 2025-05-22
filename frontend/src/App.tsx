@@ -10,7 +10,6 @@ import Help from './pages/General/Help.tsx';
 import GameLobby from './pages/game/GameLobby.tsx';
 import GamePlay from './pages/game/GamePlay.tsx';
 import PromptPage from './pages/game/PromptPage.tsx';
-import DrawingPage from './pages/game/DrawingPage.tsx';
 import {AuthContextWrapper} from './firebase/firebaseAuth.tsx';
 
 const App = () => {
@@ -28,7 +27,6 @@ const App = () => {
           <Route path="/game/lobby/:roomId" element={<GameLobby />} />
           <Route path="/game/play" element={<GamePlay />} />
           <Route path="/game/prompts" element={<PromptPage />} />
-          <Route path="/game/drawing" element={<DrawingPage />} />
         </Routes>
       </Router>
     </AuthContextWrapper>
