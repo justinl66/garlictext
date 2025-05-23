@@ -1,9 +1,15 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useContext } from 'react';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import NavBar from '../General/NavBar';
+import dbService from '../../services/dbService';
+import { AuthContext } from '../../firebase/firebaseAuth';
 
 export default function CaptionPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const authContext = useContext(AuthContext);
+  const currentUser = authContext?.currentUser;
+  
   const [caption, setCaption] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [timeLeft, setTimeLeft] = useState(60);
@@ -28,14 +34,37 @@ export default function CaptionPage() {
     const secs = seconds % 60;
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
-  
-  const handleSubmit = async () => {
+    const handleSubmit = async () => {
     if (isSubmitting || !caption.trim()) return;
     
     setIsSubmitting(true);
     
     try {
       console.log('Caption submitted:', caption);
+      
+      // Get game and round info from location state
+      const gameId = location.state?.gameId;
+      const roundId = location.state?.roundId;
+      const imageId = location.state?.imageId;
+        if (currentUser && gameId && roundId && imageId) {
+        // Save caption to database
+        await dbService.caption.createCaption({
+          userId: currentUser.uid, 
+          text: caption,
+          imageId,
+          roundId
+        });
+        
+        console.log('Caption saved to database successfully');
+      } else {
+        console.log('Mock submission - would save to database in production', {
+          userId: currentUser?.uid || 'unknown',
+          text: caption,
+          gameId: gameId || 'unknown',
+          roundId: roundId || 'unknown',
+          imageId: imageId || 'unknown'
+        });
+      }
       
       setTimeout(() => {
         navigate('/game/lobby');

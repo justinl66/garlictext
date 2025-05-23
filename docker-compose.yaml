@@ -2,32 +2,42 @@ services:
   garlictext:
     build: ./frontend
     depends_on:
-      # - python_service
-      - backend
+      - python_service
+      - database_backend
     ports:
       - "5173:5173"
     environment:
       - REACT_APP_PYTHON_SERVICE_URL=http://python_service:8000
+      - REACT_APP_DB_API_URL=http://database_backend:5000
 
   python_service:
     build: ./python_backend
     ports:
       - "8000:8000"
-  backend:
-    build: ./backend
+  
+  database_backend:
+    build: ./database_backend
     ports:
-      - "3001:3001"
+      - "5000:5000"
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/mydb
+      - NODE_ENV=production
+      - PORT=5000
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/garlictext
     depends_on:
       - db
+    volumes:
+      - ./database_backend:/usr/src/app
+      - /usr/src/app/node_modules
+    command: >
+      sh -c "npm run db:setup && npm start"
+      
   db:
     image: postgres:15
     restart: always
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: mydb
+      POSTGRES_DB: garlictext
     ports:
       - "5432:5432"
     volumes:
