@@ -1,7 +1,7 @@
 require('dotenv').config();
 const axios = require('axios');
 
-const API_URL = `http://localhost:${process.env.PORT || 5000}/api`;
+const API_URL = `http://localhost:${process.env.PORT || 5001}/api`;
 const testApi = async () => {
   try {
     console.log('Testing Database API Endpoints...');
@@ -10,7 +10,7 @@ const testApi = async () => {
     console.log('==============================\n');
     
     console.log('Testing root endpoint:');
-    const rootResponse = await axios.get(`http://localhost:${process.env.PORT || 5000}`);
+    const rootResponse = await axios.get(`http://localhost:${process.env.PORT || 5001}`);
     console.log('✅ Root endpoint response:', rootResponse.data);
     console.log('------------------------------\n');
     

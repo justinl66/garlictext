@@ -48,7 +48,7 @@ docker-compose up --build
 
 This will start all services:
 - Frontend: Available at http://localhost:5173
-- Database Backend: Available at http://localhost:5000
+- Database Backend: Available at http://localhost:5001
 - Python Backend: Available at http://localhost:8000
 - PostgreSQL Database: Available at localhost:5432
 

@@ -3,7 +3,7 @@
 import axios from 'axios';
 
 // Base URL from environment variable or default to localhost in development
-const API_BASE_URL = import.meta.env.VITE_DB_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_DB_API_URL || 'http://localhost:5001/api';
 
 // Create an axios instance for the database API
 const dbApi = axios.create({

@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 export default function ProfilePage(){
     const navigate = useNavigate()
 
-    const {user} = useContext(AuthContext)
+    const {user, logout} = useContext(AuthContext)
 
     return(
         <div className="flex flex-col w-screen min-h-screen h-full px-10 py-12 items-center  bg-linear-to-br from-[#9B5DE5] to-[#F15BB5] via-[#00BBF9]">
@@ -26,6 +26,7 @@ export default function ProfilePage(){
                 </div>
                 <div className="mt-6 ml-4 flex flex-col gap-y-2">
                     <h2 className="text-xl font-semibold text-gray-700">Actions</h2>
+                    <button onClick={() => logout()} className="mt-4 bg-[#00BBF9] text-white font-semibold py-2 px-4 rounded hover:bg-[#009BD9] transition duration-200">Logout</button>
                     <button onClick={() => navigate("/resetPassword")} className="mt-4 bg-[#9B5DE5] text-white font-semibold py-2 px-4 rounded hover:bg-[#7A3EB0] transition duration-200">Change Password</button>
                     <button onClick={() => navigate("/deleteAccount")} className="mt-4 bg-red-500 text-white font-semibold py-2 px-4 rounded hover:bg-red-600 transition duration-200">Delete Account</button>  
                 </div>

@@ -120,7 +120,7 @@ You can run the database backend using Docker:
 docker build -t garlictext-db-backend .
 
 # Run the container
-docker run -p 5000:5000 -e DATABASE_URL=postgresql://username:password@host:port/database garlictext-db-backend
+docker run -p 5001:5001 -e DATABASE_URL=postgresql://username:password@host:port/database garlictext-db-backend
 ```
 
 Or use Docker Compose to run the entire application stack (recommended):
