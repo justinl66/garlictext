@@ -10,7 +10,7 @@ import Help from './pages/General/Help.tsx';
 import GameLobby from './pages/game/GameLobby.tsx';
 import GamePlay from './pages/game/GamePlay.tsx';
 import PromptPage from './pages/game/PromptPage.tsx';
-import DrawingPage from './pages/game/DrawingPage.tsx';
+import CaptionPage from './pages/game/CaptionPage.tsx';
 import {AuthContextWrapper} from './firebase/firebaseAuth.tsx';
 
 const App = () => {
@@ -24,11 +24,10 @@ const App = () => {
           <Route path="/resetPasswordSuccess" element={<ForgotPasswordSuccessPage />}/>
           <Route path="/help" element={<Help />} />          <Route path="/profile" element={<ProfilePage />} />
           {/* Game routes */}
-          <Route path="/game/lobby" element={<GameLobby />} />
-          <Route path="/game/lobby/:roomId" element={<GameLobby />} />
+          <Route path="/game/lobby" element={<GameLobby />} />          <Route path="/game/lobby/:roomId" element={<GameLobby />} />
           <Route path="/game/play" element={<GamePlay />} />
           <Route path="/game/prompts" element={<PromptPage />} />
-          <Route path="/game/drawing" element={<DrawingPage />} />
+          <Route path="/game/caption" element={<CaptionPage />} />
         </Routes>
       </Router>
     </AuthContextWrapper>
