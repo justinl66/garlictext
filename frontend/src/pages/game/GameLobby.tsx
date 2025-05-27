@@ -62,7 +62,8 @@ export default function GameLobby() {
   const startGame = () => {
     setIsStarting(true);
     setTimeout(() => {
-      navigate('/game/play');
+      // Navigate to the prompt page first instead of directly to gameplay
+      navigate('/game/prompts');
     }, 2000);
   };
   const canStart = players.filter(p => p.isReady).length >= 2 && isCreator;
