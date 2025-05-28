@@ -12,6 +12,7 @@ import GamePlay from './pages/game/GamePlay.tsx';
 import PromptPage from './pages/game/PromptPage.tsx';
 import CaptionPage from './pages/game/CaptionPage.tsx';
 import VotingPage from './pages/game/VotingPage.tsx';
+import ResultsPage from './pages/game/ResultsPage.tsx';
 import {AuthContextWrapper} from './firebase/firebaseAuth.tsx';
 
 const App = () => {
@@ -30,6 +31,7 @@ const App = () => {
           <Route path="/game/prompts" element={<PromptPage />} />
           <Route path="/game/caption" element={<CaptionPage />} />
           <Route path="/game/voting" element={<VotingPage />} />
+          <Route path="/game/results" element={<ResultsPage />} />
         </Routes>
       </Router>
     </AuthContextWrapper>
