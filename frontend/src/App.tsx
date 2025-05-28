@@ -11,6 +11,7 @@ import GameLobby from './pages/game/GameLobby.tsx';
 import GamePlay from './pages/game/GamePlay.tsx';
 import PromptPage from './pages/game/PromptPage.tsx';
 import CaptionPage from './pages/game/CaptionPage.tsx';
+import VotingPage from './pages/game/VotingPage.tsx';
 import {AuthContextWrapper} from './firebase/firebaseAuth.tsx';
 
 const App = () => {
@@ -28,6 +29,7 @@ const App = () => {
           <Route path="/game/play" element={<GamePlay />} />
           <Route path="/game/prompts" element={<PromptPage />} />
           <Route path="/game/caption" element={<CaptionPage />} />
+          <Route path="/game/voting" element={<VotingPage />} />
         </Routes>
       </Router>
     </AuthContextWrapper>
