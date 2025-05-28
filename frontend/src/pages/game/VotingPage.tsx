@@ -91,6 +91,23 @@ export default function VotingPage() {
     setIsSubmitting(true);
     
     try {
+      {/*if (selectedImageId) {
+        // Mock submission
+        console.log(`Voted for image: ${selectedImageId}`);
+        
+        if (dbService && currentUser) {
+          // Example API call if dbService is available
+          
+          await dbService.submitVote({
+            userId: currentUser.uid,
+            imageId: selectedImageId,
+            gameId: 'current-game-id' // You would get this from context or params
+          });
+          
+          console.log('Vote recorded in database');
+        } else {
+          console.log('Mock submission - would save vote to database');
+        } */}
       // Submit the rating for the current image
       console.log(`Rating for image ${images[currentIndex].id}: ${rating}`);
       
