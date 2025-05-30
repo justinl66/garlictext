@@ -103,16 +103,14 @@ export function AuthContextWrapper({children}:{children: React.ReactNode}) {
             setLoading(false);
             return "No user is currently logged in.";
         }
-    }
-
-    useEffect(()=>{
+    }    useEffect(()=>{
         // alert(user?.email);
          const unsubscribe = onAuthStateChanged(auth, updatedUser=>{
             setCurrentUser(updatedUser);
             setLoading(false);
         })
         return unsubscribe;
-    }, [])
+    }, []);
 
     const authValues = {
         user:currentUser,
@@ -121,6 +119,7 @@ export function AuthContextWrapper({children}:{children: React.ReactNode}) {
         register,
         logout,
         resetPassword,
+        deleteAccount,
     }
 
     return (
