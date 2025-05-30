@@ -47,7 +47,7 @@ const seedData = async () => {
           gamesWon: 3
         },
         {
-          firebaseUid: 'eidhiefdedwlde',
+          id: 'eidhiefdedwlde',
           username: 'janedoe',
           email: 'jane@example.com',
           profilePictureUrl: 'https://via.placeholder.com/150',
@@ -56,9 +56,9 @@ const seedData = async () => {
           gamesWon: 2
         },
         {
+          id: 'edhuedhuef',
           username: 'testuser',
           email: 'test@example.com',
-          firebaseUid: 'firebase_test_uid',
           profilePictureUrl: 'https://via.placeholder.com/150',
           score: 50,
           gamesPlayed: 5,

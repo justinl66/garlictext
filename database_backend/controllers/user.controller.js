@@ -129,7 +129,6 @@ exports.update = async (req, res) => {
 exports.delete = async (req, res) => {
   const id = req.user.uid;
   try {
-    console.log(`Deleting user with id: ${id}`);
     const num = await User.destroy({
       where: { id }
     });
