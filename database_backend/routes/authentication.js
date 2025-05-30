@@ -5,12 +5,10 @@ exports.authenticateFirebaseToken = async (req, res, next) => {
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).send('Unauthorized');
-  }
-
-  const idToken = authHeader.split('Bearer ')[1];
+  }  const idToken = authHeader.split('Bearer ')[1];
   try {
     const decodedToken = await auth().verifyIdToken(idToken);
-    req.user = decodedToken; // attach user info to the request
+    req.user = decodedToken;
     next();
   } catch (error) {
     console.error('Token verification failed:', error);

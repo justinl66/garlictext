@@ -4,7 +4,14 @@ import { AuthContext } from '../../firebase/firebaseAuth';
 export default function DbTester() {
     const [value, setValue] = React.useState<any[] | string>([]);
     const [settingValue, setSettingValue] = React.useState<string>('');
-    const { user, loading } = React.useContext(AuthContext);
+    const authContext = React.useContext(AuthContext);
+    
+    // Handle null context safely
+    if (!authContext) {
+        return <div>Loading...</div>;
+    }
+    
+    const { user, loading } = authContext;
 
     React.useEffect(() => {
         if(!loading){
@@ -27,10 +34,7 @@ export default function DbTester() {
                 setValue("Error fetching data: " + error.message);
             })
         }
-    }, [user, loading]);
-
-    const makeUser = () => {
-        // alert(user.displayName);
+    }, [user, loading]);    const makeUser = () => {
         fetch('http://localhost:5001/api/users', {
             method: 'POST',
             headers: {
@@ -39,15 +43,20 @@ export default function DbTester() {
             }
         }).then(response => {
             if (!response.ok) {
-                setSettingValue('Network response was not ok: ' + response.statusText);
+                return response.text().then(text => {
+                    setSettingValue('Network response was not ok: ' + response.statusText + ' - ' + text);
+                    throw new Error('Network response was not ok: ' + response.statusText);
+                });
             }
             return response.json();
-        }).catch(error => {
+        }).then(data => {
+            setSettingValue('User created successfully: ' + JSON.stringify(data));        }).catch(error => {
             setSettingValue("Error creating user: " + error.message);
         });
     }
 
     const deleteUser = () => {
+        alert(user.displayName)
         fetch('http://localhost:5001/api/users', {
             method: 'DELETE',
             headers: {
@@ -56,9 +65,14 @@ export default function DbTester() {
             }
         }).then(response => {
             if (!response.ok) {
-                setSettingValue('Network response was not ok: ' + response.statusText);
+                return response.text().then(text => {
+                    setSettingValue('Network response was not ok: ' + response.statusText + ' - ' + text);
+                    throw new Error('Network response was not ok: ' + response.statusText);
+                });
             }
             return response.json();
+        }).then(data => {
+            setSettingValue('User deleted successfully: ' + JSON.stringify(data));
         }).catch(error => {
             setSettingValue("Error deleting user: " + error.message);
         });

@@ -5,7 +5,14 @@ import { useNavigate } from 'react-router-dom'
 export default function ForgotPasswordPage(){
     const navigate = useNavigate();
 
-    const {resetPassword, loading} = useContext(AuthContext)
+    const authContext = useContext(AuthContext);
+    
+    // Handle null context
+    if (!authContext) {
+        return <div>Loading...</div>;
+    }
+    
+    const {resetPassword, loading} = authContext;
 
 
     const [email, setEmail] = useState("");

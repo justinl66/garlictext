@@ -4,7 +4,14 @@ import NavBar from '../General/NavBar.tsx';
 import { useNavigate } from 'react-router-dom';
 
 export default function HomePage() {
-    const { user } = useContext(AuthContext);
+    const authContext = useContext(AuthContext);
+    
+    // Handle null context
+    if (!authContext) {
+        return <div>Loading...</div>;
+    }
+    
+    const { user, loading } = authContext;
     const [roomName, setRoomName] = useState("");
     const [playerName, setPlayerName] = useState("");
     const [joinCode, setJoinCode] = useState("");
@@ -14,6 +21,19 @@ export default function HomePage() {
     const createGame = () => {
         navigate('/game/lobby');
     };
+
+    // Show loading state while Firebase is determining auth state
+    if (loading) {
+        return (
+            <div className="w-full min-h-screen flex flex-col bg-gradient-to-br from-[#9B5DE5] to-[#F15BB5] via-[#00BBF9]">
+                <NavBar />
+                <div className="w-full flex flex-col items-center justify-center flex-grow">
+                    <div className="w-24 h-24 border-8 border-t-[#FEE440] border-white rounded-full animate-spin"></div>
+                    <p className="text-white text-lg font-semibold mt-4">Loading...</p>
+                </div>
+            </div>
+        );
+    }
 
     return(
         <div className="w-full min-h-screen flex flex-col bg-gradient-to-br from-[#9B5DE5] to-[#F15BB5] via-[#00BBF9]">

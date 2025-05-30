@@ -10,22 +10,28 @@ exports.create = async (req, res) => {
         message: "Content can't be empty!"
       });
     }
-    // console.log(`Creating user with name: ${req.user.name}, email: ${req.user.email}, uid: ${req.user.uid}`);
+    
     const user = {
-      id: req.user.uid,  // Firebase UID as primary key
+      id: req.user.uid,
       username: req.user.name,
       email: req.user.email,
       profilePictureUrl: null,
-    };
-
-    const data = await User.create(user);
+    };    const data = await User.create(user);
     
     res.status(201).send(data);
   } catch (err) {
     console.log(`Error creating user: ${err.message}`);
+    console.log(`Error name: ${err.name}`);
+    console.log(`Error details:`, err);
+    
     if (err.name === 'SequelizeUniqueConstraintError') {
       return res.status(400).send({
         message: "User with this email or username already exists."
+      });
+    }
+    if (err.name === 'SequelizeValidationError') {
+      return res.status(400).send({
+        message: `Validation error: ${err.errors.map(e => e.message).join(', ')}`
       });
     }
     res.status(500).send({
