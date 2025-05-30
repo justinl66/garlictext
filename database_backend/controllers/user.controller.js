@@ -6,6 +6,7 @@ const { Op } = db.Sequelize;
 exports.create = async (req, res) => {
   try {
     if (!req.user.name || !req.user.email || !req.user.uid) {
+      console.log("Request user data is missing:" + req.user.name + ", " + req.user.email + ", " + req.user.uid);
       return res.status(400).send({
         message: "Content can't be empty!"
       });

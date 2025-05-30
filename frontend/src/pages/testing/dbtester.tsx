@@ -39,7 +39,7 @@ export default function DbTester() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization':'Bearer ' + user?.stsTokenManager.accessToken,
+                'Authorization':'Bearer ' + (await user?.getIdToken(true)),
             }
         }).then(response => {
             if (!response.ok) {
