@@ -1,7 +1,7 @@
 // https://medium.com/@sajadshafi/implementing-firebase-auth-in-react-js-typescript-vite-js-88465ac84170
 
 import { useState, useEffect, createContext } from "react";
-import { onAuthStateChanged, User, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, updateProfile } from "firebase/auth";
+import { onAuthStateChanged, User, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, updateProfile, deleteUser } from "firebase/auth";
 import { auth } from "./firebaseConfig";
 
 export const AuthContext = createContext<any>(null);
@@ -27,25 +27,33 @@ export function AuthContextWrapper({children}:{children: React.ReactNode}) {
 
     async function register(username:string, email: string, password: string) {
         setLoading(true);
-        return await createUserWithEmailAndPassword(auth, email, password)
-            .then(async () => {
-                // Signed in 
-                
-                await updateProfile(auth.currentUser!, {
-                    displayName: username,
-                }).then(() => {
-                    // setUser(auth.currentUser);
-                    setLoading(false);
-                    return "success";
-                }).catch((error) => {
-                    setLoading(false);
-                    return error.message;
-                });
-            })
+        await createUserWithEmailAndPassword(auth, email, password)
             .catch((error) => {
                 setLoading(false);
                 return error.message;
             });
+        await updateProfile(auth.currentUser!, {
+                    displayName: username,
+            }).catch(async (error) => {
+                await deleteAccount();
+                setLoading(false);
+                return error.message;
+            });
+
+        fetch('http://localhost:5001/api/users', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + (await auth.currentUser?.getIdToken(true)),
+            },
+        }).catch(async error => {
+            await deleteAccount();
+            setLoading(false);
+            return error.message;
+        })
+
+        setLoading(false);
+        return "success";
     }
 
     async function logout() {
@@ -77,14 +85,32 @@ export function AuthContextWrapper({children}:{children: React.ReactNode}) {
             });
     }
 
-    useEffect(()=>{
+    async function deleteAccount() {
+        setLoading(true);
+        if (currentUser) {
+            return await deleteUser(currentUser)
+                .then(() => {
+                    // User deleted.
+                    setCurrentUser(null);
+                    setLoading(false);
+                    return "success";
+                })
+                .catch((error) => {
+                    setLoading(false); 
+                    return error.message;
+                });
+        } else {
+            setLoading(false);
+            return "No user is currently logged in.";
+        }
+    }    useEffect(()=>{
         // alert(user?.email);
          const unsubscribe = onAuthStateChanged(auth, updatedUser=>{
             setCurrentUser(updatedUser);
             setLoading(false);
         })
         return unsubscribe;
-    }, [])
+    }, []);
 
     const authValues = {
         user:currentUser,
@@ -93,6 +119,7 @@ export function AuthContextWrapper({children}:{children: React.ReactNode}) {
         register,
         logout,
         resetPassword,
+        deleteAccount,
     }
 
     return (

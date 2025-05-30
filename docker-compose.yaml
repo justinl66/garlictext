@@ -23,30 +23,9 @@ services:
       - NODE_ENV=production
       - PORT=5001
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/garlictext
-    depends_on:
-      - db
     volumes:
       - ./database_backend:/usr/src/app
       - /usr/src/app/node_modules
     command: >
       sh -c "npm run db:setup && npm start"
       
-  db:
-    image: postgres:15
-    restart: always
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: garlictext
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-volumes:
-  pgdata:
-
-  
-    
-    
-    
-

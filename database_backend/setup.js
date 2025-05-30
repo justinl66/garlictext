@@ -38,27 +38,27 @@ const seedData = async () => {
       console.log('Creating sample users...');
       const users = await User.bulkCreate([
         {
+          id: 'udehwkufdbfed',
           username: 'johndoe',
           email: 'john@example.com',
-          firebaseUid: 'firebase_john_uid',
           profilePictureUrl: 'https://via.placeholder.com/150',
           score: 120,
           gamesPlayed: 15,
           gamesWon: 3
         },
         {
+          id: 'eidhiefdedwlde',
           username: 'janedoe',
           email: 'jane@example.com',
-          firebaseUid: 'firebase_jane_uid',
           profilePictureUrl: 'https://via.placeholder.com/150',
           score: 95,
           gamesPlayed: 12,
           gamesWon: 2
         },
         {
+          id: 'edhuedhuef',
           username: 'testuser',
           email: 'test@example.com',
-          firebaseUid: 'firebase_test_uid',
           profilePictureUrl: 'https://via.placeholder.com/150',
           score: 50,
           gamesPlayed: 5,

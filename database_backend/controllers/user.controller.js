@@ -5,24 +5,34 @@ const { Op } = db.Sequelize;
 
 exports.create = async (req, res) => {
   try {
-    if (!req.body.username || !req.body.email || !req.body.firebaseUid) {
+    if (!req.user.name || !req.user.email || !req.user.uid) {
+      console.log("Request user data is missing:" + req.user.name + ", " + req.user.email + ", " + req.user.uid);
       return res.status(400).send({
         message: "Content can't be empty!"
       });
     }
-
+    
     const user = {
-      username: req.body.username,
-      email: req.body.email,
-      firebaseUid: req.body.firebaseUid,
-      profilePictureUrl: req.body.profilePictureUrl || null
-    };
-    const data = await User.create(user);
+      id: req.user.uid,
+      username: req.user.name,
+      email: req.user.email,
+      profilePictureUrl: null,
+    };    const data = await User.create(user);
+    
     res.status(201).send(data);
   } catch (err) {
+    console.log(`Error creating user: ${err.message}`);
+    console.log(`Error name: ${err.name}`);
+    console.log(`Error details:`, err);
+    
     if (err.name === 'SequelizeUniqueConstraintError') {
       return res.status(400).send({
         message: "User with this email or username already exists."
+      });
+    }
+    if (err.name === 'SequelizeValidationError') {
+      return res.status(400).send({
+        message: `Validation error: ${err.errors.map(e => e.message).join(', ')}`
       });
     }
     res.status(500).send({
@@ -70,34 +80,7 @@ exports.findOne = async (req, res) => {
   }
 };
 
-exports.findByFirebaseUid = async (req, res) => {
-  const firebaseUid = req.params.firebaseUid;
 
-  try {
-    const data = await User.findOne({ 
-      where: { firebaseUid },
-      include: [
-        {
-          model: Game,
-          as: 'games',
-          through: { attributes: [] }
-        }
-      ] 
-    });
-    
-    if (data) {
-      res.send(data);
-    } else {
-      res.status(404).send({
-        message: `User with firebaseUid=${firebaseUid} was not found.`
-      });
-    }
-  } catch (err) {
-    res.status(500).send({
-      message: `Error retrieving User with firebaseUid=${firebaseUid}: ${err.message}`
-    });
-  }
-};
 
 exports.update = async (req, res) => {
   const id = req.params.id;
@@ -124,8 +107,7 @@ exports.update = async (req, res) => {
 };
 
 exports.delete = async (req, res) => {
-  const id = req.params.id;
-
+  const id = req.user.uid;
   try {
     const num = await User.destroy({
       where: { id }

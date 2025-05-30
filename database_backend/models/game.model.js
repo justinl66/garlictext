@@ -19,7 +19,7 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: 'waiting'
     },
     hostId: {
-      type: DataTypes.UUID,
+      type: DataTypes.STRING,
       allowNull: false,
       references: {
         model: 'users',

@@ -10,12 +10,7 @@ interface CaptionedImage {
   imageUrl: string;
   caption: string;
   authorName: string;
-}
-
-interface PromptGroup {
-  promptId: string;
   promptText: string;
-  captionedImages: CaptionedImage[];
 }
 
 export default function VotingPage() {
@@ -23,12 +18,59 @@ export default function VotingPage() {
   const authContext = useContext(AuthContext);
   const currentUser = authContext?.currentUser;
   
-  const [promptGroups, setPromptGroups] = useState<PromptGroup[]>([]);
-  const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
+  const [images, setImages] = useState<CaptionedImage[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [rating, setRating] = useState(50); // Default middle value
+  const [timeLeft, setTimeLeft] = useState(10); // 10 seconds per image
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(60); // 60 second timer for voting
+  const [progress, setProgress] = useState(0);
   
-  // Timer countdown
+  // Load images when component mounts
+  useEffect(() => {
+    const fetchImages = async () => {
+      try {
+        // Placeholder data - replace with actual API call
+        const mockImages = [
+          {
+            id: '1',
+            imageUrl: '/garlicTextNoBackground.png',
+            caption: "a sweaty person",
+            authorName: 'Player 1',
+            promptText: 'Draw a programmer debugging code'
+          },
+          {
+            id: '2',
+            imageUrl: '/garlicTextNoBackground.png',
+            caption: 'a Degen',
+            authorName: 'Player 2',
+            promptText: 'Draw a programmer debugging code'
+          },
+          {
+            id: '3',
+            imageUrl: '/garlicTextNoBackground.png',
+            caption: 'a Degen',
+            authorName: 'Player 2',
+            promptText: 'Draw a programmer debugging code'
+          },
+          {
+            id: '4',
+            imageUrl: '/garlicTextNoBackground.png',
+            caption: 'a Degen',
+            authorName: 'Player 2',
+            promptText: 'Draw a programmer debugging code'
+          },
+        ];
+        
+        setImages(mockImages);
+      } catch (error) {
+        console.error('Error fetching images:', error);
+      }
+    };
+    
+    fetchImages();
+  }, []);
+  
+  // Timer countdown for each image
   useEffect(() => {
     if (timeLeft <= 0) {
       handleSubmit();
@@ -37,98 +79,11 @@ export default function VotingPage() {
     
     const timer = setTimeout(() => {
       setTimeLeft(prev => prev - 1);
+      setProgress((10 - timeLeft) / 10 * 100);
     }, 1000);
     
     return () => clearTimeout(timer);
   }, [timeLeft]);
-  
-  // Load captioned images grouped by prompts when component mounts
-  useEffect(() => {
-    const fetchPromptGroups = async () => {
-      try {
-        // Placeholders for now
-        const mockPromptGroups = [
-          {
-            promptId: 'prompt1',
-            promptText: 'Draw a programmer debugging code',
-            captionedImages: [
-              {
-                id: '1',
-                imageUrl: '/garlicTextNoBackground.png',
-                caption: "a sweaty person",
-                authorName: 'Player 1'
-              },
-              {
-                id: '2',
-                imageUrl: '/garlicTextNoBackground.png',
-                caption: 'a Degen',
-                authorName: 'Player 2'
-              }
-            ]
-          },
-          {
-            promptId: 'prompt2',
-            promptText: 'Draw Eggert',
-            captionedImages: [
-              {
-                id: '3',
-                imageUrl: '/garlicTextNoBackground.png',
-                caption: 'jolly CS nerd',
-                authorName: 'Player 3'
-              },
-              {
-                id: '4',
-                imageUrl: '/garlicTextNoBackground.png',
-                caption: 'david smallberg',
-                authorName: 'Player 4'
-              }
-            ]
-          },
-          {
-            promptId: 'prompt3',
-            promptText: 'Draw CS 35L student',
-            captionedImages: [
-              {
-                id: '5',
-                imageUrl: '/garlicTextNoBackground.png',
-                caption: 'depressed person',
-                authorName: 'Player 5'
-              },
-              {
-                id: '6',
-                imageUrl: '/garlicTextNoBackground.png',
-                caption: 'sleep deprivation',
-                authorName: 'Player 6'
-              },
-              {
-                id: '7',
-                imageUrl: '/garlicTextNoBackground.png',
-                caption: 'musty CS majors',
-                authorName: 'Player 7'
-              }
-            ]
-          }
-        ];
-        
-        setPromptGroups(mockPromptGroups);
-      } catch (error) {
-        console.error('Error fetching prompt groups:', error);
-      }
-    };
-    
-    fetchPromptGroups();
-  }, []);
-  
-  // Format time as MM:SS
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-  };
-  
-  const handleSelectImage = (imageId: string) => {
-    setSelectedImageId(imageId);
-  };
   
   const handleSubmit = async () => {
     if (isSubmitting) return;
@@ -136,105 +91,130 @@ export default function VotingPage() {
     setIsSubmitting(true);
     
     try {
-      if (selectedImageId) {
+      {/*if (selectedImageId) {
         // Mock submission
         console.log(`Voted for image: ${selectedImageId}`);
         
         if (dbService && currentUser) {
           // Example API call if dbService is available
-          /*
+          
           await dbService.submitVote({
             userId: currentUser.uid,
             imageId: selectedImageId,
             gameId: 'current-game-id' // You would get this from context or params
           });
-          */
+          
           console.log('Vote recorded in database');
         } else {
           console.log('Mock submission - would save vote to database');
-        }
+        } */}
+      // Submit the rating for the current image
+      console.log(`Rating for image ${images[currentIndex].id}: ${rating}`);
+      
+      // If there are more images to vote on
+      if (currentIndex < images.length - 1) {
+        setCurrentIndex(prev => prev + 1);
+        setTimeLeft(10);
+        setRating(50);
+        setProgress(0);
+        setIsSubmitting(false);
       } else {
-        // If time ran out and no selection was made
-        console.log('No selection made, skipping vote');
+        // All images have been voted on
+        setTimeout(() => {
+          navigate('/game/results');
+        }, 1500);
       }
-      
-      // Navigate to results or next phase
-      setTimeout(() => {
-        navigate('/game/lobby'); // Fix this after result page is done
-      }, 1500);
-      
     } catch (error) {
       console.error('Error submitting vote:', error);
       setIsSubmitting(false);
     }
   };
   
+  const currentImage = images[currentIndex];
+  
+  if (!currentImage) {
+    return <div>Loading...</div>;
+  }
+  
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#9B5DE5] to-[#F15BB5] via-[#00BBF9]">
       <NavBar />
       
-      <div className="container mx-auto px-4 py-6 flex-grow">
-        <div className="bg-white rounded-xl shadow-2xl p-8 mb-6 overflow-y-auto max-h-[calc(100vh-12rem)]">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold text-[#9B5DE5]">Vote for Your Favorite!</h1>
-            <div className={`text-2xl font-bold ${timeLeft <= 10 ? 'text-red-500 animate-pulse' : 'text-[#9B5DE5]'}`}>
-              {formatTime(timeLeft)}
+      <div className="container mx-auto px-4 py-6 flex-grow flex items-center justify-center">
+        <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-2xl">
+          {/* Progress bar */}
+          <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
+            <div 
+              className="bg-[#00BBF9] h-2 rounded-full transition-all duration-1000"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          
+          {/* Timer */}
+          <div className="text-center mb-6">
+            <div className={`text-3xl font-bold ${timeLeft <= 3 ? 'text-red-500 animate-pulse' : 'text-[#9B5DE5]'}`}>
+              {timeLeft}s
             </div>
           </div>
           
-          <p className="text-gray-600 mb-8">
-            Choose your favorite captioned drawing by clicking on it. Your vote will help determine the winner!
-          </p>
-          
-          <div className="space-y-10">
-            {promptGroups.map((promptGroup) => (
-              <div key={promptGroup.promptId} className="border rounded-xl p-6 bg-gray-50">
-                <h2 className="text-xl font-bold text-[#9B5DE5] mb-3">{promptGroup.promptText}</h2>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {promptGroup.captionedImages.map((image) => (
-                    <div 
-                      key={image.id}
-                      onClick={() => handleSelectImage(image.id)}
-                      className={`border-4 rounded-lg cursor-pointer transition overflow-hidden h-full flex flex-col ${
-                        selectedImageId === image.id 
-                          ? 'border-[#00BBF9] shadow-lg transform scale-102' 
-                          : 'border-transparent hover:border-gray-300'
-                      }`}
-                    >
-                      <div className="aspect-square bg-gray-100 relative flex-shrink-0">
-                        <img 
-                          src={image.imageUrl} 
-                          alt={`Captioned by ${image.authorName}`}
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                      
-                      <div className="p-4 bg-gray-800 text-white flex-grow flex flex-col">
-                        <p className="text-lg font-medium mb-1 flex-grow line-clamp-3">{image.caption}</p>
-                        <p className="text-sm text-gray-400 mt-auto">Captioned by: {image.authorName}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
+          {/* Prompt */}
+          <div className="text-center mb-6">
+            <h2 className="text-xl font-bold text-[#9B5DE5]">Prompt:</h2>
+            <p className="text-gray-700">{currentImage.promptText}</p>
           </div>
           
-          <div className="mt-8 text-center">
+          {/* Image */}
+          <div className="flex justify-center items-center mb-6">
+            <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden max-h-[300px] w-[300px]">
+              <img 
+                src={currentImage.imageUrl} 
+                alt={`Drawing by ${currentImage.authorName}`}
+                className="w-full h-full object-contain"
+              />
+            </div>
+          </div>
+          
+          {/* Caption */}
+          <div className="bg-gray-200 rounded-lg p-4 mb-6">
+            <p className="text-lg font-medium text-center text-[#9B5DE5]">{currentImage.caption}</p>
+            <p className="text-sm text-gray-600 text-center mt-2">By: {currentImage.authorName}</p>
+          </div>
+          
+          {/* Rating Slider */}
+          <div className="mb-8">
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={rating}
+              onChange={(e) => setRating(parseInt(e.target.value))}
+              className="w-full h-4 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#9B5DE5]"
+            />
+            <div className="flex justify-between mt-2 text-sm font-bold">
+              <span className="text-red-500">💩 Poop</span>
+              <span className="text-yellow-500">😐 Meh</span>
+              <span className="text-green-500">🌟 Legendary</span>
+            </div>
+          </div>
+          
+          {/* Submit Button */}
+          <div className="text-center">
             <button
               onClick={handleSubmit}
               disabled={isSubmitting}
               className={`px-8 py-3 rounded-lg font-bold text-xl transition ${
                 isSubmitting 
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                  : selectedImageId 
-                    ? 'bg-gradient-to-r from-[#9B5DE5] to-[#F15BB5] text-white hover:opacity-90' 
-                    : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                  : 'bg-gradient-to-r from-[#9B5DE5] to-[#F15BB5] text-white hover:opacity-90'
               }`}
             >
-              {isSubmitting ? 'Submitting...' : selectedImageId ? 'Submit Vote' : 'Skip Voting'}
+              {isSubmitting ? 'Submitting...' : 'Submit Rating'}
             </button>
+          </div>
+          
+          {/* Progress indicator */}
+          <div className="text-center mt-4 text-gray-600">
+            {currentIndex + 1} of {images.length} drawings voted
           </div>
         </div>
       </div>

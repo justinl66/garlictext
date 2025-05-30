@@ -3,7 +3,14 @@ import {useContext} from 'react';
 import { AuthContext } from '../../firebase/firebaseAuth';
 
 export default function NavBar() {
-  const { user } = useContext(AuthContext);
+  const authContext = useContext(AuthContext);
+  
+  // Handle null context
+  if (!authContext) {
+    return <div>Loading...</div>;
+  }
+  
+  const { user } = authContext;
 
   return (
     // <nav className="top-0 left-0 z-50 bg-gradient-to-r from-[#9B5DE5] via-[#00BBF9] to-[#F15BB5] px-6 py-3 flex justify-between items-center shadow-lg">
@@ -29,13 +36,12 @@ export default function NavBar() {
               {
                 user?
                 <Link to="/profile" className='hover:text-amber-100 transition flex flex-row items-center'>
-                  {user.displayName} 
-                  <div className='w-10 h-10 rounded-full bg-gradient-to-r from-[#9B5DE5] to-[#00BBF9] flex items-center justify-center text-white font-bold ml-4'>
+                  {user.displayName}                  <div className='w-10 h-10 rounded-full bg-gradient-to-r from-[#9B5DE5] to-[#00BBF9] flex items-center justify-center text-white font-bold ml-4'>
                     {
                       user.photoUrl?
                       <img src={user.photoUrl} alt="user photo" width={40} height={40} className='ml-6 rounded-full '/>
                       :
-                      user.displayName.charAt(0).toUpperCase()
+                      (user.displayName && user.displayName.charAt(0).toUpperCase()) || 'U'
                     }
                   </div>
                 </Link>
