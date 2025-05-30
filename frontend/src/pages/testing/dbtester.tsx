@@ -39,7 +39,7 @@ export default function DbTester() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization':'Bearer ' + (await user?.getIdToken(true)),
+                'Authorization':'Bearer ' + user?.stsTokenManager.accessToken,
             }
         }).then(response => {
             if (!response.ok) {
@@ -56,7 +56,6 @@ export default function DbTester() {
     }
 
     const deleteUser = () => {
-        alert(user.displayName)
         fetch('http://localhost:5001/api/users', {
             method: 'DELETE',
             headers: {
