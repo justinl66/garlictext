@@ -6,10 +6,7 @@ module.exports = app => {
   router.post("/", authentication.authenticateFirebaseToken, users.create);
 
   router.get("/", authentication.authenticateFirebaseToken, users.findAll);
-
   router.get("/:id", users.findOne);
-
-  router.get("/firebase/:firebaseUid", users.findByFirebaseUid);
 
   router.put("/", authentication.authenticateFirebaseToken, users.update);
 

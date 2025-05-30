@@ -12,9 +12,9 @@ exports.create = async (req, res) => {
     }
     // console.log(`Creating user with name: ${req.user.name}, email: ${req.user.email}, uid: ${req.user.uid}`);
     const user = {
+      id: req.user.uid,  // Firebase UID as primary key
       username: req.user.name,
       email: req.user.email,
-      id: req.user.uid,
       profilePictureUrl: null,
     };
 
@@ -73,34 +73,7 @@ exports.findOne = async (req, res) => {
   }
 };
 
-exports.findByFirebaseUid = async (req, res) => {
-  const firebaseUid = req.params.firebaseUid;
 
-  try {
-    const data = await User.findOne({ 
-      where: { firebaseUid },
-      include: [
-        {
-          model: Game,
-          as: 'games',
-          through: { attributes: [] }
-        }
-      ] 
-    });
-    
-    if (data) {
-      res.send(data);
-    } else {
-      res.status(404).send({
-        message: `User with firebaseUid=${firebaseUid} was not found.`
-      });
-    }
-  } catch (err) {
-    res.status(500).send({
-      message: `Error retrieving User with firebaseUid=${firebaseUid}: ${err.message}`
-    });
-  }
-};
 
 exports.update = async (req, res) => {
   const id = req.params.id;
