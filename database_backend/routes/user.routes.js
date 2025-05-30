@@ -11,9 +11,9 @@ module.exports = app => {
 
   router.get("/firebase/:firebaseUid", users.findByFirebaseUid);
 
-  router.put("/:id", authentication.authenticateFirebaseToken, users.update);
+  router.put("/", authentication.authenticateFirebaseToken, users.update);
 
-  router.delete("/:id", authentication.authenticateFirebaseToken, users.delete);
+  router.delete("/", authentication.authenticateFirebaseToken, users.delete);
   
   app.use("/api/users", router);
 };

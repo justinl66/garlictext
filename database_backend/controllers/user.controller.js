@@ -5,22 +5,24 @@ const { Op } = db.Sequelize;
 
 exports.create = async (req, res) => {
   try {
-    if (!req.body.username || !req.body.email || !req.body.firebaseUid) {
-      console.log(req.body.username);
+    if (!req.user.name || !req.user.email || !req.user.uid) {
       return res.status(400).send({
         message: "Content can't be empty!"
       });
     }
-
+    // console.log(`Creating user with name: ${req.user.name}, email: ${req.user.email}, uid: ${req.user.uid}`);
     const user = {
-      username: req.body.username,
-      email: req.body.email,
-      firebaseUid: req.body.firebaseUid,
-      profilePictureUrl: req.body.profilePictureUrl || null
+      username: req.user.name,
+      email: req.user.email,
+      id: req.user.uid,
+      profilePictureUrl: null,
     };
+
     const data = await User.create(user);
+    
     res.status(201).send(data);
   } catch (err) {
+    console.log(`Error creating user: ${err.message}`);
     if (err.name === 'SequelizeUniqueConstraintError') {
       return res.status(400).send({
         message: "User with this email or username already exists."
@@ -125,9 +127,9 @@ exports.update = async (req, res) => {
 };
 
 exports.delete = async (req, res) => {
-  const id = req.params.id;
-
+  const id = req.user.uid;
   try {
+    console.log(`Deleting user with id: ${id}`);
     const num = await User.destroy({
       where: { id }
     });

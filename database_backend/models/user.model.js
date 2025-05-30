@@ -1,8 +1,9 @@
 module.exports = (sequelize, DataTypes) => {
   const User = sequelize.define('user', {
     id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
       primaryKey: true
     },
     username: {
@@ -18,13 +19,10 @@ module.exports = (sequelize, DataTypes) => {
         isEmail: true
       }
     },
-    firebaseUid: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true
-    },
     profilePictureUrl: {
-      type: DataTypes.STRING
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: null
     },
     score: {
       type: DataTypes.INTEGER,
