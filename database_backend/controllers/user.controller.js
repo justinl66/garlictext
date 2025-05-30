@@ -6,6 +6,7 @@ const { Op } = db.Sequelize;
 exports.create = async (req, res) => {
   try {
     if (!req.body.username || !req.body.email || !req.body.firebaseUid) {
+      console.log(req.body.username);
       return res.status(400).send({
         message: "Content can't be empty!"
       });
