@@ -34,6 +34,11 @@ exports.findByImageId = async (req, res) => {
           model: User,
           as: 'user',
           attributes: ['id', 'username', 'profilePictureUrl']
+        },
+        {
+          model: Prompt,
+          as: 'promptData',
+          attributes: ['id', 'text']
         }
       ]
     });
@@ -56,6 +61,11 @@ exports.findByRoundId = async (req, res) => {
           model: User,
           as: 'user',
           attributes: ['id', 'username', 'profilePictureUrl']
+        },
+        {
+          model: Prompt,
+          as: 'promptData',
+          attributes: ['id', 'text']
         },
         {
           model: Image,
@@ -107,6 +117,11 @@ exports.findOne = async (req, res) => {
           model: User,
           as: 'user',
           attributes: ['id', 'username', 'profilePictureUrl']
+        },
+        {
+          model: Prompt,
+          as: 'promptData',
+          attributes: ['id', 'text']
         },
         {
           model: Image,
