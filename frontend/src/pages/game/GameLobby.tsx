@@ -62,7 +62,6 @@ export default function GameLobby() {
   const startGame = () => {
     setIsStarting(true);
     setTimeout(() => {
-      // Navigate to the prompt page first instead of directly to gameplay
       navigate('/game/prompts');
     }, 2000);
   };

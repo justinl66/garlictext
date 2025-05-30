@@ -61,6 +61,7 @@ db.Game = require('./game.model')(sequelize, Sequelize);
 db.Image = require('./image.model')(sequelize, Sequelize);
 db.Caption = require('./caption.model')(sequelize, Sequelize);
 db.GameRound = require('./gameRound.model')(sequelize, Sequelize);
+db.Prompt = require('./prompt.model')(sequelize, Sequelize);
 db.User.hasMany(db.Image, { as: 'images', foreignKey: 'userId' });
 db.Image.belongsTo(db.User, { as: 'user', foreignKey: 'userId' });
 
@@ -81,5 +82,19 @@ db.Image.belongsTo(db.GameRound, { as: 'round', foreignKey: 'roundId' });
 
 db.GameRound.hasMany(db.Caption, { as: 'captions', foreignKey: 'roundId' });
 db.Caption.belongsTo(db.GameRound, { as: 'round', foreignKey: 'roundId' });
+
+// Prompt associations
+db.User.hasMany(db.Prompt, { as: 'createdPrompts', foreignKey: 'creatorId' });
+db.Prompt.belongsTo(db.User, { as: 'creator', foreignKey: 'creatorId' });
+
+db.User.hasMany(db.Prompt, { as: 'assignedPrompts', foreignKey: 'assignedToId' });
+db.Prompt.belongsTo(db.User, { as: 'assignedTo', foreignKey: 'assignedToId' });
+
+db.GameRound.hasMany(db.Prompt, { as: 'prompts', foreignKey: 'roundId' });
+db.Prompt.belongsTo(db.GameRound, { as: 'round', foreignKey: 'roundId' });
+
+// Image to Prompt association (an image is created based on a prompt)
+db.Prompt.hasMany(db.Image, { as: 'images', foreignKey: 'promptId' });
+db.Image.belongsTo(db.Prompt, { as: 'prompt', foreignKey: 'promptId' });
 
 module.exports = db;
