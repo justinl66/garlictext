@@ -1,61 +1,51 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import NavBar from '../General/NavBar';
-
-interface Player {
-  id: string;
-  name: string;
-  avatar?: string;
-  isReady: boolean;
-}
+import {ServerContext} from '../../services/serverContext';
+import { AuthContext } from '../../firebase/firebaseAuth';
+import { Player } from '../../interfaces';
 
 export default function GameLobby() {
   const { roomId } = useParams();
   const navigate = useNavigate();
-  const [roomCode, setRoomCode] = useState<string>(roomId || '');
-  const [isCreator, setIsCreator] = useState<boolean>(roomId ? false : true);
-  const [players, setPlayers] = useState<Player[]>([
-    { id: '1', name: 'You', avatar: '/garlicTextNoBackground.png', isReady: true },
-    { id: '2', name: 'Waiting for player...', isReady: false },
-    { id: '3', name: 'Waiting for player...', isReady: false },
-    { id: '4', name: 'Waiting for player...', isReady: false },
-  ]);
-  const [gameSettings, setGameSettings] = useState({
-    rounds: 3,
-    drawingTime: 60,
-    writingTime: 60,
-  });
+
+  const {creator, players, gameSettings, setGameSettings, updateFromServer} = useContext(ServerContext);
+  const {user} = useContext(AuthContext);
+
+  // const [roomCode, setRoomCode] = useState<string>(roomId || '');
+  // const [isCreator, setIsCreator] = useState<boolean>(roomId ? false : true);
+  // const [players, setPlayers] = useState<Player[]>([
+
+  // ]);
+  // const [gameSettings, setGameSettings] = useState({
+  //   rounds: 3,
+  //   drawingTime: 60,
+  //   writingTime: 60,
+  // });
   const [copied, setCopied] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   useEffect(() => {
     if (!roomId) {
-      const generatedCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-      setRoomCode(generatedCode);
+      navigate('/'); // Redirect to home if no roomId
     }
-    const playerJoinInterval = setInterval(() => {
-      setPlayers(currentPlayers => {
-        const emptySlotIndex = currentPlayers.findIndex(p => p.name.includes('Waiting'));
-        if (emptySlotIndex === -1) return currentPlayers;
 
-        const names = ['Alex', 'Taylor', 'Jordan', 'Riley', 'Casey', 'Morgan'];
-        const randomName = names[Math.floor(Math.random() * names.length)];
-        
-        const newPlayers = [...currentPlayers];
-        newPlayers[emptySlotIndex] = {
-          id: `player-${Date.now()}`,
-          name: randomName,
-          isReady: true
-        };
-        
-        return newPlayers;
-      });
+
+    const pingServer = setInterval(() => {
+      if (roomId) { 
+        updateFromServer(roomId);
+      }
     }, 3000);
 
-    return () => clearInterval(playerJoinInterval);
+    return () => clearInterval(pingServer);
   }, [roomId]);
 
+  useEffect(() => {
+    if (!roomId) return;
+    
+  }, [gameSettings]);
+
   const copyRoomCode = () => {
-    navigator.clipboard.writeText(roomCode);
+    navigator.clipboard.writeText(roomId  || '');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -65,7 +55,9 @@ export default function GameLobby() {
       navigate('/game/prompts');
     }, 2000);
   };
-  const canStart = players.filter(p => p.isReady).length >= 2 && isCreator;
+  // const canStart = players.filter(p => p.isReady).length >= 2 && isCreator;
+  const isCreator = creator == user?.uid;
+  const canStart = isCreator;
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-gradient-to-br from-[#9B5DE5] to-[#F15BB5] via-[#00BBF9]">
@@ -84,7 +76,7 @@ export default function GameLobby() {
               <div className="mt-4 md:mt-0 bg-gray-100 p-4 rounded-lg flex items-center shadow-md">
               <div>
                 <p className="text-sm text-gray-600 font-medium">Room Code:</p>
-                <p className="text-2xl font-mono font-bold text-gray-800">{roomCode}</p>
+                <p className="text-2xl font-mono font-bold text-gray-800">{roomId}</p>
               </div>
               <button 
                 onClick={copyRoomCode}
@@ -98,7 +90,7 @@ export default function GameLobby() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
             <div>              <h3 className="text-xl font-semibold mb-4 text-[#9B5DE5]">Players</h3>
               <div className="space-y-3">
-                {players.map((player) => (
+                {players.map((player:Player) => (
                 <div key={player.id} className="flex items-center p-3 bg-gray-50 rounded-lg">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#9B5DE5] to-[#00BBF9] flex items-center justify-center text-white font-bold">
                       {player.avatar ? (

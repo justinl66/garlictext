@@ -15,7 +15,7 @@ const generateGameCode = async () => {
       code += chars.charAt(Math.floor(Math.random() * chars.length));
     }
 
-    const existingGame = await Game.findOne({ where: { code } });
+    const existingGame = await Game.findByPk(code);
     if (!existingGame) {
       isUnique = true;
     }
@@ -24,22 +24,25 @@ const generateGameCode = async () => {
   return code;
 };
 exports.create = async (req, res) => {
+  // console.log("Creating game with request body:", req.body);
   try {   
     if(!req.user.uid){
       return res.status(401).send({
         message: "Unauthorized! Please log in."
       });
     }
+
     if (!req.body.name) {
       return res.status(400).send({
         message: "Host ID and game name are required!"
       });
-    }    const code = await generateGameCode();
-
+    }    
+    const code = await generateGameCode();
+    console.log("Generated game code:" , req.user.uid);
     const game = {
       id: code,
       name: req.body.name,
-      hostId: req.user.hostId,
+      hostId: req.user.uid,
       maxPlayers: req.body.maxPlayers || 8,
       totalRounds: req.body.totalRounds || 3
     };    const createdGame = await Game.create(game);
@@ -49,13 +52,45 @@ exports.create = async (req, res) => {
       await createdGame.addParticipant(host);
     }
 
-    res.status(201).send(createdGame);
+    res.status(201).send({
+      code:code
+    });
   } catch (err) {
+    console.error("Error creating game:", err.message);
     res.status(500).send({
       message: err.message || "Some error occurred while creating the Game."
     });
   }
 };
+
+exports.update = async (req, res) => {
+  try {
+    const gameId = req.params.id;
+    const game = await Game.findByPk(gameId);
+    if (!game) {
+      return res.status(404).send({
+        message: `Game with ID ${gameId} not found.`
+      });
+    }
+    if(game.hostId !== req.user.uid) {
+      return res.status(403).send({
+        message: "Only the host can update the game."
+      });
+    }   
+     if (req.body.maxPlayers) {
+      game.maxPlayers = req.body.maxPlayers;
+    }   
+     if (req.body.totalRounds) {
+      game.totalRounds = req.body.totalRounds;
+    }   
+    await game.save();
+  } catch (err) {
+    res.status(500).send({
+      message: err.message || "Some error occurred while updating the Game."
+    });
+  }
+
+}
 
 exports.joinGame = async (req, res) => {
   try {
