@@ -49,7 +49,7 @@ export default function HomePage() {
             
             <div className="w-full flex flex-col items-center justify-center flex-grow py-10">
                 <div className="flex flex-row justify-center items-center mb-6">
-                    <h2 className="text-6xl font-sans font-bold text-[#FEE440] text-shadow-lg">Garlic Text</h2>
+                    <h2 className="text-6xl font-sans font-bold text-[#FEE440] text-shadow-lg">GarlicText</h2>
                     <img src={"/garlicTextNoBackground.png"} alt="garlicTextIcon" width={80} height={80} className="animate-[--custom-bounce_0.65s_ease-in-out_infinite] ml-3"/>
                 </div>
                 
@@ -62,13 +62,12 @@ export default function HomePage() {
                     
                     <div className="space-y-5 relative z-10">
                         <div>
-                            <label className="block text-gray-700 font-medium mb-2">Room Name</label>
-                            <input 
+                            <label className="block text-gray-700 font-medium mb-2">Room Name</label>                            <input 
                                 type="text"
                                 value={roomName}
                                 onChange={(e) => setRoomName(e.target.value)}
                                 placeholder="Enter a room name..."
-                                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9]"
+                                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9] text-gray-900"
                             />
                         </div>
                         
@@ -80,7 +79,7 @@ export default function HomePage() {
                                     value={playerName}
                                     onChange={(e) => setPlayerName(e.target.value)}
                                     placeholder="Enter your name..."
-                                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9]"
+                                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9] text-gray-900"
                                 />
                             </div>
                         )}
@@ -115,15 +114,14 @@ export default function HomePage() {
                             
                             <h3 className="text-2xl font-bold text-[#9B5DE5] mb-4">Join a Game</h3>
                             
-                            <div className="space-y-4">
-                                <div>
+                            <div className="space-y-4">                                <div>
                                     <label className="block text-gray-700 font-medium mb-2">Room Code</label>
                                     <input 
                                         type="text"
                                         value={joinCode}
                                         onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                                         placeholder="Enter room code..."
-                                        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9]"
+                                        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9] text-gray-900"
                                         maxLength={6}
                                     />
                                 </div>
@@ -136,7 +134,7 @@ export default function HomePage() {
                                             value={playerName}
                                             onChange={(e) => setPlayerName(e.target.value)}
                                             placeholder="Enter your name..."
-                                            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9]"
+                                            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9] text-gray-900"
                                         />
                                     </div>
                                 )}

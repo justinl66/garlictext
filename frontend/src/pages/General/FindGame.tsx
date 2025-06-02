@@ -31,13 +31,12 @@ export default function FindGame() {
             
             <div className="space-y-6">
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Enter Game Code</label>
-                <input 
+                <label className="block text-gray-700 font-medium mb-2">Enter Game Code</label>                <input 
                   type="text"
                   value={joinCode}
                   onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                   placeholder="Enter 6-character code..."
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9] text-center font-mono text-lg"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9] text-center font-mono text-lg text-gray-900"
                   maxLength={6}
                   disabled={isJoining}
                 />

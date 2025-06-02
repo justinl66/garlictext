@@ -1,4 +1,4 @@
-# Garlic Text
+# GarlicText
 ### A stupid game for stupid people
 
 ## Project Overview

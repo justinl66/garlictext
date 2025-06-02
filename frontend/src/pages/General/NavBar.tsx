@@ -11,24 +11,10 @@ export default function NavBar() {
   }
   
   const { user } = authContext;
-
   return (
-    // <nav className="top-0 left-0 z-50 bg-gradient-to-r from-[#9B5DE5] via-[#00BBF9] to-[#F15BB5] px-6 py-3 flex justify-between items-center shadow-lg">
-      
-    //   <div className="flex items-center">
-    //     <Link to="/" className="text-white font-bold text-xl hover:text-[#FEE440] transition">
-    //       garlictext
-    //     </Link>
-    //   </div>
-
-    //   <div className="flex space-x-6 items-center text-white font-sans font-semibold text-sm">
-    //     <Link to="/Login" className="hover:text-[#FEE440] transition">Login</Link>
-    //     <Link to="/signup" className="hover:text-[#FEE440] transition">Signup</Link>
-    //   </div>
-    // </nav>
     <div className='w-full bg-transparent px-5'>
       <nav className='self-center w-full mt-3 bg-white/20 backdrop-blur-md shadow-sm z-50 py-3.5 px-10 flex flex-row items-center rounded-2xl'>
-          <p className='text-amber-50 font-medium font-sans text-3xl '>Garlic Text</p>
+          <Link to="/" className='text-amber-50 font-medium font-sans text-3xl hover:text-amber-100 transition cursor-pointer'>GarlicText</Link>
           <div className='flex flex-row ml-auto space-x-10 items-center text-amber-50 font-sans font-semibold text-lg mr-5'>
               <Link to="/" className='hover:text-amber-100 transition'>Home</Link>
               <Link to="/findGame" className='hover:text-amber-100 transition'>Find Game</Link>

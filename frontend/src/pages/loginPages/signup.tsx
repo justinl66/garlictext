@@ -100,22 +100,23 @@ export default function SignUpPage() {
                     <>
                         <div className="w-full flex flex-row flex-wrap mt-7 justify-center gap-x-10 gap-y-4">
                         <div className="w-full max-w-80 flex flex-col">
-                            <label htmlFor="name" className="text-black text-lg font-sans font-semibold">Username</label>                            <input value={username} onChange={(e)=>setUsername(e.target.value)} onKeyDown={(e)=>{if(e.key === "Enter" && !e.ctrlKey){e.preventDefault(); emailRef.current?.focus()}}} type="text" id="name" className={`w-full h-10 border-2 ${error == ''? 'border-gray-300 focus:border-[#00F5D4]': 'border-red-500'} rounded-md mt-2 px-2 transition duration-200 focus:outline-hidden  text-black`}/>
+                            <label htmlFor="name" className="text-black text-lg font-sans font-semibold">Username</label>
+                            <input value={username} onChange={(e)=>setUsername(e.target.value)} onKeyDown={(e)=>{if(e.key === "Enter" && !e.ctrlKey){e.preventDefault(); emailRef.current?.focus()}}} type="text" id="name" className={`w-full h-10 border-2 ${error == ''? 'border-gray-300 focus:border-[#00F5D4]': 'border-red-500'} rounded-md mt-2 px-2 transition duration-200 focus:outline-hidden text-gray-900`}/>
                         </div>
 
                         <div className="w-full max-w-80 flex flex-col">
                             <label htmlFor="email" className="text-black text-lg font-sans font-semibold">Email</label>
-                            <input ref={emailRef} value={email} onChange={(e)=>setEmail(e.target.value)} onKeyDown={(e)=>{if(e.key === "Enter" && !e.ctrlKey){e.preventDefault(); passwordRef.current?.focus()}}} type="email" id="email" className={`w-full h-10 border-2 ${error == ''? 'border-gray-300 focus:border-[#00F5D4]': 'border-red-500'} rounded-md mt-2 px-2 transition duration-200 focus:outline-hidden  text-black`}/>
+                            <input ref={emailRef} value={email} onChange={(e)=>setEmail(e.target.value)} onKeyDown={(e)=>{if(e.key === "Enter" && !e.ctrlKey){e.preventDefault(); passwordRef.current?.focus()}}} type="email" id="email" className={`w-full h-10 border-2 ${error == ''? 'border-gray-300 focus:border-[#00F5D4]': 'border-red-500'} rounded-md mt-2 px-2 transition duration-200 focus:outline-hidden text-gray-900`}/>
                         </div>
 
                         <div className="w-full max-w-80 flex flex-col">
                             <label htmlFor="password" className="text-black text-lg font-sans font-semibold ">Password</label>
-                            <input ref={passwordRef} value={password} onChange={(e)=>setPassword(e.target.value)} onKeyDown={(e)=>{if(e.key === "Enter" && !e.ctrlKey){e.preventDefault(); confirmPasswordRef.current?.focus()}}} type="password" id="password" className={`w-full h-10 border-2 ${error == ''? 'border-gray-300 focus:border-[#00F5D4]': 'border-red-500'} rounded-md mt-2 px-2 transition duration-200 focus:outline-hidden  text-black`}/>
+                            <input ref={passwordRef} value={password} onChange={(e)=>setPassword(e.target.value)} onKeyDown={(e)=>{if(e.key === "Enter" && !e.ctrlKey){e.preventDefault(); confirmPasswordRef.current?.focus()}}} type="password" id="password" className={`w-full h-10 border-2 ${error == ''? 'border-gray-300 focus:border-[#00F5D4]': 'border-red-500'} rounded-md mt-2 px-2 transition duration-200 focus:outline-hidden text-gray-900`}/>
                         </div>
 
                         <div className="w-full max-w-80 flex flex-col">
                             <label htmlFor="confPassword" className="text-black text-lg font-sans font-semibold">Confirm Password</label>
-                            <input ref={confirmPasswordRef} value={confirmPassword} onChange={(e)=>setConfirmPassword(e.target.value)} onKeyDown={(e)=>{if(e.key === "Enter" && !e.ctrlKey){e.preventDefault(); handleSignup()}}} type="password" id="confPassword" className={`w-full h-10 border-2 ${error == ''? 'border-gray-300 focus:border-[#00F5D4]': 'border-red-500'} rounded-md mt-2 px-2 transition duration-200 focus:outline-hidden  text-black`}/>
+                            <input ref={confirmPasswordRef} value={confirmPassword} onChange={(e)=>setConfirmPassword(e.target.value)} onKeyDown={(e)=>{if(e.key === "Enter" && !e.ctrlKey){e.preventDefault(); handleSignup()}}} type="password" id="confPassword" className={`w-full h-10 border-2 ${error == ''? 'border-gray-300 focus:border-[#00F5D4]': 'border-red-500'} rounded-md mt-2 px-2 transition duration-200 focus:outline-hidden text-gray-900`}/>
                         </div>
                     </div>
                     <p className="text-red-500 text-sm font-sans font-semibold mt-3">{error}</p>

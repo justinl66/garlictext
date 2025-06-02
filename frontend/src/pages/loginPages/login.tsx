@@ -62,9 +62,10 @@ export default function LoginPage() {
                 :
                 <>
                     <div className="w-full flex flex-col mt-7">
-                        <label htmlFor="email" className="text-black text-lg font-sans font-semibold">Email</label>                        <input value={email} onChange={(e)=>setEmail(e.target.value)} onKeyDown={(e)=>{if(e.key === "Enter" && !e.ctrlKey){e.preventDefault(); passwordRef.current?.focus()}}} type="email" id="email" className={`w-full h-10 border-2 ${error == ''? 'border-gray-300 focus:border-[#00F5D4]': 'border-red-500'} rounded-md mt-2 px-2 transition duration-200 focus:outline-hidden  text-black`}/>
+                        <label htmlFor="email" className="text-black text-lg font-sans font-semibold">Email</label>
+                        <input value={email} onChange={(e)=>setEmail(e.target.value)} onKeyDown={(e)=>{if(e.key === "Enter" && !e.ctrlKey){e.preventDefault(); passwordRef.current?.focus()}}} type="email" id="email" className={`w-full h-10 border-2 ${error == ''? 'border-gray-300 focus:border-[#00F5D4]': 'border-red-500'} rounded-md mt-2 px-2 transition duration-200 focus:outline-hidden text-gray-900`}/>
                         <label htmlFor="password" className="text-black text-lg font-sans font-semibold mt-4">Password</label>
-                        <input ref={passwordRef} value={password} onChange={(e)=>setPassword(e.target.value)} onKeyDown={(e)=>{if(e.key === "Enter" && !e.ctrlKey){e.preventDefault(); handleLogin()}}} type="password" id="password" className={`w-full h-10 border-2 ${error == ''? 'border-gray-300 focus:border-[#00F5D4]': 'border-red-500'} rounded-md mt-2 px-2 transition duration-200 focus:outline-hidden  text-black`}/>
+                        <input ref={passwordRef} value={password} onChange={(e)=>setPassword(e.target.value)} onKeyDown={(e)=>{if(e.key === "Enter" && !e.ctrlKey){e.preventDefault(); handleLogin()}}} type="password" id="password" className={`w-full h-10 border-2 ${error == ''? 'border-gray-300 focus:border-[#00F5D4]': 'border-red-500'} rounded-md mt-2 px-2 transition duration-200 focus:outline-hidden text-gray-900`}/>
                         <p className="text-red-500 text-sm font-sans font-semibold mt-1">{error}</p>
                         <button onClick={()=>navigate('../resetPassword')} className="text-black text-sm font-sans font-semibold mt-2">Forgot your password? <span className="text-[#00CCB1] cursor-pointer">Reset it</span></button>
                     </div>
