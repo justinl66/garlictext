@@ -41,7 +41,7 @@ export default function HomePage() {
             
             <div className="w-full flex flex-col items-center justify-center flex-grow py-10">
                 <div className="flex flex-row justify-center items-center mb-6">
-                    <h2 className="text-6xl font-sans font-bold text-[#FEE440] text-shadow-lg">Garlic Text</h2>
+                    <h2 className="text-6xl font-sans font-bold text-[#FEE440] text-shadow-lg">GarlicText</h2>
                     <img src={"/garlicTextNoBackground.png"} alt="garlicTextIcon" width={80} height={80} className="animate-[--custom-bounce_0.65s_ease-in-out_infinite] ml-3"/>
                 </div>
                 
