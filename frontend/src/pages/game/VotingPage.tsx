@@ -17,19 +17,15 @@ export default function VotingPage() {
   const navigate = useNavigate();
   const authContext = useContext(AuthContext);
   const currentUser = authContext?.currentUser;
-  
-  const [images, setImages] = useState<CaptionedImage[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [rating, setRating] = useState(60); // Default middle value (decent)
-  const [timeLeft, setTimeLeft] = useState(10); // 10 seconds per image
+    const [images, setImages] = useState<CaptionedImage[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);  const [rating, setRating] = useState(60);
+  const [timeLeft, setTimeLeft] = useState(10);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [progress, setProgress] = useState(0);
   
   // Load images when component mounts
   useEffect(() => {
-    const fetchImages = async () => {
-      try {
-        // Placeholder data - replace with actual API call
+    const fetchImages = async () => {      try {
         const mockImages = [
           {
             id: '1',
@@ -66,60 +62,44 @@ export default function VotingPage() {
         console.error('Error fetching images:', error);
       }
     };
+      fetchImages();
+  }, []);  useEffect(() => {
+    if (isSubmitting) return;
     
-    fetchImages();
-  }, []);
-  
-  // Timer countdown for each image
-  useEffect(() => {
-    if (timeLeft <= 0) {
-      handleSubmit();
-      return;
-    }
+    const duration = 10000;
+    const interval = 100;
+    let elapsed = 0;
     
-    const timer = setTimeout(() => {
-      setTimeLeft(prev => prev - 1);
-      setProgress((10 - timeLeft) / 10 * 100);
-    }, 1000);
+    const timer = setInterval(() => {
+      elapsed += interval;
+      const remaining = Math.max(0, duration - elapsed);
+      const seconds = Math.ceil(remaining / 1000);
+      const progressPercent = (elapsed / duration) * 100;
+      
+      setTimeLeft(seconds);
+      setProgress(Math.min(progressPercent, 100));
+      
+      if (remaining <= 0) {
+        clearInterval(timer);
+        handleSubmit();
+      }
+    }, interval);
     
-    return () => clearTimeout(timer);
-  }, [timeLeft]);
+    return () => clearInterval(timer);
+  }, [currentIndex, isSubmitting]);
   
   const handleSubmit = async () => {
     if (isSubmitting) return;
     
     setIsSubmitting(true);
-    
-    try {
-      {/*if (selectedImageId) {
-        // Mock submission
-        console.log(`Voted for image: ${selectedImageId}`);
+      try {      console.log(`Rating for image ${images[currentIndex].id}: ${rating}`);
         
-        if (dbService && currentUser) {
-          // Example API call if dbService is available
-          
-          await dbService.submitVote({
-            userId: currentUser.uid,
-            imageId: selectedImageId,
-            gameId: 'current-game-id' // You would get this from context or params
-          });
-          
-          console.log('Vote recorded in database');
-        } else {
-          console.log('Mock submission - would save vote to database');
-        } */}
-      // Submit the rating for the current image
-      console.log(`Rating for image ${images[currentIndex].id}: ${rating}`);
-      
-      // If there are more images to vote on
       if (currentIndex < images.length - 1) {
         setCurrentIndex(prev => prev + 1);
         setTimeLeft(10);
         setRating(60);
-        setProgress(0);
-        setIsSubmitting(false);
+        setProgress(0);        setIsSubmitting(false);
       } else {
-        // All images have been voted on
         setTimeout(() => {
           navigate('/game/results');
         }, 1500);
@@ -141,18 +121,24 @@ export default function VotingPage() {
       <NavBar />
       
       <div className="container mx-auto px-4 py-6 flex-grow flex items-center justify-center">
-        <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-2xl">
-          {/* Progress bar */}
-          <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
+        <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-2xl">          {/* Progress bar */}          <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
             <div 
-              className="bg-[#00BBF9] h-2 rounded-full transition-all duration-1000"
+              className={`h-2 rounded-full transition-all duration-100 ease-linear ${
+                timeLeft <= 3.1 
+                  ? 'bg-red-500' 
+                  : 'bg-[#00BBF9]'
+              }`}
               style={{ width: `${progress}%` }}
             />
           </div>
           
           {/* Timer */}
           <div className="text-center mb-6">
-            <div className={`text-3xl font-bold ${timeLeft <= 3 ? 'text-red-500 animate-pulse' : 'text-[#9B5DE5]'}`}>
+            <div className={`text-3xl font-bold transition-colors duration-200 ${
+              timeLeft <= 3.2 
+                ? 'text-red-500' 
+                : 'text-[#9B5DE5]'
+            }`}>
               {timeLeft}s
             </div>
           </div>
