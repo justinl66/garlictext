@@ -7,11 +7,11 @@ export default function DrawingPage() {
   const navigate = useNavigate();
   const [strokeColor, setStrokeColor] = useState('#000000');
   const [strokeWidth, setStrokeWidth] = useState(4);
-  const [canvasMode, setCanvasMode] = useState<'draw' | 'erase'>('draw');
-  const [theme] = useState('CS major cramming for 35L final');
+  const [canvasMode, setCanvasMode] = useState<'draw' | 'erase'>('draw');  const [theme] = useState('CS major cramming for 35L final');
   const [timeLeft, setTimeLeft] = useState(60);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStage, setSubmitStage] = useState<'not_submitted' | 'submitting' | 'enhancing'>('not_submitted');
+  const [showClearConfirmation, setShowClearConfirmation] = useState(false);
   
   const canvasRef = useRef<ReactSketchCanvasRef>(null);
   
@@ -44,9 +44,13 @@ export default function DrawingPage() {
     '#A52A2A', // Brown
     '#808080', // Gray
   ];
-  
-  const handleClearCanvas = () => {
+    const handleClearCanvas = () => {
+    setShowClearConfirmation(true);
+  };
+  const confirmClearCanvas = () => {
     canvasRef.current?.clearCanvas();
+    canvasRef.current?.resetCanvas();
+    setShowClearConfirmation(false);
   };
   
   const handleUndo = () => {
@@ -218,13 +222,12 @@ export default function DrawingPage() {
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mx-auto" viewBox="0 0 20 20" fill="currentColor">
                       <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                     </svg>
-                  </button>
-                  <button
+                  </button>                  <button
                     onClick={() => handleModeChange('erase')}
                     className={`p-2 rounded ${canvasMode === 'erase' ? 'bg-[#9B5DE5] text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mx-auto" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414L11.414 12l3.293 3.293a1 1 0 01-1.414 1.414L10 13.414l-3.293 3.293a1 1 0 01-1.414-1.414L8.586 12 5.293 8.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mx-auto" fill="currentColor" viewBox="0 0 16 16">
+                      <path d="M8.086 2.207a2 2 0 0 1 2.828 0l3.879 3.879a2 2 0 0 1 0 2.828l-5.5 5.5A2 2 0 0 1 7.879 15H5.12a2 2 0 0 1-1.414-.586l-2.5-2.5a2 2 0 0 1 0-2.828zm2.121.707a1 1 0 0 0-1.414 0L4.16 7.547l5.293 5.293 4.633-4.633a1 1 0 0 0 0-1.414zM8.746 13.547 3.453 8.254 1.914 9.793a1 1 0 0 0 0 1.414l2.5 2.5a1 1 0 0 0 .707.293H7.88a1 1 0 0 0 .707-.293z"/>
                     </svg>
                   </button>
                   <button
@@ -255,8 +258,7 @@ export default function DrawingPage() {
               </div>
             </div>
           </div>
-          
-          {/* Instructions/tips footer */}
+            {/* Instructions/tips footer */}
           <div className="mt-4 p-3 bg-gray-50 rounded-lg">
             <p className="text-sm text-gray-600">
               <span className="font-semibold">Tip:</span> Keep your drawing simple and creative! After submission, your drawing will be enhanced by AI and sent to other players who will add captions to it.
@@ -264,6 +266,33 @@ export default function DrawingPage() {
           </div>
         </div>
       </div>
+
+      {/* Clear Canvas Confirmation Modal */}
+      {showClearConfirmation && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md relative shadow-2xl">
+            <h3 className="text-2xl font-bold text-[#9B5DE5] mb-4">Clear Canvas?</h3>
+            <p className="text-gray-700 mb-6">
+              Are you sure you want to clear your drawing? This action cannot be undone.
+            </p>
+            
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setShowClearConfirmation(false)}
+                className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmClearCanvas}
+                className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition"
+              >
+                Clear Canvas
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
