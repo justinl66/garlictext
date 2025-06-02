@@ -123,8 +123,8 @@ export default function VotingPage() {
       <div className="container mx-auto px-4 py-6 flex-grow flex items-center justify-center">
         <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-2xl">          {/* Progress bar */}          <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
             <div 
-              className={`h-2 rounded-full transition-all duration-100 ease-linear ${
-                timeLeft <= 3.1 
+              className={`h-2 rounded-full transition-all duration-200 ease-linear ${
+                timeLeft <= 3.2 
                   ? 'bg-red-500' 
                   : 'bg-[#00BBF9]'
               }`}
