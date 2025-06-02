@@ -1,14 +1,13 @@
 module.exports = (sequelize, DataTypes) => {
   const Game = sequelize.define('game', {
     id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-      primaryKey: true
-    },
-    code: {
       type: DataTypes.STRING(6),
       allowNull: false,
-      unique: true
+      unique: true,
+      primaryKey: true,
+      validate: {
+        len: [6, 6]
+      }
     },
     name: {
       type: DataTypes.STRING,

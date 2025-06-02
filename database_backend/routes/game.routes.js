@@ -1,8 +1,9 @@
 module.exports = app => {
   const games = require("../controllers/game.controller.js");
   const router = require("express").Router();
+  const authentication = require("./authentication.js");
 
-  router.post("/", games.create);
+  router.post("/", authentication.authenticateFirebaseToken, games.create);
 
   router.post("/join", games.joinGame);
 

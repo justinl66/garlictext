@@ -69,7 +69,7 @@ const seedData = async () => {
       
       console.log('Creating sample game...');
       const game = await Game.create({
-        code: 'ABC123',
+        id: 'ABC123',
         name: 'Sample Game',
         status: 'waiting',
         hostId: users[0].id,
@@ -81,7 +81,7 @@ const seedData = async () => {
       
       console.log('Sample game created.');      console.log('Creating in-progress game...');
       const activeGame = await Game.create({
-        code: 'DEF456',
+        id: 'DEF456',
         name: 'Active Game',
         status: 'in_progress',
         hostId: users[2].id,

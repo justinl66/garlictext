@@ -6,7 +6,7 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true
     },
     gameId: {
-      type: DataTypes.UUID,
+      type: DataTypes.STRING(6),
       allowNull: false,
       references: {
         model: 'games',
