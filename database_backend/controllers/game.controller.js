@@ -24,16 +24,22 @@ const generateGameCode = async () => {
   return code;
 };
 exports.create = async (req, res) => {
-  try {    if (!req.body.hostId || !req.body.name) {
+  try {   
+    if(!req.user.uid){
+      return res.status(401).send({
+        message: "Unauthorized! Please log in."
+      });
+    }
+    if (!req.body.name) {
       return res.status(400).send({
         message: "Host ID and game name are required!"
       });
     }    const code = await generateGameCode();
 
     const game = {
-      code,
+      id: code,
       name: req.body.name,
-      hostId: req.body.hostId,
+      hostId: req.user.hostId,
       maxPlayers: req.body.maxPlayers || 8,
       totalRounds: req.body.totalRounds || 3
     };    const createdGame = await Game.create(game);
@@ -60,7 +66,7 @@ exports.joinGame = async (req, res) => {
     }    const { userId, gameCode } = req.body;
 
     const game = await Game.findOne({ 
-      where: { code: gameCode },
+      where: { id: gameCode },
       include: [
         {
           model: User,
@@ -203,7 +209,7 @@ exports.findByCode = async (req, res) => {
 
   try {
     const data = await Game.findOne({ 
-      where: { code },
+      where: { id: code },
       include: [
         {
           model: User,

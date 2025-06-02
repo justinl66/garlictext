@@ -2,6 +2,7 @@ import { useContext, useState } from 'react';
 import { AuthContext } from '../../firebase/firebaseAuth.tsx';
 import NavBar from '../General/NavBar.tsx';
 import { useNavigate } from 'react-router-dom';
+import { initializeGameBackend } from '../../services/game_backend_interact.ts';
 
 export default function HomePage() {
     const authContext = useContext(AuthContext);
@@ -18,8 +19,15 @@ export default function HomePage() {
     const [showJoinModal, setShowJoinModal] = useState(false);
     const navigate = useNavigate();
 
-    const createGame = () => {
-        navigate('/game/lobby');
+    const createGame = async () => {
+        let result = await initializeGameBackend(user?.stsTokenManager.accessToken, roomName);
+        
+        if (result != "success") {
+            alert("Error creating game: " + result);
+            return;
+        }else{
+            navigate('/game/lobby');
+        }
     };
 
     // Show loading state while Firebase is determining auth state
