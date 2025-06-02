@@ -20,7 +20,7 @@ export default function VotingPage() {
   
   const [images, setImages] = useState<CaptionedImage[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [rating, setRating] = useState(50); // Default middle value
+  const [rating, setRating] = useState(60); // Default middle value (decent)
   const [timeLeft, setTimeLeft] = useState(10); // 10 seconds per image
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -115,7 +115,7 @@ export default function VotingPage() {
       if (currentIndex < images.length - 1) {
         setCurrentIndex(prev => prev + 1);
         setTimeLeft(10);
-        setRating(50);
+        setRating(60);
         setProgress(0);
         setIsSubmitting(false);
       } else {
@@ -179,37 +179,36 @@ export default function VotingPage() {
             <p className="text-lg font-medium text-center text-[#9B5DE5]">{currentImage.caption}</p>
             <p className="text-sm text-gray-600 text-center mt-2">By: {currentImage.authorName}</p>
           </div>
-          
-          {/* Rating Slider */}
+            {/* Rating Buttons */}
           <div className="mb-8">
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={rating}
-              onChange={(e) => setRating(parseInt(e.target.value))}
-              className="w-full h-4 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#9B5DE5]"
-            />
-            <div className="flex justify-between mt-2 text-sm font-bold">
-              <span className="text-red-500">💩 Poop</span>
-              <span className="text-yellow-500">😐 Meh</span>
-              <span className="text-green-500">🌟 Legendary</span>
+            <div className="text-center mb-4">
+              <h3 className="text-lg font-semibold text-[#9B5DE5]">Rate this caption:</h3>
             </div>
-          </div>
-          
-          {/* Submit Button */}
-          <div className="text-center">
-            <button
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className={`px-8 py-3 rounded-lg font-bold text-xl transition ${
-                isSubmitting 
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                  : 'bg-gradient-to-r from-[#9B5DE5] to-[#F15BB5] text-white hover:opacity-90'
-              }`}
-            >
-              {isSubmitting ? 'Submitting...' : 'Submit Rating'}
-            </button>
+            <div className="flex justify-center gap-3">
+              {[
+                { value: 20, label: 'poop', emoji: '💩', color: 'bg-red-500 hover:bg-red-600' },
+                { value: 40, label: 'OK', emoji: '🗑️', color: 'bg-orange-500 hover:bg-orange-600' },
+                { value: 60, label: 'decent', emoji: '😐', color: 'bg-yellow-500 hover:bg-yellow-600' },
+                { value: 80, label: 'epic', emoji: '👍', color: 'bg-blue-500 hover:bg-blue-600' },
+                { value: 100, label: 'legendary', emoji: '🌟', color: 'bg-green-500 hover:bg-green-600' }              ].map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => {
+                    setRating(option.value);
+                    handleSubmit();
+                  }}
+                  disabled={isSubmitting}
+                  className={`w-16 h-16 rounded-lg transition-all duration-200 ${
+                    isSubmitting 
+                      ? 'bg-gray-300 opacity-50 cursor-not-allowed' 
+                      : `${option.color} opacity-70 hover:opacity-90 hover:scale-105`
+                  } text-white font-bold flex flex-col items-center justify-center text-xs`}
+                >
+                  <span className="text-lg">{option.emoji}</span>
+                  <span className="capitalize">{option.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
           
           {/* Progress indicator */}
