@@ -16,19 +16,8 @@ const dbApi = axios.create({
 
 // User-related API calls
 const userApi = {
-  // Create a new user
-  createUser: async (userData) => {
-    try {
-      const response = await dbApi.post('/users', userData);
-      return response.data;
-    } catch (error) {
-      console.error('Error creating user:', error);
-      throw error;
-    }
-  },
-  
   // Get a user by Firebase UID
-  getUserByFirebaseUid: async (firebaseUid) => {
+  getUserByFirebaseUid: async (firebaseUid: string) => {
     try {
       const response = await dbApi.get(`/users/firebase/${firebaseUid}`);
       return response.data;
@@ -39,7 +28,7 @@ const userApi = {
   },
   
   // Update a user
-  updateUser: async (userId, userData) => {
+  updateUser: async (userId: string, userData: any) => {
     try {
       const response = await dbApi.put(`/users/${userId}`, userData);
       return response.data;
@@ -53,7 +42,7 @@ const userApi = {
 // Game-related API calls
 const gameApi = {
   // Create a new game
-  createGame: async (gameData) => {
+  createGame: async (gameData: any) => {
     try {
       const response = await dbApi.post('/games', gameData);
       return response.data;
@@ -64,7 +53,7 @@ const gameApi = {
   },
   
   // Join a game
-  joinGame: async (userId, gameCode) => {
+  joinGame: async (userId: string, gameCode) => {
     try {
       const response = await dbApi.post('/games/join', { userId, gameCode });
       return response.data;

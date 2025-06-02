@@ -16,10 +16,12 @@ import VotingPage from './pages/game/VotingPage.tsx';
 import ResultsPage from './pages/game/ResultsPage.tsx';
 import DbTester from './pages/testing/dbtester.tsx';
 import {AuthContextWrapper} from './firebase/firebaseAuth.tsx';
+import { ServerContextWrapper } from './services/serverContext.tsx';
 
 const App = () => {
   return (
     <AuthContextWrapper>
+      <ServerContextWrapper>
       <Router>        
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -41,6 +43,7 @@ const App = () => {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
+      </ServerContextWrapper>
     </AuthContextWrapper>
   );
 };
