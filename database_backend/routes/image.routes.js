@@ -10,6 +10,10 @@ module.exports = app => {
 
   router.get("/round/:roundId", images.findByRoundId);
 
+  router.get("/:id/original", images.getOriginalImage);
+
+  router.get("/:id/enhanced", images.getEnhancedImage);
+
   router.get("/:id", images.findOne);
 
   app.use("/api/images", router);

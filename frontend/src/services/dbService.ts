@@ -1,11 +1,7 @@
-// Database Service client for frontend
-
 import axios from 'axios';
 
-// Base URL from environment variable or default to localhost in development
 const API_BASE_URL = import.meta.env.VITE_DB_API_URL || 'http://localhost:5001/api';
 
-// Create an axios instance for the database API
 const dbApi = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
@@ -14,9 +10,7 @@ const dbApi = axios.create({
   }
 });
 
-// User-related API calls
 const userApi = {
-  // Get a user by Firebase UID
   getUserByFirebaseUid: async (firebaseUid: string) => {
     try {
       const response = await dbApi.get(`/users/firebase/${firebaseUid}`);
@@ -24,10 +18,9 @@ const userApi = {
     } catch (error) {
       console.error('Error getting user by Firebase UID:', error);
       throw error;
-    }
+    }  
   },
   
-  // Update a user
   updateUser: async (userId: string, userData: any) => {
     try {
       const response = await dbApi.put(`/users/${userId}`, userData);
@@ -39,9 +32,7 @@ const userApi = {
   }
 };
 
-// Game-related API calls
 const gameApi = {
-  // Create a new game
   createGame: async (gameData: any) => {
     try {
       const response = await dbApi.post('/games', gameData);
@@ -49,55 +40,49 @@ const gameApi = {
     } catch (error) {
       console.error('Error creating game:', error);
       throw error;
-    }
+    }  
   },
   
-  // Join a game
-  joinGame: async (userId: string, gameCode) => {
+  joinGame: async (userId: string, gameCode: string) => {
     try {
       const response = await dbApi.post('/games/join', { userId, gameCode });
       return response.data;
     } catch (error) {
       console.error('Error joining game:', error);
       throw error;
-    }
+    }  
   },
   
-  // Start a game
-  startGame: async (gameId, hostId) => {
+  startGame: async (gameId: string, hostId: string) => {
     try {
       const response = await dbApi.post(`/games/${gameId}/start`, { hostId });
       return response.data;
     } catch (error) {
       console.error('Error starting game:', error);
       throw error;
-    }
+    }  
   },
   
-  // End a game round
-  endGameRound: async (gameId, roundNumber) => {
+  endGameRound: async (gameId: string, roundNumber: number) => {
     try {
       const response = await dbApi.post(`/games/${gameId}/rounds/${roundNumber}/end`, {});
       return response.data;
     } catch (error) {
       console.error('Error ending game round:', error);
       throw error;
-    }
+    }  
   },
   
-  // Get a game by code
-  getGameByCode: async (gameCode) => {
+  getGameByCode: async (gameCode: string) => {
     try {
       const response = await dbApi.get(`/games/code/${gameCode}`);
       return response.data;
     } catch (error) {
       console.error('Error getting game by code:', error);
       throw error;
-    }
+    }  
   },
-  
-  // Get a game by ID
-  getGameById: async (gameId) => {
+  getGameById: async (gameId: string) => {
     try {
       const response = await dbApi.get(`/games/${gameId}`);
       return response.data;
@@ -108,57 +93,81 @@ const gameApi = {
   }
 };
 
-// Image-related API calls
 const imageApi = {
-  // Create a new image
-  createImage: async (imageData) => {
+  createImage: async (imageData: {
+    userId: string;
+    roundId: string;
+    prompt: string;
+    originalDrawingData: string;
+    enhancedImageData?: string;
+    enhancedImageMimeType?: string;
+  }) => {
     try {
       const response = await dbApi.post('/images', imageData);
       return response.data;
     } catch (error) {
       console.error('Error creating image:', error);
       throw error;
-    }
+    }  
   },
   
-  // Update an image with enhanced version
-  updateEnhancedImage: async (imageId, enhancedImageUrl) => {
+  updateEnhancedImage: async (imageId: string, enhancedImageData: string, enhancedImageMimeType?: string) => {
     try {
-      const response = await dbApi.put(`/images/${imageId}/enhance`, { enhancedImageUrl });
+      const response = await dbApi.put(`/images/${imageId}/enhance`, { 
+        enhancedImageData,
+        enhancedImageMimeType: enhancedImageMimeType || 'image/png'
+      });
       return response.data;
     } catch (error) {
       console.error('Error updating enhanced image:', error);
       throw error;
-    }
+    }  
   },
   
-  // Add a vote to an image
-  voteForImage: async (imageId) => {
+  getOriginalImageUrl: (imageId: string) => {
+    return `${API_BASE_URL}/images/${imageId}/original`;  },
+  
+  getEnhancedImageUrl: (imageId: string) => {
+    return `${API_BASE_URL}/images/${imageId}/enhanced`;  },
+  
+  voteForImage: async (imageId: string) => {
     try {
       const response = await dbApi.post(`/images/${imageId}/vote`);
       return response.data;
     } catch (error) {
       console.error('Error voting for image:', error);
       throw error;
-    }
+    }  
   },
   
-  // Get images for a round
-  getImagesByRound: async (roundId) => {
+  getImagesByRound: async (roundId: string) => {
     try {
       const response = await dbApi.get(`/images/round/${roundId}`);
       return response.data;
     } catch (error) {
       console.error('Error getting images by round:', error);
       throw error;
+    }  
+  },
+  
+  getImageById: async (imageId: string) => {
+    try {
+      const response = await dbApi.get(`/images/${imageId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error getting image by ID:', error);
+      throw error;
     }
   }
 };
 
-// Caption-related API calls
 const captionApi = {
-  // Create a new caption
-  createCaption: async (captionData) => {
+  createCaption: async (captionData: {
+    userId: string;
+    imageId: string;
+    roundId: string;
+    text: string;
+  }) => {
     try {
       const response = await dbApi.post('/captions', captionData);
       return response.data;
@@ -168,8 +177,7 @@ const captionApi = {
     }
   },
   
-  // Add a vote to a caption
-  voteForCaption: async (captionId) => {
+  voteForCaption: async (captionId: string) => {
     try {
       const response = await dbApi.post(`/captions/${captionId}/vote`);
       return response.data;
@@ -179,8 +187,7 @@ const captionApi = {
     }
   },
   
-  // Get captions for an image
-  getCaptionsByImage: async (imageId) => {
+  getCaptionsByImage: async (imageId: string) => {
     try {
       const response = await dbApi.get(`/captions/image/${imageId}`);
       return response.data;
@@ -190,8 +197,7 @@ const captionApi = {
     }
   },
   
-  // Get captions for a round
-  getCaptionsByRound: async (roundId) => {
+  getCaptionsByRound: async (roundId: string) => {
     try {
       const response = await dbApi.get(`/captions/round/${roundId}`);
       return response.data;
@@ -202,7 +208,6 @@ const captionApi = {
   }
 };
 
-// Export the API client
 const dbService = {
   user: userApi,
   game: gameApi,
