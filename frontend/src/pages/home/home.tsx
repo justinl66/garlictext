@@ -54,13 +54,12 @@ export default function HomePage() {
                     
                     <div className="space-y-5 relative z-10">
                         <div>
-                            <label className="block text-gray-700 font-medium mb-2">Room Name</label>
-                            <input 
+                            <label className="block text-gray-700 font-medium mb-2">Room Name</label>                            <input 
                                 type="text"
                                 value={roomName}
                                 onChange={(e) => setRoomName(e.target.value)}
                                 placeholder="Enter a room name..."
-                                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9]"
+                                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9] text-gray-900"
                             />
                         </div>
                         
@@ -72,7 +71,7 @@ export default function HomePage() {
                                     value={playerName}
                                     onChange={(e) => setPlayerName(e.target.value)}
                                     placeholder="Enter your name..."
-                                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9]"
+                                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9] text-gray-900"
                                 />
                             </div>
                         )}
@@ -107,15 +106,14 @@ export default function HomePage() {
                             
                             <h3 className="text-2xl font-bold text-[#9B5DE5] mb-4">Join a Game</h3>
                             
-                            <div className="space-y-4">
-                                <div>
+                            <div className="space-y-4">                                <div>
                                     <label className="block text-gray-700 font-medium mb-2">Room Code</label>
                                     <input 
                                         type="text"
                                         value={joinCode}
                                         onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                                         placeholder="Enter room code..."
-                                        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9]"
+                                        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9] text-gray-900"
                                         maxLength={6}
                                     />
                                 </div>
@@ -128,7 +126,7 @@ export default function HomePage() {
                                             value={playerName}
                                             onChange={(e) => setPlayerName(e.target.value)}
                                             placeholder="Enter your name..."
-                                            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9]"
+                                            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9] text-gray-900"
                                         />
                                     </div>
                                 )}
