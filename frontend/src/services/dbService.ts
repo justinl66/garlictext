@@ -80,7 +80,6 @@ const userApi = {
   
   // Update a user
   updateUser: async (userId: number, userData: UserData) => {
-  updateUser: async (userId: string, userData: any) => {
     try {
       const response = await dbApi.put(`/users/${userId}`, userData);
       return response.data;
@@ -95,7 +94,6 @@ const userApi = {
 const gameApi = {
   // Create a new game
   createGame: async (gameData: GameData) => {
-  createGame: async (gameData: any) => {
     try {
       const response = await dbApi.post('/games', gameData);
       return response.data;
@@ -107,7 +105,6 @@ const gameApi = {
   
   // Join a game
   joinGame: async (userId: number, gameCode: string) => {
-  joinGame: async (userId: string, gameCode) => {
     try {
       const response = await dbApi.post('/games/join', { userId, gameCode });
       return response.data;
