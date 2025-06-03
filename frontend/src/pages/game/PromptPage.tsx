@@ -67,7 +67,7 @@ export default function PromptPage() {
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               placeholder="Enter something fun for others to draw..."
-              className="w-full p-4 border-2 border-gray-300 rounded-lg text-xl text-black focus:border-[#00BBF9] focus:ring focus:ring-[#00BBF9] focus:ring-opacity-50 transition h-40"
+              className="w-full p-4 border-2 border-gray-300 rounded-lg text-xl text-gray-800 focus:border-[#00BBF9] focus:ring focus:ring-[#00BBF9] focus:ring-opacity-50 transition h-40"
               maxLength={100}
               disabled={isSubmitting}
             />
