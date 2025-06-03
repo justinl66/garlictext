@@ -22,25 +22,27 @@ const App = () => {
   return (
     <AuthContextWrapper>
       <ServerContextWrapper>
-        <Router>        
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignUpPage />} />
-            <Route path="/resetPassword" element={<ForgotPasswordPage />} />
-            <Route path="/resetPasswordSuccess" element={<ForgotPasswordSuccessPage />}/>
-            <Route path="/help" element={<Help />} />          <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/game/lobby" element={<GameLobby />} />
-            <Route path="/game/lobby/:roomId" element={<GameLobby />} />
-            <Route path="/game/play" element={<GamePlay />} />
-            <Route path="/game/prompts" element={<PromptPage />} />
-            <Route path="/game/caption" element={<CaptionPage />} />
-            <Route path="/game/voting" element={<VotingPage />} />
-            <Route path="/game/results" element={<ResultsPage />} />
-            <Route path="/test" element={<DbTester />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Router>
+      <Router>        
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignUpPage />} />          
+          <Route path="/resetPassword" element={<ForgotPasswordPage />} />
+          <Route path="/resetPasswordSuccess" element={<ForgotPasswordSuccessPage />}/>
+          <Route path="/help" element={<Help />} />
+          <Route path="/findGame" element={<FindGame />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/game/lobby" element={<GameLobby />} />
+          <Route path="/game/lobby/:roomId" element={<GameLobby />} />
+          <Route path="/game/play" element={<GamePlay />} />
+          <Route path="/game/prompts" element={<PromptPage />} />
+          <Route path="/game/caption" element={<CaptionPage />} />
+          <Route path="/game/voting" element={<VotingPage />} />
+          <Route path="/game/results" element={<ResultsPage />} />
+          <Route path="/test" element={<DbTester />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Router>
       </ServerContextWrapper>
     </AuthContextWrapper>
   );
