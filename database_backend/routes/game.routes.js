@@ -4,6 +4,8 @@ module.exports = app => {
   const authentication = require("./authentication.js");
 
   router.post("/", authentication.authenticateFirebaseToken, games.create);
+  
+  router.put("/:id", authentication.authenticateFirebaseToken, games.update);
 
   router.post("/join", games.joinGame);
 
@@ -14,6 +16,8 @@ module.exports = app => {
   router.get("/", games.findAll);
 
   router.get("/code/:code", games.findByCode);
+
+  router.get("/:code/lobbyInfo", games.getLobbyInfo);
 
   router.get("/:id", games.findOne);
 

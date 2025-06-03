@@ -10,15 +10,12 @@ if %ERRORLEVEL% NEQ 0 (
     exit /b 1
 )
 
-REM Create database if it doesn't exist
-echo Creating database if it doesn't exist...
-psql -U postgres -c "SELECT 1 FROM pg_database WHERE datname = 'garlictext'" | findstr /C:"1 row" >nul
-if %ERRORLEVEL% NEQ 0 (
-    psql -U postgres -c "CREATE DATABASE garlictext;"
-    echo Database 'garlictext' created.
-) else (
-    echo Database 'garlictext' already exists.
-)
+REM Drop and recreate database
+echo Dropping database if it exists...
+psql -U postgres -c "DROP DATABASE IF EXISTS garlictext;"
+echo Creating database...
+psql -U postgres -c "CREATE DATABASE garlictext;"
+echo Database 'garlictext' dropped and recreated.
 
 REM Create UUID extension
 echo Creating UUID extension...

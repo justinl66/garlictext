@@ -1,8 +1,8 @@
-import { useContext, useState } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../../firebase/firebaseAuth.tsx';
 import NavBar from '../General/NavBar.tsx';
 import { useNavigate } from 'react-router-dom';
-import { initializeGameBackend } from '../../services/game_backend_interact.ts';
+// import { ServerContext } from '../../services/serverContext.tsx';
 
 export default function HomePage() {
     const authContext = useContext(AuthContext);
@@ -17,17 +17,49 @@ export default function HomePage() {
     const [playerName, setPlayerName] = useState("");
     const [joinCode, setJoinCode] = useState("");
     const [showJoinModal, setShowJoinModal] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [createdCode, setCreatedCode] = useState<string | null>(null);
     const navigate = useNavigate();
 
-    const createGame = async () => {
-        let result = await initializeGameBackend(user?.stsTokenManager.accessToken, roomName);
-        
-        if (result != "success") {
-            alert("Error creating game: " + result);
-            return;
-        }else{
-            navigate('/game/lobby');
+    useEffect(() => {
+        if(createdCode){
+            // setCreator(user?.uid);
+            // setPlayers([
+            //     { id: user?.uid || '1', name: user?.name, avatar: '/garlicTextNoBackground.png', isReady: true },
+            //     { id: '2', name: 'Waiting for player...', isReady: false },
+            //     { id: '3', name: 'Waiting for player...', isReady: false },
+            //     { id: '4', name: 'Waiting for player...', isReady: false }
+            // ]);
+            // setGameSettings({
+            //     rounds: 3,
+            //     drawingTime: 60,
+            //     writingTime: 60,
+            // });
+            navigate(`/game/lobby/${createdCode}`);
         }
+    }, [createdCode]);
+
+    const createGame = async () => {
+        await fetch('http://localhost:5001/api/games', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${user?.stsTokenManager.accessToken}`,
+            },
+            body: JSON.stringify({
+                name: roomName,
+            })
+        }).then(res => {
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            return res.json();
+        }).then(data => {
+            setCreatedCode(data.code);
+        }
+        ).catch(error => {
+            setError("Error initializing game: " + error);
+        });
     };
 
     // Show loading state while Firebase is determining auth state
@@ -70,8 +102,9 @@ export default function HomePage() {
                                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9] text-gray-900"
                             />
                         </div>
+                        <p className='font-medium text-red-500'>{error}</p>
                         
-                        {!user && (
+                        {/* {!user && (
                             <div>
                                 <label className="block text-gray-700 font-medium mb-2">Your Name</label>
                                 <input 
@@ -82,7 +115,9 @@ export default function HomePage() {
                                     className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9] text-gray-900"
                                 />
                             </div>
-                        )}
+                        )} 
+                         We now require an account to make a game*/} 
+                        
                           <button 
                             onClick={createGame}
                             className="w-full py-4 bg-gradient-to-r from-[#9B5DE5] to-[#00BBF9] text-white font-bold text-lg rounded-lg hover:opacity-90 transition transform hover:scale-105 active:scale-95 shadow-lg"

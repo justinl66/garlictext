@@ -29,6 +29,8 @@ require('./routes/game.routes')(app);
 require('./routes/user.routes')(app);
 require('./routes/image.routes')(app);
 require('./routes/caption.routes')(app);
+require('./routes/prompt.routes')(app);
+require('./routes/results.routes')(app);
 
 db.sequelize.sync({ alter: process.env.NODE_ENV === 'development' })
   .then(() => {

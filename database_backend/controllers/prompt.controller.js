@@ -5,7 +5,6 @@ const GameRound = db.GameRound;
 const Game = db.Game;
 const { Op } = db.Sequelize;
 
-// Create a prompt
 exports.create = async (req, res) => {
   try {
     if (!req.body.text || !req.body.creatorId || !req.body.roundId) {
@@ -29,7 +28,6 @@ exports.create = async (req, res) => {
   }
 };
 
-// Retrieve all prompts for a round
 exports.findByRound = async (req, res) => {
   const { roundId } = req.params;
   
@@ -57,12 +55,10 @@ exports.findByRound = async (req, res) => {
   }
 };
 
-// Assign prompts to players for a specific round
 exports.assignPrompts = async (req, res) => {
   try {
     const { roundId } = req.params;
     
-    // Get the game round and associated game
     const gameRound = await GameRound.findByPk(roundId, {
       include: [
         {
@@ -85,32 +81,26 @@ exports.assignPrompts = async (req, res) => {
       });
     }
     
-    // Get all prompts for this round
     const prompts = await Prompt.findAll({
       where: { roundId }
     });
     
-    // Get all participants
     const participants = gameRound.game.participants;
     
-    // Simple random assignment - each player gets a prompt that's not their own
     const assignments = [];
     
     for (const participant of participants) {
-      // Find prompts not created by this participant
       const availablePrompts = prompts.filter(
         prompt => prompt.creatorId !== participant.id && !prompt.assignedToId
       );
       
       if (availablePrompts.length === 0) {
-        continue; // Skip if no available prompts (should handle this better in production)
+        continue;
       }
       
-      // Randomly select a prompt for this participant
       const randomIndex = Math.floor(Math.random() * availablePrompts.length);
       const selectedPrompt = availablePrompts[randomIndex];
       
-      // Assign the prompt
       selectedPrompt.assignedToId = participant.id;
       await selectedPrompt.save();
       
@@ -132,7 +122,6 @@ exports.assignPrompts = async (req, res) => {
   }
 };
 
-// Get the prompt assigned to a specific player for a round
 exports.getAssignedPrompt = async (req, res) => {
   try {
     const { roundId, userId } = req.params;

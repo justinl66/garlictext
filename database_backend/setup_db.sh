@@ -10,14 +10,12 @@ then
     exit 1
 fi
 
-# Create database if it doesn't exist
-echo "Creating database if it doesn't exist..."
-if ! psql -U postgres -lqt | cut -d \| -f 1 | grep -qw garlictext; then
-    psql -U postgres -c "CREATE DATABASE garlictext;"
-    echo "Database 'garlictext' created."
-else
-    echo "Database 'garlictext' already exists."
-fi
+# Drop and recreate database
+echo "Dropping database if it exists..."
+psql -U postgres -c "DROP DATABASE IF EXISTS garlictext;"
+echo "Creating database..."
+psql -U postgres -c "CREATE DATABASE garlictext;"
+echo "Database 'garlictext' dropped and recreated."
 
 # Create UUID extension
 echo "Creating UUID extension..."
