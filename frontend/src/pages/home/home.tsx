@@ -2,7 +2,7 @@ import { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../../firebase/firebaseAuth.tsx';
 import NavBar from '../General/NavBar.tsx';
 import { useNavigate } from 'react-router-dom';
-import { ServerContext } from '../../services/serverContext.tsx';
+// import { ServerContext } from '../../services/serverContext.tsx';
 
 export default function HomePage() {
     const authContext = useContext(AuthContext);

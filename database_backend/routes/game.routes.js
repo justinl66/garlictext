@@ -17,6 +17,8 @@ module.exports = app => {
 
   router.get("/code/:code", games.findByCode);
 
+  router.get("/:code/lobbyInfo", games.getLobbyInfo);
+
   router.get("/:id", games.findOne);
 
   app.use("/api/games", router);

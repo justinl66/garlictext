@@ -1,186 +1,79 @@
 import { useEffect, useState, useContext } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import NavBar from '../General/NavBar';
-// import {ServerContext} from '../../services/serverContext';
+import {ServerContext} from '../../services/serverContext';
 import { AuthContext } from '../../firebase/firebaseAuth';
 import { Player } from '../../interfaces';
-import Cookies from "js-cookie";
+import Cookies from 'js-cookie';
 
 export default function GameLobby() {
   const { roomId } = useParams();
   const navigate = useNavigate();
 
   // const {gameName, creator, players, gameSettings, setGameSettings, updateLobbyFromServer, gameStarted, error} = useContext(ServerContext);
+  const {updateLobbyFromServer} = useContext(ServerContext);
   const {user} = useContext(AuthContext);
-
+  
+  const [isCreator, setIsCreator] = useState<boolean>(false);
   const [gameName, setGameName] = useState<string>('');
-  const [creator, setCreator] = useState<string>('');
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [gameSettings, setGameSettings] = useState({
+  const [players, setPlayers] = useState<any[]>([]);
+  const [gameSettings, setGameSettings] = useState<any>({
     rounds: 3,
     drawingTime: 60,
     writingTime: 60,
-    maxPlayers: 10,
+    maxPlayers: 8,
   });
-  const [error, setError] = useState<string | null>(null);
-  const [gameStarted, setGameStarted] = useState<boolean>(false);
 
+  // const [roomCode, setRoomCode] = useState<string>(roomId || '');
+  // const [isCreator, setIsCreator] = useState<boolean>(roomId ? false : true);
+  // const [players, setPlayers] = useState<Player[]>([
 
-  const updateLobbyFromServer = async (reloaded: boolean) => {
-    let currentUpdate = reloaded? "0" : (Cookies.get('currentUpdate') || "0");
-
-    try{
-        const response = await fetch(`http://localhost:5001/api/games/${roomId}/lobbyInfo?version=${currentUpdate}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-
-        if (!response.ok) {
-            if(response.status === 222){
-                setGameStarted(true);
-                setError(null);
-                return;
-            }
-            throw new Error('Network response was not ok: ' + response.statusText); 
-        }
-
-        const data = await response.json();
-        if(data.message === "good" && !reloaded){
-          // alert("hppd")
-            return;
-        }
-        setGameName(data.name);
-        setCreator(data.gameHost);
-        // alert(data.gameHost);
-        // alert(JSON.stringify(data.players));
-        if(data.players && data.players.length < 4){
-          let newPlayers: Player[] = data.players;
-          for(let i = data.players.length; i < 4; i++){
-            newPlayers.push({
-              id: i,
-              name: "Waiting for player...",
-              avatar: '/garlicTextNoBackground.png',
-              isReady: false,
-            });
-          }
-          setPlayers(newPlayers);
-        }else{
-          setPlayers(data.players || []);
-        }
-
-        setGameSettings({
-            rounds: data.rounds,
-            drawingTime: data.drawingTime,
-            writingTime: data.writingTime,
-            maxPlayers: data.maxPlayers,
-        });
-        Cookies.set('currentUpdate', data.currentUpdate || "0");
-        setError(null);
-
-    }catch(e:any){
-        setError("Error fetching data: " + e.message);
-        return;
-    }
-  }
-
-  const updateRounds = async (rounds: number) => {
-    setGameSettings({...gameSettings, rounds: rounds})
-    try{
-     const response = await fetch(`http://localhost:5001/api/games/${roomId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${user?.stsTokenManager.accessToken}`,
-      },
-      body: JSON.stringify({ rounds }),
-    })
-
-    if (!response.ok) {
-      const errorText = await response.json();
-      throw new Error(errorText.message);
-      return;
-    }
-  }catch(e:any){
-    setError("Error updating rounds: " + e.message);
-    return;
-  }
-}
-
-  const updateDrawingTime = async (drawingTime: number) => {
-    setGameSettings({...gameSettings, drawingTime: drawingTime})
-    try{
-    const response = await fetch(`http://localhost:5001/api/games/${roomId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${user?.stsTokenManager.accessToken}`,
-      },
-      body: JSON.stringify({ drawingTime }),
-    })
-    if (!response.ok) {
-      const errorText = await response.json();
-      throw new Error(errorText.message);
-    }
-  } catch(e:any){
-    setError("Error updating drawing time: " + e.message);
-    return;
-  }
-}
-
-const updateWritingTime = async (writingTime: number) => {
-  setGameSettings({...gameSettings, writingTime: writingTime})
-  try{
-    const response = await fetch(`http://localhost:5001/api/games/${roomId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${user?.stsTokenManager.accessToken}`,
-      },
-      body: JSON.stringify({ writingTime }),
-    })
-    if (!response.ok) { 
-      const errorText = await response.json();
-      throw new Error(errorText.message);
-    }
-  } catch(e:any){
-    setError("Error updating writing time: " + e.message);
-    return;
-  }
-}
-
+  // ]);
+  // const [gameSettings, setGameSettings] = useState({
+  //   rounds: 3,
+  //   drawingTime: 60,
+  //   writingTime: 60,
+  // });
   const [copied, setCopied] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   useEffect(() => {
     if (!roomId) {
       navigate('/'); // Redirect to home if no roomId
     }
-
-    updateLobbyFromServer(true);
-
+    
     const pingServer = setInterval(async () => {
-      await updateLobbyFromServer(false);
+      let result = await updateLobbyFromServer(roomId);
+
+      if(result == 1){
+        setIsCreator(Cookies.get('host') === user?.uid);
+        setGameName(Cookies.get('gameName') || '');
+        setPlayers(JSON.parse(Cookies.get('players') || '[]'));
+        setGameSettings(JSON.parse(Cookies.get('gameSettings') || '{}'));
+      }
+      
       // alert(creator)
     }, 3000);
-
+    
     return () => clearInterval(pingServer);
-  }, [roomId]);
-
-  const copyRoomCode = () => {
-    navigator.clipboard.writeText(roomId  || '');
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-  const startGame = () => {
-    setIsStarting(true);
-    setTimeout(() => {
-      navigate('/game/prompts');
-    }, 2000);
-  };
-  // const canStart = players.filter(p => p.isReady).length >= 2 && isCreator;
-
-  return (
+  }, []);
+  
+  const canStart = isCreator;
+      
+      const copyRoomCode = () => {
+        navigator.clipboard.writeText(roomId  || '');
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      };
+      const startGame = () => {
+        setIsStarting(true);
+        setTimeout(() => {
+          navigate('/game/prompts');
+        }, 2000);
+      };
+      // const canStart = players.filter(p => p.isReady).length >= 2 && isCreator;
+      
+      
+      return (
     <div className="w-full min-h-screen flex flex-col bg-gradient-to-br from-[#9B5DE5] to-[#F15BB5] via-[#00BBF9]">
       <NavBar />
       
@@ -235,14 +128,14 @@ const updateWritingTime = async (writingTime: number) => {
               </div>
             </div>
             
-            {user?.uid && creator == user?.uid && (
+            {isCreator && (
               <div>                <h3 className="text-xl font-semibold mb-4 text-[#9B5DE5]">Game Settings</h3>
                 <div className="space-y-4">
                   <div>
                     <label className="block text-gray-800 font-medium mb-2">Rounds</label>
                     <select 
                       value={gameSettings.rounds}
-                      onChange={(e) => updateRounds(+e.target.value)}
+                      onChange={(e) => setGameSettings({...gameSettings, rounds: +e.target.value})}
                       className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9] text-gray-800"
                     >
                       <option value={2}>2 Rounds</option>
@@ -256,7 +149,7 @@ const updateWritingTime = async (writingTime: number) => {
                     <label className="block text-gray-800 font-medium mb-2">Drawing Time</label>
                     <select 
                       value={gameSettings.drawingTime}
-                      onChange={(e) => updateDrawingTime(+e.target.value)}
+                      onChange={(e) => setGameSettings({...gameSettings, drawingTime: +e.target.value})}
                       className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9] text-gray-800"
                     >
                       <option value={30}>30 seconds</option>
@@ -270,7 +163,7 @@ const updateWritingTime = async (writingTime: number) => {
                     <label className="block text-gray-800 font-medium mb-2">Writing Time</label>
                     <select 
                       value={gameSettings.writingTime}
-                      onChange={(e) => updateWritingTime(+e.target.value)}
+                      onChange={(e) => setGameSettings({...gameSettings, writingTime: +e.target.value})}
                       className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9] text-gray-800"
                     >
                       <option value={30}>30 seconds</option>
@@ -294,9 +187,9 @@ const updateWritingTime = async (writingTime: number) => {
             
             <button 
               onClick={startGame}
-              disabled={creator != user?.uid || isStarting}
+              disabled={!canStart || isStarting}
               className={`px-8 py-3 rounded-lg font-bold transition ${
-                (user?.uid && creator == user?.uid) && !isStarting
+                canStart && !isStarting
                   ? 'bg-gradient-to-r from-[#9B5DE5] to-[#00BBF9] text-white hover:opacity-90 transform hover:scale-105'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
@@ -304,10 +197,9 @@ const updateWritingTime = async (writingTime: number) => {
               {isStarting ? 'Starting...' : 'Start Game'}
             </button>          </div>
           
-          {creator != user?.uid && (
+          {!isCreator && (
             <p className="mt-4 text-center text-gray-700 font-medium">Waiting for the host to start the game...</p>
           )}
-          <p className='mt-3 text-center text-red-500 font-medium'>{error}</p>
         </div>
       </div>
     </div>

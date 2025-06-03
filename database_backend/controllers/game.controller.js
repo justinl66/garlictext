@@ -47,7 +47,7 @@ exports.create = async (req, res) => {
       totalRounds: req.body.totalRounds || 3
     };    const createdGame = await Game.create(game);
     
-    const host = await User.findByPk(req.body.hostId);
+    const host = await User.findByPk(req.user.uid);
     if (host) {
       await createdGame.addParticipant(host);
     }
@@ -64,9 +64,10 @@ exports.create = async (req, res) => {
 };
 
 exports.update = async (req, res) => {
-  try {
+    try {
     const gameId = req.params.id;
     const game = await Game.findByPk(gameId);
+    
     if (!game) {
       return res.status(404).send({
         message: `Game with ID ${gameId} not found.`
@@ -74,23 +75,102 @@ exports.update = async (req, res) => {
     }
     if(game.hostId !== req.user.uid) {
       return res.status(403).send({
-        message: "Only the host can update the game."
+        message: "Only the host can update the game settings."
       });
-    }   
-     if (req.body.maxPlayers) {
+    }
+    if (req.body.maxPlayers) {
       game.maxPlayers = req.body.maxPlayers;
-    }   
-     if (req.body.totalRounds) {
-      game.totalRounds = req.body.totalRounds;
-    }   
+    }
+    if (req.body.rounds) {
+      game.totalRounds = req.body.rounds;
+    }
+    if (req.body.drawingTime) {
+      game.drawingTime = req.body.drawingTime;
+    }
+    if (req.body.writingTime) {
+      game.writingTime = req.body.writingTime;
+    }
+    game.updateNumber += 1; // Increment update number
     await game.save();
+    res.status(200).send({
+      message: "Game settings updated successfully!",
+    });
   } catch (err) {
     res.status(500).send({
-      message: err.message || "Some error occurred while updating the Game."
+      message: err.message || "Some error occurred while updating the game settings."
     });
   }
-
 }
+
+exports.getLobbyInfo = async (req, res) => {
+  try {
+    const gameCode = req.params.code;
+    const version = req.query.version;
+    const game = await Game.findByPk(gameCode, {
+      include: [
+        {
+          model: User,
+          as: 'participants',
+          through: { attributes: [] }
+        }
+      ]
+    });
+    if (!game) {
+      return res.status(404).send({
+        message: `Game with code ${gameCode} not found.`
+      });
+    }
+
+    
+    if(!version){
+      return res.status(400).send({
+        message: "Version is required!"
+      });
+    }
+
+    if(gameCode + game.updateNumber == version){
+      return res.status(200).send({
+        message: "good",
+      })
+    }
+
+    if (game.status !== 'waiting') {
+      return res.status(222).send({
+        message: "Game is not in waiting status."
+      });
+    }
+
+    players = game.participants.map(participant => ({
+      id: participant.dataValues.id,
+      name: participant.dataValues.username,
+      avatar: participant.dataValues.profilePictureUrl,
+      isReady:true
+    }))
+
+    // console.log("players:", players);
+
+    const lobbyInfo = {
+      message: "updated",
+      name: game.name,
+      satus: game.status,
+      gameHost: game.hostId,
+      maxPlayers: game.maxPlayers,
+      players: players,
+      rounds: game.totalRounds,
+      drawingTime: game.drawingTime,
+      writingTime: game.writingTime,
+      currentUpdate: gameCode + game.updateNumber
+    }
+    
+
+    return res.status(200).send(lobbyInfo);
+  }catch (err) {
+    return res.status(500).send({
+      message: err.message || "Some error occurred while retrieving lobby information."
+    });
+  }
+}
+
 
 exports.joinGame = async (req, res) => {
   try {
