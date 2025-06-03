@@ -14,7 +14,7 @@ export function ServerContextWrapper({ children }: { children: React.ReactNode }
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
-    const updateFromServer = async (roomCode:string) => {
+    const updateLobbyFromServer = async (roomCode:string) => {
         setLoading(true);
         await fetch('http://localhost:5001/api/code/' + roomCode, {
             method: 'GET',
@@ -40,7 +40,7 @@ export function ServerContextWrapper({ children }: { children: React.ReactNode }
     }
 
     return (
-        <ServerContext.Provider value={{updateFromServer, creator, players, gameSettings, loading, error }}>
+        <ServerContext.Provider value={{updateLobbyFromServer, creator, players, gameSettings, loading, error }}>
             {children}
         </ServerContext.Provider>
     );
