@@ -12,7 +12,8 @@ module.exports = app => {
 
   router.put("/leave/:id/auth", authentication.authenticateFirebaseToken, games.leaveGameWithAuth);
   router.put("/leave/:id/nauth", games.leaveGameNoAuth);
-  router.post("/:gameId/start", games.startGame);
+
+  router.put("/:gameId/start", authentication.authenticateFirebaseToken, games.startGame);
 
   router.post("/:gameId/end", games.endGame); // Simplified from endGameRound to endGame
 
@@ -23,6 +24,9 @@ module.exports = app => {
   router.get("/query", games.query);
 
   router.get("/:code/lobbyInfo", games.getLobbyInfo);
+
+  router.get("/:id/promptInfo", games.getPromptInfo);
+  router.put("/:id/promptSubmit", games.updatePrompt);
 
   router.get("/:id", games.findOne);
 

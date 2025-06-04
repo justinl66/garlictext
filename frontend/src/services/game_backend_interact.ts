@@ -65,5 +65,19 @@ async function joinGame(playerName:string, joinCode:string, user:any={}){
     }
 }
 
+async function startGame(joinCode:string|undefined, token:string){
+    const response = await fetch(`http://localhost:5001/api/games/${joinCode}/start`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+        },
+    });
 
-export {createGame, joinGame}
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+}
+
+
+export {createGame, joinGame, startGame}
