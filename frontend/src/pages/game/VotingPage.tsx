@@ -10,6 +10,7 @@ interface CaptionedImage {
   caption: string;
   authorName: string;
   promptText: string;
+  isUsingFallback?: boolean;
 }
 
 export default function VotingPage() {
@@ -81,6 +82,22 @@ export default function VotingPage() {
     }, interval);
       return () => clearInterval(timer);
   }, [currentIndex, isSubmitting]);
+  
+  const handleImageError = (imageId: string) => {
+    setImages(prevImages => 
+      prevImages.map(img => {
+        if (img.id === imageId && !img.isUsingFallback) {
+          console.log(`Enhanced image failed to load for image ${imageId}, falling back to original`);
+          return {
+            ...img,
+            imageUrl: dbService.image.getOriginalImageUrl(imageId),
+            isUsingFallback: true
+          };
+        }
+        return img;
+      })
+    );
+  };
     const handleSubmit = async () => {
     if (isSubmitting) return;
     
@@ -160,14 +177,14 @@ export default function VotingPage() {
             <h2 className="text-xl font-bold text-[#9B5DE5]">Prompt:</h2>
             <p className="text-gray-700">{currentImage.promptText}</p>          </div>
           
-          <div className="flex justify-center items-center mb-6">
-            <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden max-h-[300px] w-[300px]">
+          <div className="flex justify-center items-center mb-6">            <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden max-h-[300px] w-[300px]">
               <img 
                 src={currentImage.imageUrl} 
                 alt={`Drawing by ${currentImage.authorName}`}
                 className="w-full h-full object-contain"
+                onError={() => handleImageError(currentImage.id)}
               />
-            </div>          </div>
+            </div></div>
           
           <div className="bg-gray-200 rounded-lg p-4 mb-6">
             <p className="text-lg font-medium text-center text-[#9B5DE5]">{currentImage.caption}</p>

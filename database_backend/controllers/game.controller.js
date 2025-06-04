@@ -556,15 +556,11 @@ exports.getPromptInfo = async (req, res) => {
       return res.status(404).send({
         message: `Game with ID ${id} not found.`
       });
-    }
-
-    if(id + game.updateNumber == version) {
+    }    if(id + game.updateNumber == version) {
       return res.status(200).send({
         message: "good",
       });
     }
-
-    console.log("Prompter ID:", game.prompterId);
 
     return res.status(200).send({
       message: "updated",
