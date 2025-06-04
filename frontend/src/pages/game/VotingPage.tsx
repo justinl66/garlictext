@@ -4,7 +4,6 @@ import NavBar from '../General/NavBar';
 import dbService from '../../services/dbService';
 import { AuthContext } from '../../firebase/firebaseAuth';
 
-// Define TypeScript interfaces for our data structure
 interface CaptionedImage {
   id: string;
   imageUrl: string;
@@ -21,12 +20,30 @@ export default function VotingPage() {
     const [images, setImages] = useState<CaptionedImage[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);  const [rating, setRating] = useState(60);
   const [timeLeft, setTimeLeft] = useState(10);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);  const [progress, setProgress] = useState(0);
   
-  // Load images when component mounts
   useEffect(() => {
-    const fetchImages = async () => {      try {
+    const fetchImages = async () => {
+      if (!roomId) {
+        console.error('No roomId provided');
+        return;
+      }      try {
+        const imagesData = await dbService.image.getImagesByRound(roomId);
+        
+        const transformedImages: CaptionedImage[] = imagesData.map((image: any) => ({          id: image.id,
+          imageUrl: image.enhancedImageData ? 
+            dbService.image.getEnhancedImageUrl(image.id) : 
+            dbService.image.getOriginalImageUrl(image.id),
+          caption: image.captions?.[0]?.text || `Drawing by ${image.user?.username || 'Anonymous'}`,
+          authorName: image.captions?.[0]?.user?.username || image.user?.username || 'Anonymous',
+          promptText: image.prompt || 'No prompt available'        }));
+
+        const filteredImages = transformedImages.filter((image: any) => 
+          image.authorName !== (currentUser?.displayName || currentUser?.email)
+        );
+          setImages(filteredImages);
+      } catch (error) {
+        console.error('Error fetching images:', error);
         const mockImages = [
           {
             id: '1',
@@ -34,37 +51,14 @@ export default function VotingPage() {
             caption: "a sweaty person",
             authorName: 'Player 1',
             promptText: 'Draw a programmer debugging code'
-          },
-          {
-            id: '2',
-            imageUrl: '/garlicTextNoBackground.png',
-            caption: 'a Degen',
-            authorName: 'Player 2',
-            promptText: 'Draw a programmer debugging code'
-          },
-          {
-            id: '3',
-            imageUrl: '/garlicTextNoBackground.png',
-            caption: 'a Degen',
-            authorName: 'Player 2',
-            promptText: 'Draw a programmer debugging code'
-          },
-          {
-            id: '4',
-            imageUrl: '/garlicTextNoBackground.png',
-            caption: 'a Degen',
-            authorName: 'Player 2',
-            promptText: 'Draw a programmer debugging code'
-          },
+          }
         ];
-        
         setImages(mockImages);
-      } catch (error) {
-        console.error('Error fetching images:', error);
-      }
-    };
+      }    };
       fetchImages();
-  }, []);  useEffect(() => {
+  }, [roomId, currentUser]);
+
+  useEffect(() => {
     if (isSubmitting) return;
     
     const duration = 10000;
@@ -85,27 +79,49 @@ export default function VotingPage() {
         handleSubmit();
       }
     }, interval);
-    
-    return () => clearInterval(timer);
+      return () => clearInterval(timer);
   }, [currentIndex, isSubmitting]);
-  
-  const handleSubmit = async () => {
+    const handleSubmit = async () => {
     if (isSubmitting) return;
     
     setIsSubmitting(true);
-      try {      console.log(`Rating for image ${images[currentIndex].id}: ${rating}`);
+      try {
+      const currentImage = images[currentIndex];
+      
+      if (rating >= 80) {
+        if (currentImage.caption) {
+          const captions = await dbService.caption.getCaptionsByImage(currentImage.id);
+          if (captions && captions.length > 0) {
+            await dbService.caption.voteForCaption(captions[0].id);
+          }
+        }
+        await dbService.image.voteForImage(currentImage.id);
+      }
+      
+      console.log(`Rating for image ${currentImage.id}: ${rating}${rating >= 80 ? ' (Vote submitted)' : ' (No vote - rating too low)'}`);
         
       if (currentIndex < images.length - 1) {
         setCurrentIndex(prev => prev + 1);
         setTimeLeft(10);
         setRating(60);
         setProgress(0);        setIsSubmitting(false);
-      } else {        setTimeout(() => {
+      } else {
+        setTimeout(() => {
           navigate(`/game/results/${roomId}`);
         }, 1500);
       }
     } catch (error) {
       console.error('Error submitting vote:', error);
+      if (currentIndex < images.length - 1) {
+        setCurrentIndex(prev => prev + 1);
+        setTimeLeft(10);
+        setRating(60);
+        setProgress(0);
+      } else {
+        setTimeout(() => {
+          navigate(`/game/results/${roomId}`);
+        }, 1500);
+      }
       setIsSubmitting(false);
     }
   };
@@ -121,7 +137,7 @@ export default function VotingPage() {
       <NavBar />
       
       <div className="container mx-auto px-4 py-6 flex-grow flex items-center justify-center">
-        <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-2xl">          {/* Progress bar */}          <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
+        <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-2xl">          <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
             <div 
               className={`h-2 rounded-full transition-all duration-200 ease-linear ${
                 timeLeft <= 3.2 
@@ -129,10 +145,8 @@ export default function VotingPage() {
                   : 'bg-[#00BBF9]'
               }`}
               style={{ width: `${progress}%` }}
-            />
-          </div>
+            />          </div>
           
-          {/* Timer */}
           <div className="text-center mb-6">
             <div className={`text-3xl font-bold transition-colors duration-200 ${
               timeLeft <= 3.2 
@@ -140,16 +154,12 @@ export default function VotingPage() {
                 : 'text-[#9B5DE5]'
             }`}>
               {timeLeft}s
-            </div>
-          </div>
+            </div>          </div>
           
-          {/* Prompt */}
           <div className="text-center mb-6">
             <h2 className="text-xl font-bold text-[#9B5DE5]">Prompt:</h2>
-            <p className="text-gray-700">{currentImage.promptText}</p>
-          </div>
+            <p className="text-gray-700">{currentImage.promptText}</p>          </div>
           
-          {/* Image */}
           <div className="flex justify-center items-center mb-6">
             <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden max-h-[300px] w-[300px]">
               <img 
@@ -157,16 +167,12 @@ export default function VotingPage() {
                 alt={`Drawing by ${currentImage.authorName}`}
                 className="w-full h-full object-contain"
               />
-            </div>
-          </div>
+            </div>          </div>
           
-          {/* Caption */}
           <div className="bg-gray-200 rounded-lg p-4 mb-6">
             <p className="text-lg font-medium text-center text-[#9B5DE5]">{currentImage.caption}</p>
-            <p className="text-sm text-gray-600 text-center mt-2">By: {currentImage.authorName}</p>
-          </div>
-            {/* Rating Buttons */}
-          <div className="mb-8">
+            <p className="text-sm text-gray-600 text-center mt-2">By: {currentImage.authorName}</p>          </div>
+            <div className="mb-8">
             <div className="text-center mb-4">
               <h3 className="text-lg font-semibold text-[#9B5DE5]">Rate this caption:</h3>
             </div>
@@ -193,11 +199,9 @@ export default function VotingPage() {
                   <span className="text-lg">{option.emoji}</span>
                   <span className="capitalize">{option.label}</span>
                 </button>
-              ))}
-            </div>
+              ))}            </div>
           </div>
           
-          {/* Progress indicator */}
           <div className="text-center mt-4 text-gray-600">
             {currentIndex + 1} of {images.length} drawings voted
           </div>
