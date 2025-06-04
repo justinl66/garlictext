@@ -18,7 +18,7 @@ export default function GameLobby() {
     rounds: 3,
     drawingTime: 60,
     writingTime: 60,
-    maxPlayers: 10,
+    maxPlayers: 8,
   });
   const [error, setError] = useState<string | null>(null);
   const [gameStarted, setGameStarted] = useState<boolean>(false);
@@ -81,6 +81,28 @@ export default function GameLobby() {
     }
   }
 
+  const updateMaxPlayers = async (maxPlayers: number) => {
+    setGameSettings({...gameSettings, maxPlayers: maxPlayers})
+    try{
+     const response = await fetch(`http://localhost:5001/api/games/${roomId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${user?.stsTokenManager.accessToken}`,
+      },
+      body: JSON.stringify({ maxPlayers }),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.json();
+      throw new Error(errorText.message);
+    }
+  }catch(e:any){
+    setError("Error updating rounds: " + e.message);
+    return;
+  }
+}
+
   const updateRounds = async (rounds: number) => {
     setGameSettings({...gameSettings, rounds: rounds})
     try{
@@ -96,7 +118,6 @@ export default function GameLobby() {
     if (!response.ok) {
       const errorText = await response.json();
       throw new Error(errorText.message);
-      return;
     }
   }catch(e:any){
     setError("Error updating rounds: " + e.message);
@@ -275,6 +296,21 @@ const updateWritingTime = async (writingTime: number) => {
             
               <div>                <h3 className="text-xl font-semibold mb-4 text-[#9B5DE5]">Game Settings</h3>
                 <div className="space-y-4">
+                  <div>
+                    <label className="block text-gray-800 font-medium mb-2">Max Players</label>
+                    <select 
+                      value={gameSettings.maxPlayers}
+                      onChange={(e) => updateMaxPlayers(+e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9] text-gray-800"
+                      disabled={creator != user?.uid}
+                    >
+                      <option value={4}>4 Players</option>
+                      <option value={6}>6 Players</option>
+                      <option value={8}>8 Players</option>
+                      <option value={10}>10 Players</option>
+                      <option value={12}>12 Players</option>
+                    </select>
+                  </div>
                   <div>
                     <label className="block text-gray-800 font-medium mb-2">Rounds</label>
                     <select 

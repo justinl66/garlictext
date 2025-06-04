@@ -559,7 +559,7 @@ exports.query = async (req, res) => {
     if (maxPlayers) {
       const numMaxPlayers = parseInt(maxPlayers);
       if (!isNaN(numMaxPlayers) && numMaxPlayers > 0) {
-        whereClause.maxPlayers = { [Op.lte]: numMaxPlayers };
+        whereClause.maxPlayers = numMaxPlayers;
       }
     }
 
