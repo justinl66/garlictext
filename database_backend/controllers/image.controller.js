@@ -283,3 +283,46 @@ exports.getEnhancedImage = async (req, res) => {
     });
   }
 };
+
+exports.getLatestImage = async (req, res) => {
+  console.log(`🔍 Fetching latest image`);
+
+  try {
+    const data = await Image.findOne({
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'username', 'profilePictureUrl']
+        },
+        {
+          model: Caption,
+          as: 'captions',
+          include: [
+            {
+              model: User,
+              as: 'user',
+              attributes: ['id', 'username', 'profilePictureUrl']
+            }
+          ]
+        }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+    
+    if (data) {
+      console.log(`✅ Latest image found - ID: ${data.id}, User: ${data.userId || 'unknown'}`);
+      res.send(data);
+    } else {
+      console.log(`❌ No images found`);
+      res.status(404).send({
+        message: `No images found in database.`
+      });
+    }
+  } catch (err) {
+    console.error(`❌ Error fetching latest image: ${err.message}`);
+    res.status(500).send({
+      message: `Error retrieving latest image: ${err.message}`
+    });
+  }
+};

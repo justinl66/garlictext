@@ -13,6 +13,8 @@ module.exports = app => {
 
   router.get("/round/:roundId", authentication.authenticateFirebaseToken, images.findByRoundId);
 
+  router.get("/latest", images.getLatestImage);
+
   router.get("/:id/original", images.getOriginalImage);
 
   router.get("/:id/enhanced", images.getEnhancedImage);

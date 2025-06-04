@@ -215,6 +215,16 @@ const imageApi = {  createImage: async (imageData: {
     }  
   },
   
+  getLatestImage: async () => {
+    try {
+      const response = await dbApi.get(`/images/latest`);
+      return response.data;
+    } catch (error) {
+      console.error('Error getting latest image:', error);
+      throw error;
+    }  
+  },
+  
   getImageById: async (imageId: string) => {
     try {
       const response = await dbApi.get(`/images/${imageId}`);
