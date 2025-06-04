@@ -224,11 +224,19 @@ const updateWritingTime = async (writingTime: number) => {
                       <p className="font-medium text-gray-800">{player.name}</p>
                     </div>
                     <div>
-                      {player.isReady ? (
-                        <span className="text-green-500 text-sm font-medium">Ready</span>
-                      ) : (
-                        <span className="text-gray-400 text-sm">Waiting...</span>
+                      
+                      {creator == player.id ?(
+                        <img src="/crown.png" alt="Host" className="w-8 h-8 mr-1.5" />
+                      ): (
+                        <>
+                          {player.isReady ? (
+                            <span className="text-green-500 text-sm font-medium">Ready</span>
+                          ) : (
+                            <span className="text-gray-400 text-sm">Waiting...</span>
+                          )}
+                        </>
                       )}
+
                     </div>
                   </div>
                 ))}
