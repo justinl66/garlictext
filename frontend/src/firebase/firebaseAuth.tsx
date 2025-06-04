@@ -9,7 +9,8 @@ export const AuthContext = createContext<any>(null);
 export function AuthContextWrapper({children}:{children: React.ReactNode}) {
     const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
-      async function login(email: string, password: string) {
+    
+    async function login(email: string, password: string) {
         setLoading(true);
         try {
             const result = await signInWithEmailAndPassword(auth, email, password);
@@ -146,7 +147,7 @@ export function AuthContextWrapper({children}:{children: React.ReactNode}) {
                 console.error('Error ensuring user exists in database:', error);
                 // Continue with sign-in even if this fails
             }
-            
+    
             setLoading(false);
             return "success";
         } catch (error: any) {
@@ -184,6 +185,27 @@ export function AuthContextWrapper({children}:{children: React.ReactNode}) {
         return unsubscribe;
     }, []);
 
+    async function sendVerificationCode(email: string, code: string) {
+        try {
+            const response = await fetch("https://us-central1-YOUR_PROJECT.cloudfunctions.net/api/send-code", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ email, code })
+            });
+    
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(text || "Failed to send verification email.");
+            }
+    
+            return "success";
+        } catch (error: any) {
+            return error.message || "Failed to send verification email.";
+        }
+    }
+
     const authValues = {
         user:currentUser,
         loading:loading,
@@ -192,6 +214,7 @@ export function AuthContextWrapper({children}:{children: React.ReactNode}) {
         logout,
         resetPassword,
         deleteAccount,
+        sendVerificationCode,
         signInWithGoogle,
     }
 

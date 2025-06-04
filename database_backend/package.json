@@ -2,12 +2,15 @@
   "name": "garlictext-database-backend",
   "version": "1.0.0",
   "description": "PostgreSQL backend for GarlicText application",
-  "main": "server.js", "scripts": {
+  "main": "server.js",
+  "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
     "db:setup": "node setup.js",
     "db:reset": "node setup.js --force --seed",
     "db:seed": "node setup.js --seed",
+    "test": "node test-api.js",
+    "test:api": "node test-api.js",
     "init": "npm run db:setup && npm run dev"
   },
   "dependencies": {

@@ -3,7 +3,9 @@ import LoginPage from './pages/loginPages/login';
 import SignUpPage from './pages/loginPages/signup';
 import ForgotPasswordPage from './pages/loginPages/forgotPassword.tsx';
 import ForgotPasswordSuccessPage from './pages/loginPages/forgotPasswordSuccess.tsx';
-import ProfilePage from './pages/user/myProfile.tsx';
+import ProfilePage from './pages/user/MyProfile.tsx';
+import EditProfile from './pages/user/EditProfile.tsx';
+import VerifyEmail from './pages/user/VerifyEmail.tsx';
 import HomePage from './pages/home/home';
 import Help from './pages/General/Help.tsx';
 import FindGame from './pages/General/FindGame.tsx';
@@ -36,6 +38,15 @@ const App = () => {
           <Route path="/game/caption/:roomId" element={<CaptionPage />} />
           <Route path="/game/voting/:roomId" element={<VotingPage />} />
           <Route path="/game/results/:roomId" element={<ResultsPage />} />
+          <Route path="/profile/edit" element={<EditProfile />} /> 
+          <Route path="/profile/verifyemail" element={<VerifyEmail />} /> 
+          <Route path="/game/lobby" element={<GameLobby />} />
+          <Route path="/game/lobby/:roomId" element={<GameLobby />} />
+          <Route path="/game/play" element={<GamePlay />} />
+          <Route path="/game/prompts" element={<PromptPage />} />
+          <Route path="/game/caption" element={<CaptionPage />} />
+          <Route path="/game/voting" element={<VotingPage />} />
+          <Route path="/game/results" element={<ResultsPage />} />
           <Route path="/test" element={<DbTester />} />
           <Route path="*" element={<NotFound />} />        </Routes>
       </Router>
