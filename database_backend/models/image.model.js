@@ -19,15 +19,26 @@ module.exports = (sequelize, DataTypes) => {
         model: 'gameRounds',
         key: 'id'
       }
+    },    prompt: {
+      type: DataTypes.TEXT,
+      allowNull: false
+    },    originalDrawingData: {
+      type: DataTypes.BLOB,
+      allowNull: false
     },
-    prompt: {
-      type: DataTypes.TEXT,
-      allowNull: false
-    },    originalDrawingUrl: {
-      type: DataTypes.TEXT,
-      allowNull: false
-    },    enhancedImageUrl: {
-      type: DataTypes.TEXT
+    originalDrawingMimeType: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: 'image/png'
+    },
+    enhancedImageData: {
+      type: DataTypes.BLOB,
+      allowNull: true
+    },
+    enhancedImageMimeType: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: 'image/png'
     },
     votes: {
       type: DataTypes.INTEGER,
