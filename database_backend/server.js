@@ -32,12 +32,17 @@ require('./routes/caption.routes')(app);
 require('./routes/prompt.routes')(app);
 require('./routes/results.routes')(app);
 
+console.log("🔗 All routes configured");
+
 db.sequelize.sync({ alter: process.env.NODE_ENV === 'development' })
   .then(() => {
     app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
+      console.log(`🚀 GarlicText Database Backend running on port ${PORT}`);
+      console.log(`📸 Image API endpoints ready at http://localhost:${PORT}/api/images`);
+      console.log(`📝 Caption API endpoints ready at http://localhost:${PORT}/api/captions`);
+      console.log(`🔐 Authentication required for protected endpoints`);
     });
   })
   .catch(err => {
-    console.error('Unable to connect to the database:', err);
+    console.error('❌ Unable to connect to the database:', err);
   });

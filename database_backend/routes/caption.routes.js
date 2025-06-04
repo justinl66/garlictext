@@ -3,6 +3,8 @@ module.exports = app => {
   const router = require("express").Router();
   const authentication = require("./authentication.js");
 
+  console.log("🚀 Setting up caption routes...");
+
   router.post("/", authentication.authenticateFirebaseToken, captions.create);
 
   router.post("/:id/vote", authentication.authenticateFirebaseToken, captions.vote);
@@ -14,4 +16,5 @@ module.exports = app => {
   router.get("/:id", authentication.authenticateFirebaseToken, captions.findOne);
 
   app.use("/api/captions", router);
+  console.log("✅ Caption routes configured successfully");
 };
