@@ -1,4 +1,18 @@
 import axios from 'axios';
+import { auth } from '../firebase/firebaseConfig';
+
+const getCurrentUserToken = async (): Promise<string | null> => {
+  try {
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      return null;
+    }
+    return await currentUser.getIdToken(true);
+  } catch (error) {
+    console.error('Error getting auth token:', error);
+    return null;
+  }
+};
 
 // Define TypeScript interfaces for data structures
 interface UserData {
@@ -19,66 +33,6 @@ interface GameData {
   maxRounds?: number;
   [key: string]: any; // For any additional properties
 }
-
-interface ImageData {
-  id?: number;
-  roundId?: number;
-  creatorId?: number;
-  promptId?: number;
-  imageUrl?: string;
-  enhancedImageUrl?: string;
-  [key: string]: any; // For any additional properties
-}
-
-interface CaptionData {
-  id?: number;
-  imageId?: number;
-  creatorId?: number;
-  text?: string;
-  [key: string]: any; // For any additional properties
-}
-
-// Only using these interfaces with the API methods
-
-// Define TypeScript interfaces for data structures
-interface UserData {
-  id?: number;
-  username?: string;
-  email?: string;
-  firebaseUid?: string;
-  profilePictureUrl?: string;
-  [key: string]: any; // For any additional properties
-}
-
-interface GameData {
-  id?: number;
-  gameCode?: string;
-  hostId?: number;
-  title?: string;
-  status?: string;
-  maxRounds?: number;
-  [key: string]: any; // For any additional properties
-}
-
-interface ImageData {
-  id?: number;
-  roundId?: number;
-  creatorId?: number;
-  promptId?: number;
-  imageUrl?: string;
-  enhancedImageUrl?: string;
-  [key: string]: any; // For any additional properties
-}
-
-interface CaptionData {
-  id?: number;
-  imageId?: number;
-  creatorId?: number;
-  text?: string;
-  [key: string]: any; // For any additional properties
-}
-
-// Only using these interfaces with the API methods
 
 const API_BASE_URL = import.meta.env.VITE_DB_API_URL || 'http://localhost:5001/api';
 
@@ -89,6 +43,19 @@ const dbApi = axios.create({
     'Content-Type': 'application/json',
   }
 });
+
+dbApi.interceptors.request.use(
+  async (config) => {
+    const token = await getCurrentUserToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 const userApi = {
   // Create a new user
@@ -193,9 +160,7 @@ const gameApi = {
   }
 };
 
-const imageApi = {
-  createImage: async (imageData: {
-    userId: string;
+const imageApi = {  createImage: async (imageData: {
     roundId: string;
     prompt: string;
     originalDrawingData: string;
@@ -261,9 +226,7 @@ const imageApi = {
   }
 };
 
-const captionApi = {
-  createCaption: async (captionData: {
-    userId: string;
+const captionApi = {  createCaption: async (captionData: {
     imageId: string;
     roundId: string;
     text: string;

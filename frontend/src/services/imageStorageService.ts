@@ -3,7 +3,6 @@ import dbService from './dbService';
 const AI_API_URL = import.meta.env.VITE_AI_API_URL || 'http://localhost:8000';
 
 export interface DrawingSubmissionData {
-  userId: string;
   roundId: string;
   prompt: string;
   drawingDataURL: string;
@@ -16,11 +15,9 @@ export interface ImageSubmissionResult {
   status: 'original_saved' | 'enhanced' | 'error';
 }
 
-class ImageStorageService {
-  async submitDrawing(submissionData: DrawingSubmissionData): Promise<ImageSubmissionResult> {
+class ImageStorageService {  async submitDrawing(submissionData: DrawingSubmissionData): Promise<ImageSubmissionResult> {
     try {
       const imageData = {
-        userId: submissionData.userId,
         roundId: submissionData.roundId,
         prompt: submissionData.prompt,
         originalDrawingData: submissionData.drawingDataURL
@@ -34,7 +31,8 @@ class ImageStorageService {
       const result: ImageSubmissionResult = {
         imageId,
         originalImageUrl: dbService.image.getOriginalImageUrl(imageId),
-        status: 'original_saved'      };
+        status: 'original_saved'
+      };
 
       this.enhanceImageAsync(imageId, submissionData.drawingDataURL, submissionData.prompt)
         .catch(error => {
@@ -46,7 +44,8 @@ class ImageStorageService {
     } catch (error) {
       console.error('Error submitting drawing:', error);
       throw new Error(`Failed to submit drawing: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }  }
+    }
+  }
 
   private async enhanceImageAsync(imageId: string, originalDataURL: string, prompt: string): Promise<void> {
     try {      console.log('🎨 Starting AI enhancement for image:', imageId);

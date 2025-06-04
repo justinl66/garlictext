@@ -2,19 +2,31 @@ const db = require('../models');
 const Caption = db.Caption;
 const Image = db.Image;
 const User = db.User;
+const Prompt = db.Prompt;
 const { Op } = db.Sequelize;
 
-exports.create = async (req, res) => {  try {
-    if (!req.body.userId || !req.body.imageId || !req.body.text || !req.body.roundId) {
-      return res.status(400).send({
-        message: "Content can't be empty! Required fields: userId, imageId, text, roundId"
+exports.create = async (req, res) => {
+  try {
+    if (!req.user || !req.user.uid) {
+      return res.status(401).send({
+        message: "Authentication required"
       });
-    }    const caption = {
-      userId: req.body.userId,
+    }
+
+    if (!req.body.imageId || !req.body.text || !req.body.roundId) {
+      return res.status(400).send({
+        message: "Content can't be empty! Required fields: imageId, text, roundId"
+      });
+    }
+
+    const caption = {
+      userId: req.user.uid,
       imageId: req.body.imageId,
       roundId: req.body.roundId,
       text: req.body.text
-    };    const data = await Caption.create(caption);
+    };
+
+    const data = await Caption.create(caption);
     res.status(201).send(data);
   } catch (err) {
     res.status(500).send({

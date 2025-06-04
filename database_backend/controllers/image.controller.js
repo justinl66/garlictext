@@ -6,9 +6,15 @@ const { Op } = db.Sequelize;
 
 exports.create = async (req, res) => {
   try {
-    if (!req.body.userId || !req.body.prompt || !req.body.originalDrawingData) {
+    if (!req.user || !req.user.uid) {
+      return res.status(401).send({
+        message: "Authentication required"
+      });
+    }
+
+    if (!req.body.prompt || !req.body.originalDrawingData) {
       return res.status(400).send({
-        message: "Content can't be empty! Required fields: userId, prompt, originalDrawingData"
+        message: "Content can't be empty! Required fields: prompt, originalDrawingData"
       });
     }
 
@@ -27,8 +33,10 @@ exports.create = async (req, res) => {
       }
     } else {
       originalDrawingBuffer = Buffer.from(req.body.originalDrawingData, 'base64');
-    }    const image = {
-      userId: req.body.userId,
+    }
+
+    const image = {
+      userId: req.user.uid,
       roundId: req.body.roundId || null,
       prompt: req.body.prompt,
       originalDrawingData: originalDrawingBuffer,
