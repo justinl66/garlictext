@@ -5,7 +5,6 @@ const User = db.User;
 const Caption = db.Caption;
 const Image = db.Image;
 
-// get player rankings
 exports.getGameResults = async (req, res) => {
   try {
     const { gameId } = req.params;
@@ -15,42 +14,36 @@ exports.getGameResults = async (req, res) => {
         message: "Game ID is required"
       });
     }
-    
-    // TODO: query db for actual data (placeholder for now)
-    const players = [
+        const players = [
       {
         id: 1,
         username: 'user1',
         profilePictureUrl: 'https://example.com/avatar1.jpg',
-        totalVotes: 8  // total votes for their drawing
+        totalVotes: 8
       },
       {
         id: 3,
         username: 'user3',
         profilePictureUrl: 'https://example.com/avatar3.jpg',
         totalVotes: 5
-      },
-      {
+      },      {
         id: 5,
         username: 'user5',
         profilePictureUrl: 'https://example.com/avatar5.jpg',
-        totalVotes: 5 // tied with user3
+        totalVotes: 5
       },
       {
         id: 7,
         username: 'user7',
         profilePictureUrl: 'https://example.com/avatar7.jpg',
         totalVotes: 2
-      },
-      {
+      },      {
         id: 9,
         username: 'user9',
         profilePictureUrl: 'https://example.com/avatar9.jpg',
-        totalVotes: 0 // no votes
+        totalVotes: 0
       }
     ];
-    
-    // TODO: placeholder for images caption combinations
     const topDrawings = [
       {
         drawingId: 101,
@@ -107,20 +100,13 @@ exports.getGameResults = async (req, res) => {
         }
       }
     ];
+      const totalGameVotes = players.reduce((sum, player) => sum + player.totalVotes, 0);
     
-    // calculate total votes in the game
-    const totalGameVotes = players.reduce((sum, player) => sum + player.totalVotes, 0);
-    
-    // format players for leaderboard
     players.sort((a, b) => b.totalVotes - a.totalVotes);
-    
-    // medal assign based on total votes
     let goldVotes = players[0].totalVotes;
     let silverVotes = null;
     let bronzeVotes = null;
-    
-    players.forEach(player => {
-      // skip players with no votes for medal assignment
+      players.forEach(player => {
       if (player.totalVotes === 0) {
         player.medal = null;
         return;
@@ -137,23 +123,17 @@ exports.getGameResults = async (req, res) => {
         bronzeVotes = player.totalVotes;
         player.medal = 'bronze';
       } else if (player.totalVotes === bronzeVotes) {
-        player.medal = 'bronze';
-      } else {
+        player.medal = 'bronze';      } else {
         player.medal = null;
       }
       
-      // calculate vote percentage
       player.votePercentage = totalGameVotes > 0 ?
         Math.round((player.totalVotes / totalGameVotes) * 100) : 0;
     });
-    
-    // assign ranks
     let currentRank = 1;
     let prevVotes = -1;
     let sameRankCount = 0;
-    
-    const leaderboard = players.map((player, index) => {
-      // TODO: query db for best submission
+      const leaderboard = players.map((player, index) => {
       const bestDrawing = topDrawings.find(drawing => drawing.creator.id === player.id);
       let bestSubmission = null;
       
@@ -169,9 +149,7 @@ exports.getGameResults = async (req, res) => {
           captionCreator: bestDrawing.caption.creator
         };
       }
-      
-      // calculate rank
-      if (index === 0) {
+        if (index === 0) {
         prevVotes = player.totalVotes;
         return {
           userId: player.id,
@@ -186,9 +164,7 @@ exports.getGameResults = async (req, res) => {
           rank: currentRank
         };
       }
-      
-      // handle different vote counts
-      if (player.totalVotes < prevVotes) {
+        if (player.totalVotes < prevVotes) {
         currentRank += sameRankCount + 1;
         sameRankCount = 0;
       } else {
@@ -196,8 +172,6 @@ exports.getGameResults = async (req, res) => {
       }
       
       prevVotes = player.totalVotes;
-      
-      // return the formatted player
       return {
         userId: player.id,
         username: player.username,
@@ -211,9 +185,7 @@ exports.getGameResults = async (req, res) => {
         rank: currentRank
       };
     });
-    
-    // format top drawings for response (can be used for showcase)
-    const topDrawingsFormatted = topDrawings.map(drawing => ({
+      const topDrawingsFormatted = topDrawings.map(drawing => ({
       drawingId: drawing.drawingId,
       imageUrl: drawing.imageUrl,
       enhancedImageUrl: drawing.enhancedImageUrl,
@@ -222,11 +194,9 @@ exports.getGameResults = async (req, res) => {
       creator: drawing.creator,
       caption: drawing.caption
     }));
-    
-    // return results with metadata
-    res.send({
+      res.send({
       gameId: parseInt(gameId),
-      gameCode: 'ABCDEF', // placeholder
+      gameCode: 'ABCDEF',
       title: 'Placeholder Garlic Text Game',
       totalVotes: totalGameVotes,
       topDrawings: topDrawingsFormatted,

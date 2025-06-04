@@ -34,19 +34,14 @@ const pool = new Pool({
 const testConnection = async () => {
   try {
     await sequelize.authenticate();
-    console.log('Database connection established successfully.');
     
     const client = await pool.connect();
     try {
       await client.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
-      console.log('UUID extension enabled');
-    } catch (err) {
-      console.error('Error enabling extensions:', err);
     } finally {
       client.release();
     }
   } catch (error) {
-    console.error('Unable to connect to the database:', error);
   }
 };
 
@@ -61,14 +56,11 @@ db.Game = require('./game.model')(sequelize, Sequelize);
 db.Image = require('./image.model')(sequelize, Sequelize);
 db.Caption = require('./caption.model')(sequelize, Sequelize);
 db.Prompt = require('./prompt.model')(sequelize, Sequelize);
-// Note: GameRound model removed as part of simplification
 db.User.hasMany(db.Image, { as: 'images', foreignKey: 'userId' });
 db.Image.belongsTo(db.User, { as: 'user', foreignKey: 'userId' });
 
 db.User.hasMany(db.Caption, { as: 'captions', foreignKey: 'userId' });
 db.Caption.belongsTo(db.User, { as: 'user', foreignKey: 'userId' });
-
-// Note: GameRound associations removed as part of simplification
 
 db.Game.belongsToMany(db.User, { through: 'GameParticipants', as: 'participants' });
 db.User.belongsToMany(db.Game, { through: 'GameParticipants', as: 'games' });
@@ -76,7 +68,6 @@ db.User.belongsToMany(db.Game, { through: 'GameParticipants', as: 'games' });
 db.Image.hasMany(db.Caption, { as: 'captions', foreignKey: 'imageId' });
 db.Caption.belongsTo(db.Image, { as: 'image', foreignKey: 'imageId' });
 
-// Note: Images and Captions now reference games directly via roundId field (which stores roomId)
 db.Game.hasMany(db.Image, { as: 'images', foreignKey: 'roundId' });
 db.Image.belongsTo(db.Game, { as: 'game', foreignKey: 'roundId' });
 

@@ -116,10 +116,9 @@ export default function DrawingPage() {
     try {
       // Get the drawing as a data URL
       const dataURL = await canvasRef.current?.exportImage('png');
-      
-      if (!dataURL) {
+        if (!dataURL) {
         throw new Error('Failed to export canvas image');
-      }      console.log('🎨 Submitting drawing to database...');    
+      }    
       const submissionData: any = {
         prompt: theme,
         drawingDataURL: dataURL
@@ -128,11 +127,7 @@ export default function DrawingPage() {
       // Only include roundId if it's available
       if (roomId) {
         submissionData.roundId = roomId;
-      }
-
-      const result = await imageStorageService.submitDrawing(submissionData);
-
-      console.log('✅ Drawing submitted successfully:', result);
+      }      const result = await imageStorageService.submitDrawing(submissionData);
         setSubmitStage('enhancing');
         setTimeout(() => {
         navigate(`/game/caption/${roomId}`, { 
@@ -143,9 +138,7 @@ export default function DrawingPage() {
           } 
         });
       }, 2000);
-      
-    } catch (error) {
-      console.error('Error submitting drawing:', error);
+        } catch (error) {
       alert('Failed to submit drawing. Please try again.');
       setIsSubmitting(false);
       setSubmitStage('not_submitted');
@@ -171,8 +164,6 @@ export default function DrawingPage() {
       ...prev,
       sabotage: !prev.sabotage
     }));
-    // Add your sabotage logic here
-    console.log('Sabotage activated:', !activePowerUps.sabotage);
   };
   
   const handleDelete = () => {
@@ -180,8 +171,6 @@ export default function DrawingPage() {
       ...prev,
       delete: !prev.delete
     }));
-    // Add your delete logic here
-    console.log('Delete activated:', !activePowerUps.delete);
   };
   
   const handleSwitch = () => {
@@ -189,8 +178,6 @@ export default function DrawingPage() {
       ...prev,
       switch: !prev.switch
     }));
-    // Add your switch logic here
-    console.log('Switch activated:', !activePowerUps.switch);
   };
   
   const handleFog = () => {
@@ -198,8 +185,6 @@ export default function DrawingPage() {
       ...prev,
       fog: !prev.fog
     }));
-    // Add your fog logic here
-    console.log('Fog activated:', !activePowerUps.fog);
   };
   
   const handlePaintBucket = () => {

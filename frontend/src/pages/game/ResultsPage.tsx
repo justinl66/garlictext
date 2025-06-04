@@ -22,19 +22,12 @@ export default function ResultsPage() {
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    const fetchResults = async () => {
-      if (!roomId) {
-        console.error('❌ No roomId provided');
+    const fetchResults = async () => {      if (!roomId) {
         setLoading(false);
         return;
       }
 
-      try {
-        // Fetch images for this room that have captions and voting data
-        const images = await dbService.image.getImagesByRound(roomId);
-        console.log('✅ Room images fetched:', images);
-        
-        // Process images into results format
+      try {        const images = await dbService.image.getImagesByRound(roomId);
         const processedResults: Result[] = images.map((image: any, index: number) => ({
           id: image.id,
           imageUrl: image.captionedImageData ? 
@@ -42,15 +35,12 @@ export default function ResultsPage() {
             dbService.image.getOriginalImageUrl(image.id),
           caption: image.captions?.[0]?.text || `Drawing ${index + 1}`,
           authorName: image.user?.username || 'Anonymous',
-          meanRating: Math.floor(Math.random() * 100), // TODO: Replace with actual voting data
+          meanRating: Math.floor(Math.random() * 100),
           rank: index + 1,
           medal: null
         }));
         
-        setResults(processedResults.length > 0 ? processedResults : mockResults);
-      } catch (error) {
-        console.error('❌ Failed to fetch results:', error);
-        // Fall back to mock data if fetch fails
+        setResults(processedResults.length > 0 ? processedResults : mockResults);      } catch (error) {
         setResults(mockResults);
       } finally {
         setLoading(false);
@@ -60,7 +50,7 @@ export default function ResultsPage() {
     fetchResults();
   }, [roomId]);
 
-  // Mock data as fallback
+
   const mockResults: Result[] = [
     {
       id: '1',
@@ -100,12 +90,9 @@ export default function ResultsPage() {
     
     sortedResults.forEach((result, index) => {
       if (index === 0) {
-        result.medal = 'gold';
-      } else if (result.meanRating === currentRating) {
-        // If tied with previous result, give same medal
+        result.medal = 'gold';      } else if (result.meanRating === currentRating) {
         result.medal = currentMedal;
       } else {
-        // If not tied, move to next medal
         if (currentMedal === 'gold') {
           currentMedal = 'silver';
         } else if (currentMedal === 'silver') {
@@ -117,14 +104,14 @@ export default function ResultsPage() {
       processedResults.push(result);
     });
 
-    // If more than 3 gold medals, randomly select 3
+
     const goldMedals = processedResults.filter(r => r.medal === 'gold');
     if (goldMedals.length > 3) {
       const selectedGolds = goldMedals.sort(() => Math.random() - 0.5).slice(0, 3);
       processedResults = processedResults.filter(r => r.medal !== 'gold' || selectedGolds.includes(r));
     }
 
-    // Sort by medal priority (bronze -> silver -> gold) and then by original order
+
     return processedResults.sort((a, b) => {
       const medalOrder = { bronze: 0, silver: 1, gold: 2 };
       return medalOrder[a.medal!] - medalOrder[b.medal!];
@@ -157,27 +144,27 @@ export default function ResultsPage() {
     }
   };
 
-  // Function to determine podium position based on medal and index
+
   const getPodiumPosition = (results: Result[], index: number): 'left' | 'middle' | 'right' => {
     const goldCount = results.filter(r => r.medal === 'gold').length;
     const silverCount = results.filter(r => r.medal === 'silver').length;
     const bronzeCount = results.filter(r => r.medal === 'bronze').length;
 
-    // Case 1: One of each medal (gold, silver, bronze)
+
     if (goldCount === 1 && silverCount === 1 && bronzeCount === 1) {
       if (results[index].medal === 'bronze') return 'left';
       if (results[index].medal === 'silver') return 'right';
       return 'middle';
     }
 
-    // Case 2: Two gold, one bronze
+
     if (goldCount === 2 && bronzeCount === 1) {
       if (results[index].medal === 'bronze') return 'left';
       if (index === results.findIndex(r => r.medal === 'gold')) return 'right';
       return 'middle';
     }
 
-    // Case 3: One gold, two silver
+
     if (goldCount === 1 && silverCount === 2) {
       if (results[index].medal === 'silver') {
         return index === results.findIndex(r => r.medal === 'silver') ? 'left' : 'right';
@@ -185,14 +172,14 @@ export default function ResultsPage() {
       return 'middle';
     }
 
-    // Case 4: Three gold
+
     if (goldCount === 3) {
       if (index === 0) return 'left';
       if (index === 1) return 'right';
       return 'middle';
     }
 
-    // Default case: left to right
+
     return index === 0 ? 'left' : index === 1 ? 'right' : 'middle';
   };
   return (
@@ -208,7 +195,7 @@ export default function ResultsPage() {
             </div>
           ) : (
             <>
-              {/* Podium - Always visible with consistent spacing */}
+
               <div className="flex justify-center items-end h-96 mb-8 relative">
                 {topResults.map((result, index) => {
                   const position = getPodiumPosition(topResults, index);
@@ -223,7 +210,7 @@ export default function ResultsPage() {
                         'left-1/2 transform -translate-x-1/2'
                       }`}
                     >
-                      {/* Consistent width container for all positions */}
+
                       <div className="w-48">
                         <div className={`bg-gray-100 rounded-lg overflow-hidden mb-2 ${
                           result.medal === 'gold' ? 'h-48' :
@@ -240,7 +227,7 @@ export default function ResultsPage() {
                             className="w-full h-full object-contain"
                           />
                         </div>
-                        {/* Caption directly under drawing */}
+
                         <div className="text-center mb-2">
                           <p className="text-sm font-medium text-gray-800">{result.caption}</p>
                         </div>
@@ -257,7 +244,7 @@ export default function ResultsPage() {
                 })}
               </div>
 
-              {/* Current Result Details */}
+
               <div className="text-center mb-8">
                 <h1 className="text-4xl font-bold text-[#9B5DE5] mb-2">
                   {currentResult?.medal === 'gold' ? '🏆 Winner! 🏆' : 
@@ -270,7 +257,7 @@ export default function ResultsPage() {
                 </p>
               </div>
 
-              {/* Play Again Button */}
+
               {showPlayAgain && (
                 <div className="flex justify-center">
                   <button 

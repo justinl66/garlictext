@@ -298,9 +298,6 @@ const captionApi = {  createCaption: async (captionData: {
   }
 };
 
-// Define interfaces for results data types
-
-// Drawing with its assigned caption and votes
 interface DrawingWithVotes {
   drawingId: number;
   imageUrl: string;
@@ -320,7 +317,6 @@ interface DrawingWithVotes {
   };
 }
 
-// Player's best submission in the game
 interface BestSubmission {
   type: 'drawing';
   imageId: number;
@@ -335,23 +331,21 @@ interface BestSubmission {
   };
 }
 
-// Player in the game leaderboard
 interface GameLeaderboardItem {
   userId: number;
   username: string;
   profilePictureUrl?: string;
-  // Vote metrics
-  totalVotes: number;       // Votes for their drawings 
-  votePercentage: number;   // % of total game votes
-  // Best content
+  
+  totalVotes: number;
+  votePercentage: number;
+
   bestSubmission: BestSubmission | null;
-  bestVotes: number;        // Votes on best submission
-  // Rankings
+  bestVotes: number;
+
   medal: 'gold' | 'silver' | 'bronze' | null;
   rank: number;
 }
 
-// Overall game results
 interface GameResults {
   gameId: number;
   gameCode: string;
@@ -361,9 +355,7 @@ interface GameResults {
   leaderboard: GameLeaderboardItem[];
 }
 
-// Results-related API calls
 const resultsApi = {
-  // Get aggregate results for an entire game
   getGameResults: async (gameId: number): Promise<GameResults> => {
     try {
       const response = await dbApi.get(`/results/games/${gameId}`);
@@ -375,7 +367,6 @@ const resultsApi = {
   }
 };
 
-// Export combined API service
 const dbService = {
   user: userApi,
   game: gameApi,
