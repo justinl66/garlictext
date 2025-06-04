@@ -51,7 +51,6 @@ exports.findByImageId = async (req, res) => {
     });
     res.send(data);
   } catch (err) {
-    console.error("Error in findByImageId:", err);
     res.status(500).send({
       message: err.message || "Some error occurred while retrieving captions."
     });
@@ -77,7 +76,6 @@ exports.findByRoundId = async (req, res) => {
       ]    });
     res.send(data);
   } catch (err) {
-    console.error("Error in findByRoundId:", err);
     res.status(500).send({
       message: err.message || "Some error occurred while retrieving captions."
     });
@@ -87,6 +85,7 @@ exports.findByRoundId = async (req, res) => {
 exports.vote = async (req, res) => {
   try {
     const { id } = req.params;
+    const rating = req.body && req.body.rating ? parseInt(req.body.rating, 10) : 1;
     
     const caption = await Caption.findByPk(id);
     
@@ -96,7 +95,7 @@ exports.vote = async (req, res) => {
       });
     }
     
-    caption.votes += 1;
+    caption.votes += rating;
     await caption.save();
     
     res.send({
@@ -136,7 +135,6 @@ exports.findOne = async (req, res) => {
       });
     }
   } catch (err) {
-    console.error(`Error in findOne for caption ${id}:`, err);
     res.status(500).send({
       message: `Error retrieving Caption with id=${id}: ${err.message}`
     });

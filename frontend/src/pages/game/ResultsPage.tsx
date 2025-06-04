@@ -31,7 +31,6 @@ export default function ResultsPage() {
         const images = await dbService.image.getImagesByRound(roomId);
         
         const processedResults: Result[] = images.map((image: any, index: number) => {
-          // Calculate total votes for this image (including caption votes)
           const imageVotes = image.votes || 0;
           const captionVotes = image.captions?.reduce((sum: number, caption: any) => sum + (caption.votes || 0), 0) || 0;
           const totalVotes = imageVotes + captionVotes;
@@ -55,9 +54,7 @@ export default function ResultsPage() {
           result.rank = index + 1;
         });
         
-        setResults(processedResults.length > 0 ? processedResults : mockResults);
-      } catch (error) {
-        console.error('Error fetching results:', error);
+        setResults(processedResults.length > 0 ? processedResults : mockResults);      } catch (error) {
         setResults(mockResults);
       } finally {
         setLoading(false);
@@ -278,7 +275,7 @@ export default function ResultsPage() {
                    '🥉 Third Place! 🥉'}
                 </h1>
                 <p className="text-gray-600">By {currentResult?.authorName}</p>                <p className="text-2xl font-bold text-[#00BBF9] mt-2">
-                  Points: {currentResult?.votes}
+                  Total Rating Points: {currentResult?.votes}
                 </p>
               </div>
 

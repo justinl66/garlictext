@@ -18,15 +18,15 @@ export default function VotingPage() {
   const { roomId } = useParams<{ roomId: string }>();
   const authContext = useContext(AuthContext);
   const currentUser = authContext?.currentUser;
-    const [images, setImages] = useState<CaptionedImage[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);  const [rating, setRating] = useState(60);
+  const [images, setImages] = useState<CaptionedImage[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);  
+  const [rating, setRating] = useState(3);
   const [timeLeft, setTimeLeft] = useState(10);
-  const [isSubmitting, setIsSubmitting] = useState(false);  const [progress, setProgress] = useState(0);
-  
-  useEffect(() => {
+  const [isSubmitting, setIsSubmitting] = useState(false);  
+  const [progress, setProgress] = useState(0);
+    useEffect(() => {
     const fetchImages = async () => {
       if (!roomId) {
-        console.error('No roomId provided');
         return;
       }      try {
         const imagesData = await dbService.image.getImagesByRound(roomId);
@@ -44,7 +44,6 @@ export default function VotingPage() {
         );
           setImages(filteredImages);
       } catch (error) {
-        console.error('Error fetching images:', error);
         const mockImages = [
           {
             id: '1',
@@ -74,20 +73,17 @@ export default function VotingPage() {
       
       setTimeLeft(seconds);
       setProgress(Math.min(progressPercent, 100));
-      
-      if (remaining <= 0) {
+        if (remaining <= 0) {
         clearInterval(timer);
-        handleSubmit();
+        handleSubmit(); // Use default rating when timer expires
       }
     }, interval);
       return () => clearInterval(timer);
   }, [currentIndex, isSubmitting]);
-  
-  const handleImageError = (imageId: string) => {
+    const handleImageError = (imageId: string) => {
     setImages(prevImages => 
       prevImages.map(img => {
         if (img.id === imageId && !img.isUsingFallback) {
-          console.log(`Enhanced image failed to load for image ${imageId}, falling back to original`);
           return {
             ...img,
             imageUrl: dbService.image.getOriginalImageUrl(imageId),
@@ -97,29 +93,18 @@ export default function VotingPage() {
         return img;
       })
     );
-  };
-  const handleSubmit = async () => {
+  };const handleSubmit = async (ratingValue?: number) => {
     if (isSubmitting) return;
     
     setIsSubmitting(true);
       try {
       const currentImage = images[currentIndex];
-      
-      if (rating >= 60) {
-        if (currentImage.caption) {
-          const captions = await dbService.caption.getCaptionsByImage(currentImage.id);
-          if (captions && captions.length > 0) {
-            await dbService.caption.voteForCaption(captions[0].id);
-          }
-        }
-        await dbService.image.voteForImage(currentImage.id);
-      }
-      
-      console.log(`Rating for image ${currentImage.id}: ${rating}${rating >= 60 ? ' (Vote submitted)' : ' (No vote - rating too low)'}`);
+      const voteRating = ratingValue !== undefined ? ratingValue : rating;
+      await dbService.image.voteForImage(currentImage.id, voteRating);
         if (currentIndex < images.length - 1) {
         setCurrentIndex(prev => prev + 1);
         setTimeLeft(10);
-        setRating(60);
+        setRating(3);
         setProgress(0);        setIsSubmitting(false);
       } else {
         setTimeout(() => {
@@ -127,11 +112,10 @@ export default function VotingPage() {
         }, 1500);
       }
     } catch (error) {
-      console.error('Error submitting vote:', error);
-      if (currentIndex < images.length - 1) {
+      console.error('Error submitting vote:', error);      if (currentIndex < images.length - 1) {
         setCurrentIndex(prev => prev + 1);
         setTimeLeft(10);
-        setRating(60);
+        setRating(3);
         setProgress(0);
       } else {
         setTimeout(() => {
@@ -188,28 +172,25 @@ export default function VotingPage() {
           <div className="bg-gray-200 rounded-lg p-4 mb-6">
             <p className="text-lg font-medium text-center text-[#9B5DE5]">{currentImage.caption}</p>
             <p className="text-sm text-gray-600 text-center mt-2">By: {currentImage.authorName}</p>          </div>
-            <div className="mb-8">
-            <div className="text-center mb-4">
-              <h3 className="text-lg font-semibold text-[#9B5DE5]">Rate this caption:</h3>
-            </div>
-            <div className="flex justify-center gap-3">
+            <div className="mb-8">            <div className="text-center mb-4">
+              <h3 className="text-lg font-semibold text-[#9B5DE5]">Rate this drawing:</h3>
+            </div><div className="flex justify-center gap-3">
               {[
-                { value: 20, label: 'poop', emoji: '💩', color: 'bg-red-500 hover:bg-red-600' },
-                { value: 40, label: 'OK', emoji: '🗑️', color: 'bg-orange-500 hover:bg-orange-600' },
-                { value: 60, label: 'decent', emoji: '😐', color: 'bg-yellow-500 hover:bg-yellow-600' },
-                { value: 80, label: 'epic', emoji: '👍', color: 'bg-blue-500 hover:bg-blue-600' },
-                { value: 100, label: 'legendary', emoji: '🌟', color: 'bg-green-500 hover:bg-green-600' }              ].map((option) => (
-                <button
+                { value: 1, label: '1', emoji: '💩', color: 'bg-red-500 hover:bg-red-600' },
+                { value: 2, label: '2', emoji: '🗑️', color: 'bg-orange-500 hover:bg-orange-600' },
+                { value: 3, label: '3', emoji: '😐', color: 'bg-yellow-500 hover:bg-yellow-600' },
+                { value: 4, label: '4', emoji: '👍', color: 'bg-blue-500 hover:bg-blue-600' },
+                { value: 5, label: '5', emoji: '🌟', color: 'bg-green-500 hover:bg-green-600' }
+              ].map((option) => (                <button
                   key={option.value}
                   onClick={() => {
                     setRating(option.value);
-                    handleSubmit();
+                    handleSubmit(option.value); // Pass the rating directly
                   }}
-                  disabled={isSubmitting}
-                  className={`w-16 h-16 rounded-lg transition-all duration-200 ${
+                  disabled={isSubmitting}className={`w-16 h-16 rounded-lg transition-all duration-200 ${
                     isSubmitting 
                       ? 'bg-gray-300 opacity-50 cursor-not-allowed' 
-                      : `${option.color} opacity-70 hover:opacity-90 hover:scale-105`
+                      : `${option.color} ${rating === option.value ? 'opacity-90 scale-105 ring-4 ring-white' : 'opacity-70 hover:opacity-90 hover:scale-105'}`
                   } text-white font-bold flex flex-col items-center justify-center text-xs`}
                 >
                   <span className="text-lg">{option.emoji}</span>

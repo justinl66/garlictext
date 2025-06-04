@@ -134,6 +134,7 @@ exports.findByRoundId = async (req, res) => {
 exports.vote = async (req, res) => {
   try {
     const { id } = req.params;
+    const rating = req.body && req.body.rating ? parseInt(req.body.rating, 10) : 1;
     
     const image = await Image.findByPk(id);
     
@@ -143,11 +144,11 @@ exports.vote = async (req, res) => {
       });
     }
     
-    image.votes += 1;
+    image.votes += rating;
     await image.save();
     
     res.send({
-      message: "Vote added successfully!",
+      message: `Vote added successfully with rating ${rating}!`,
       image
     });
   } catch (err) {
