@@ -160,8 +160,9 @@ const gameApi = {
   }
 };
 
-const imageApi = {  createImage: async (imageData: {
-    roundId: string;
+const imageApi = {
+  createImage: async (imageData: {
+    roundId?: string;
     prompt: string;
     originalDrawingData: string;
     enhancedImageData?: string;
@@ -224,8 +225,7 @@ const imageApi = {  createImage: async (imageData: {
       throw error;
     }  
   },
-  
-  getImageById: async (imageId: string) => {
+    getImageById: async (imageId: string) => {
     try {
       const response = await dbApi.get(`/images/${imageId}`);
       return response.data;
@@ -233,6 +233,23 @@ const imageApi = {  createImage: async (imageData: {
       console.error('Error getting image by ID:', error);
       throw error;
     }
+  },
+
+  updateCaptionedImage: async (imageId: string, captionedImageData: string, captionedImageMimeType?: string) => {
+    try {
+      const response = await dbApi.put(`/images/${imageId}/caption`, { 
+        captionedImageData,
+        captionedImageMimeType: captionedImageMimeType || 'image/png'
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error updating captioned image:', error);
+      throw error;
+    }
+  },
+
+  getCaptionedImageUrl: (imageId: string) => {
+    return `${API_BASE_URL}/images/${imageId}/captioned`;
   }
 };
 

@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { ReactSketchCanvas, ReactSketchCanvasRef } from 'react-sketch-canvas';
 import NavBar from '../General/NavBar';
 
 import { AuthContext } from '../../firebase/firebaseAuth';
-import { ServerContext } from '../../services/serverContext';
 import imageStorageService from '../../services/imageStorageService';
 import { ImPower } from "react-icons/im";
 import { MdOutlineSwitchAccount } from "react-icons/md";
@@ -17,8 +16,8 @@ import { ImCross, ImCheckmark } from "react-icons/im";
 
 export default function DrawingPage() {
   const navigate = useNavigate();
+  const { roomId } = useParams<{ roomId: string }>();
   const authContext = useContext(AuthContext);
-  const { roomId } = useContext(ServerContext);
   
   if (!authContext) {
     return <div>Loading...</div>;
@@ -121,21 +120,26 @@ export default function DrawingPage() {
       if (!dataURL) {
         throw new Error('Failed to export canvas image');
       }      console.log('🎨 Submitting drawing to database...');    
-      const result = await imageStorageService.submitDrawing({
-        roundId: roomId || null, 
+      const submissionData: any = {
         prompt: theme,
         drawingDataURL: dataURL
-      });
+      };
+
+      // Only include roundId if it's available
+      if (roomId) {
+        submissionData.roundId = roomId;
+      }
+
+      const result = await imageStorageService.submitDrawing(submissionData);
 
       console.log('✅ Drawing submitted successfully:', result);
-      
-      setSubmitStage('enhancing');
-      
-      setTimeout(() => {
-        navigate('/game/caption', { 
+        setSubmitStage('enhancing');
+        setTimeout(() => {
+        navigate(`/game/caption/${roomId}`, { 
           state: { 
             imageId: result.imageId,
-            originalImageUrl: result.originalImageUrl 
+            originalImageUrl: result.originalImageUrl,
+            roomId: roomId
           } 
         });
       }, 2000);

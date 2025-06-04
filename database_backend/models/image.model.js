@@ -11,18 +11,20 @@ module.exports = (sequelize, DataTypes) => {
       references: {
         model: 'users',
         key: 'id'
-      }
-    },
+      }    },
     roundId: {
-      type: DataTypes.UUID,
+      type: DataTypes.STRING(6), // Use roomId instead of roundId - 6 digit lobby code
+      allowNull: true, // Make optional since we're simplifying
       references: {
-        model: 'gameRounds',
+        model: 'games',
         key: 'id'
       }
-    },    prompt: {
+    },
+    prompt: {
       type: DataTypes.TEXT,
       allowNull: false
-    },    originalDrawingData: {
+    },
+    originalDrawingData: {
       type: DataTypes.BLOB,
       allowNull: false
     },
@@ -36,6 +38,15 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true
     },
     enhancedImageMimeType: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: 'image/png'
+    },
+    captionedImageData: {
+      type: DataTypes.BLOB,
+      allowNull: true
+    },
+    captionedImageMimeType: {
       type: DataTypes.STRING,
       allowNull: true,
       defaultValue: 'image/png'

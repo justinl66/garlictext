@@ -1,10 +1,9 @@
 const db = require("../models");
 const { Op } = require("sequelize");
-const Game = db.games;
-const GameRound = db.gameRounds;
-const User = db.users;
-const Caption = db.captions;
-const Image = db.images;
+const Game = db.Game;
+const User = db.User;
+const Caption = db.Caption;
+const Image = db.Image;
 
 // get player rankings
 exports.getGameResults = async (req, res) => {

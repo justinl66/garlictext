@@ -1,6 +1,6 @@
 require('dotenv').config();
 const db = require('./models');
-const { User, Game, GameRound, Image, Caption } = db;
+const { User, Game, Image, Caption, Prompt } = db; // Removed GameRound since we're not using it anymore
 
 const initDb = async () => {
   try {
@@ -92,21 +92,16 @@ const seedData = async () => {
       
       await activeGame.addParticipants([users[0].id, users[1].id, users[2].id]);
       
-      const gameRound = await GameRound.create({
-        gameId: activeGame.id,
-        roundNumber: 1,
-        status: 'drawing',
-        startTime: new Date()
-      });
-        console.log('In-progress game created.');
-        console.log('Creating sample images and captions...');
+      // No longer creating GameRound - using game ID directly as roomId
+      console.log('In-progress game created.');
+      console.log('Creating sample images and captions...');
       
       const samplePngBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
       const sampleImageBuffer = Buffer.from(samplePngBase64, 'base64');
       
       const sampleImage1 = await Image.create({
         userId: users[0].id,
-        roundId: gameRound.id,
+        roundId: activeGame.id, // Using game ID as roomId (field named roundId for DB compatibility)
         prompt: 'A funny cat wearing sunglasses',
         originalDrawingData: sampleImageBuffer,
         originalDrawingMimeType: 'image/png',
@@ -116,7 +111,7 @@ const seedData = async () => {
       
       const sampleImage2 = await Image.create({
         userId: users[1].id,
-        roundId: gameRound.id,
+        roundId: activeGame.id, // Using game ID as roomId (field named roundId for DB compatibility)
         prompt: 'A dog riding a skateboard',
         originalDrawingData: sampleImageBuffer,
         originalDrawingMimeType: 'image/png',
@@ -128,21 +123,21 @@ const seedData = async () => {
       await Caption.create({
         userId: users[1].id,
         imageId: sampleImage1.id,
-        roundId: gameRound.id,
+        roundId: activeGame.id, // Using game ID as roomId (field named roundId for DB compatibility)
         text: 'The coolest cat in town!'
       });
       
       await Caption.create({
         userId: users[2].id,
         imageId: sampleImage1.id,
-        roundId: gameRound.id,
+        roundId: activeGame.id, // Using game ID as roomId (field named roundId for DB compatibility)
         text: 'Ready for the summer vibes'
       });
       
       await Caption.create({
         userId: users[0].id,
         imageId: sampleImage2.id,
-        roundId: gameRound.id,
+        roundId: activeGame.id, // Using game ID as roomId (field named roundId for DB compatibility)
         text: 'Skater boy doing tricks'
       });
       

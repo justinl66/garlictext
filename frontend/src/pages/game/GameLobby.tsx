@@ -6,7 +6,7 @@ import { Player } from '../../interfaces';
 import Cookies from "js-cookie";
 
 export default function GameLobby() {
-  const { roomId } = useParams();
+  const { roomId: urlRoomId } = useParams();
   const navigate = useNavigate();
 
   const {user} = useContext(AuthContext);
@@ -25,10 +25,8 @@ export default function GameLobby() {
 
 
   const updateLobbyFromServer = async (reloaded: boolean) => {
-    let currentUpdate = reloaded? "0" : (Cookies.get('currentUpdate') || "0");
-
-    try{
-        const response = await fetch(`http://localhost:5001/api/games/${roomId}/lobbyInfo?version=${currentUpdate}`, {
+    let currentUpdate = reloaded? "0" : (Cookies.get('currentUpdate') || "0");        try{
+            const response = await fetch(`http://localhost:5001/api/games/${urlRoomId}/lobbyInfo?version=${currentUpdate}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -84,7 +82,7 @@ export default function GameLobby() {
   const updateRounds = async (rounds: number) => {
     setGameSettings({...gameSettings, rounds: rounds})
     try{
-     const response = await fetch(`http://localhost:5001/api/games/${roomId}`, {
+     const response = await fetch(`http://localhost:5001/api/games/${urlRoomId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -103,11 +101,10 @@ export default function GameLobby() {
     return;
   }
 }
-
   const updateDrawingTime = async (drawingTime: number) => {
     setGameSettings({...gameSettings, drawingTime: drawingTime})
     try{
-    const response = await fetch(`http://localhost:5001/api/games/${roomId}`, {
+    const response = await fetch(`http://localhost:5001/api/games/${urlRoomId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -127,8 +124,7 @@ export default function GameLobby() {
 
 const updateWritingTime = async (writingTime: number) => {
   setGameSettings({...gameSettings, writingTime: writingTime})
-  try{
-    const response = await fetch(`http://localhost:5001/api/games/${roomId}`, {
+  try{    const response = await fetch(`http://localhost:5001/api/games/${urlRoomId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -149,7 +145,7 @@ const updateWritingTime = async (writingTime: number) => {
   const leaveGame = async () => {
     try {
       if(user?.uid){
-        const response = await fetch(`http://localhost:5001/api/games/leave/${roomId}/auth`, {
+        const response = await fetch(`http://localhost:5001/api/games/leave/${urlRoomId}/auth`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -162,7 +158,7 @@ const updateWritingTime = async (writingTime: number) => {
           throw new Error(errorText.message);
         }
       }else{
-        const response = await fetch(`http://localhost:5001/api/games/leave/${roomId}/nauth`, {
+        const response = await fetch(`http://localhost:5001/api/games/leave/${urlRoomId}/nauth`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -181,9 +177,8 @@ const updateWritingTime = async (writingTime: number) => {
   };
 
   const [copied, setCopied] = useState(false);
-  const [isStarting, setIsStarting] = useState(false);
-  useEffect(() => {
-    if (!roomId) {
+  const [isStarting, setIsStarting] = useState(false);  useEffect(() => {
+    if (!urlRoomId) {
       navigate('/'); // Redirect to home if no roomId
     }
 
@@ -192,20 +187,15 @@ const updateWritingTime = async (writingTime: number) => {
     const pingServer = setInterval(async () => {
       await updateLobbyFromServer(false);
       // alert(creator)
-    }, 3000);
-
-    return () => clearInterval(pingServer);
-  }, [roomId]);
-
+    }, 3000);    return () => clearInterval(pingServer);
+  }, [urlRoomId]);
   const copyRoomCode = () => {
-    navigator.clipboard.writeText(roomId  || '');
+    navigator.clipboard.writeText(urlRoomId  || '');
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-  const startGame = () => {
-    setIsStarting(true);
+    setTimeout(() => setCopied(false), 2000);  };const startGame = () => {    setIsStarting(true);
+    // Navigate to prompts with roomId
     setTimeout(() => {
-      navigate('/game/prompts/');
+      navigate(`/game/prompts/${urlRoomId}`);
     }, 2000);
   };
   // const canStart = players.filter(p => p.isReady).length >= 2 && isCreator;
@@ -224,10 +214,9 @@ const updateWritingTime = async (writingTime: number) => {
               <h2 className="text-3xl font-bold text-[#9B5DE5]">Game Lobby</h2>
               <p className="text-gray-600">Waiting for players to join...</p>
             </div>
-              <div className="mt-4 md:mt-0 bg-gray-100 p-4 rounded-lg flex items-center shadow-md">
-              <div>
+              <div className="mt-4 md:mt-0 bg-gray-100 p-4 rounded-lg flex items-center shadow-md">              <div>
                 <p className="text-sm text-gray-600 font-medium">Room Code:</p>
-                <p className="text-2xl font-mono font-bold text-gray-800">{roomId}</p>
+                <p className="text-2xl font-mono font-bold text-gray-800">{urlRoomId}</p>
               </div>
               <button 
                 onClick={copyRoomCode}

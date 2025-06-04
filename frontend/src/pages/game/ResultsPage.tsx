@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import NavBar from '../General/NavBar';
 import dbService from '../../services/dbService';
 
@@ -15,15 +15,56 @@ interface Result {
 
 export default function ResultsPage() {
   const navigate = useNavigate();
+  const { roomId } = useParams<{ roomId: string }>();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showPlayAgain, setShowPlayAgain] = useState(false);
-  const [latestImageId, setLatestImageId] = useState<string | null>(null);
+  const [results, setResults] = useState<Result[]>([]);
+  const [loading, setLoading] = useState(true);
   
-  // Mock data - replace with actual data from backend
-  const [results] = useState<Result[]>([
+  useEffect(() => {
+    const fetchResults = async () => {
+      if (!roomId) {
+        console.error('❌ No roomId provided');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        // Fetch images for this room that have captions and voting data
+        const images = await dbService.image.getImagesByRound(roomId);
+        console.log('✅ Room images fetched:', images);
+        
+        // Process images into results format
+        const processedResults: Result[] = images.map((image: any, index: number) => ({
+          id: image.id,
+          imageUrl: image.captionedImageData ? 
+            dbService.image.getCaptionedImageUrl(image.id) : 
+            dbService.image.getOriginalImageUrl(image.id),
+          caption: image.captions?.[0]?.text || `Drawing ${index + 1}`,
+          authorName: image.user?.username || 'Anonymous',
+          meanRating: Math.floor(Math.random() * 100), // TODO: Replace with actual voting data
+          rank: index + 1,
+          medal: null
+        }));
+        
+        setResults(processedResults.length > 0 ? processedResults : mockResults);
+      } catch (error) {
+        console.error('❌ Failed to fetch results:', error);
+        // Fall back to mock data if fetch fails
+        setResults(mockResults);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchResults();
+  }, [roomId]);
+
+  // Mock data as fallback
+  const mockResults: Result[] = [
     {
       id: '1',
-      imageUrl: '/garlicTextNoBackground.png', // This will be replaced with actual image
+      imageUrl: '/garlicTextNoBackground.png',
       caption: "A sweaty programmer debugging code",
       authorName: 'Justin',
       meanRating: 90,
@@ -48,34 +89,14 @@ export default function ResultsPage() {
       rank: 2,
       medal: null
     }
-  ]);
-  useEffect(() => {
-    const fetchLatestImage = async () => {
-      try {
-        const latestImage = await dbService.image.getLatestImage();
-        if (latestImage && latestImage.id) {
-          setLatestImageId(latestImage.id);
-          console.log('✅ Latest image fetched:', latestImage.id);
-        }
-      } catch (error) {
-        console.error('❌ Failed to fetch latest image:', error);
-      }
-    };
-
-    fetchLatestImage();
-  }, []);
-  const processResults = (results: Result[]): Result[] => {
+  ];  const processResults = (results: Result[]): Result[] => {
     const updatedResults = [...results];
-    if (latestImageId && updatedResults.length > 0) {
-      updatedResults[0] = {
-        ...updatedResults[0],
-        imageUrl: dbService.image.getOriginalImageUrl(latestImageId)
-      };    }
     
     const sortedResults = [...updatedResults].sort((a, b) => b.meanRating - a.meanRating);
     
     let currentMedal: 'gold' | 'silver' | 'bronze' = 'gold';
-    let currentRating = sortedResults[0]?.meanRating;    let processedResults: Result[] = [];
+    let currentRating = sortedResults[0]?.meanRating;
+    let processedResults: Result[] = [];
     
     sortedResults.forEach((result, index) => {
       if (index === 0) {
@@ -174,85 +195,93 @@ export default function ResultsPage() {
     // Default case: left to right
     return index === 0 ? 'left' : index === 1 ? 'right' : 'middle';
   };
-
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#9B5DE5] to-[#F15BB5] via-[#00BBF9]">
       <NavBar />
       
       <div className="container mx-auto px-4 py-6 flex-grow flex items-center justify-center">
         <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-6xl">
-          {/* Podium - Always visible with consistent spacing */}
-          <div className="flex justify-center items-end h-96 mb-8 relative">
-            {topResults.map((result, index) => {
-              const position = getPodiumPosition(topResults, index);
-              return (
-                <div 
-                  key={result.id}
-                  className={`flex flex-col items-center transition-all duration-500 absolute ${
-                    currentIndex >= index ? 'opacity-100' : 'opacity-0'
-                  } ${
-                    position === 'left' ? 'left-[20%]' :
-                    position === 'right' ? 'right-[20%]' :
-                    'left-1/2 transform -translate-x-1/2'
-                  }`}
-                >
-                  {/* Consistent width container for all positions */}
-                  <div className="w-48">
-                    <div className={`bg-gray-100 rounded-lg overflow-hidden mb-2 ${
-                      result.medal === 'gold' ? 'h-48' :
-                      result.medal === 'silver' ? 'h-40' :
-                      'h-36'
-                    } ${
-                      result.medal === 'gold' ? 'border-4 border-yellow-400' :
-                      result.medal === 'silver' ? 'border-4 border-gray-300' :
-                      'border-4 border-amber-600'
-                    }`}>
-                      <img 
-                        src={result.imageUrl} 
-                        alt={`Drawing by ${result.authorName}`}
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                    {/* Caption directly under drawing */}
-                    <div className="text-center mb-2">
-                      <p className="text-sm font-medium text-gray-800">{result.caption}</p>
-                    </div>
-                    <div className={`h-16 ${
-                      result.medal === 'gold' ? 'bg-yellow-400' :
-                      result.medal === 'silver' ? 'bg-gray-300' :
-                      'bg-amber-600'
-                    } rounded-t-lg flex items-center justify-center text-white font-bold`}>
-                      {getMedalEmoji(result.medal!)}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Current Result Details */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-[#9B5DE5] mb-2">
-              {currentResult.medal === 'gold' ? '🏆 Winner! 🏆' : 
-               currentResult.medal === 'silver' ? '🥈 Second Place! 🥈' : 
-               '🥉 Third Place! 🥉'}
-            </h1>
-            <p className="text-gray-600">By {currentResult.authorName}</p>
-            <p className="text-2xl font-bold text-[#00BBF9] mt-2">
-              Rating: {currentResult.meanRating}%
-            </p>
-          </div>
-
-          {/* Play Again Button */}
-          {showPlayAgain && (
-            <div className="flex justify-center">
-              <button 
-                onClick={() => navigate('/')}
-                className="px-8 py-3 bg-gradient-to-r from-[#9B5DE5] to-[#F15BB5] text-white rounded-lg hover:opacity-90 transition font-bold text-xl"
-              >
-                Play Again
-              </button>
+          {loading ? (
+            <div className="text-center">
+              <h1 className="text-4xl font-bold text-[#9B5DE5] mb-4">Loading Results...</h1>
+              <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#9B5DE5] mx-auto"></div>
             </div>
+          ) : (
+            <>
+              {/* Podium - Always visible with consistent spacing */}
+              <div className="flex justify-center items-end h-96 mb-8 relative">
+                {topResults.map((result, index) => {
+                  const position = getPodiumPosition(topResults, index);
+                  return (
+                    <div 
+                      key={result.id}
+                      className={`flex flex-col items-center transition-all duration-500 absolute ${
+                        currentIndex >= index ? 'opacity-100' : 'opacity-0'
+                      } ${
+                        position === 'left' ? 'left-[20%]' :
+                        position === 'right' ? 'right-[20%]' :
+                        'left-1/2 transform -translate-x-1/2'
+                      }`}
+                    >
+                      {/* Consistent width container for all positions */}
+                      <div className="w-48">
+                        <div className={`bg-gray-100 rounded-lg overflow-hidden mb-2 ${
+                          result.medal === 'gold' ? 'h-48' :
+                          result.medal === 'silver' ? 'h-40' :
+                          'h-36'
+                        } ${
+                          result.medal === 'gold' ? 'border-4 border-yellow-400' :
+                          result.medal === 'silver' ? 'border-4 border-gray-300' :
+                          'border-4 border-amber-600'
+                        }`}>
+                          <img 
+                            src={result.imageUrl} 
+                            alt={`Drawing by ${result.authorName}`}
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                        {/* Caption directly under drawing */}
+                        <div className="text-center mb-2">
+                          <p className="text-sm font-medium text-gray-800">{result.caption}</p>
+                        </div>
+                        <div className={`h-16 ${
+                          result.medal === 'gold' ? 'bg-yellow-400' :
+                          result.medal === 'silver' ? 'bg-gray-300' :
+                          'bg-amber-600'
+                        } rounded-t-lg flex items-center justify-center text-white font-bold`}>
+                          {getMedalEmoji(result.medal!)}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Current Result Details */}
+              <div className="text-center mb-8">
+                <h1 className="text-4xl font-bold text-[#9B5DE5] mb-2">
+                  {currentResult?.medal === 'gold' ? '🏆 Winner! 🏆' : 
+                   currentResult?.medal === 'silver' ? '🥈 Second Place! 🥈' : 
+                   '🥉 Third Place! 🥉'}
+                </h1>
+                <p className="text-gray-600">By {currentResult?.authorName}</p>
+                <p className="text-2xl font-bold text-[#00BBF9] mt-2">
+                  Rating: {currentResult?.meanRating}%
+                </p>
+              </div>
+
+              {/* Play Again Button */}
+              {showPlayAgain && (
+                <div className="flex justify-center">
+                  <button 
+                    onClick={() => navigate('/')}
+                    className="px-8 py-3 bg-gradient-to-r from-[#9B5DE5] to-[#F15BB5] text-white rounded-lg hover:opacity-90 transition font-bold text-xl"
+                  >
+                    Play Again
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

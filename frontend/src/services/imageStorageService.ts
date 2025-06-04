@@ -3,7 +3,7 @@ import dbService from './dbService';
 const AI_API_URL = import.meta.env.VITE_AI_API_URL || 'http://localhost:8000';
 
 export interface DrawingSubmissionData {
-  roundId: string;
+  roundId?: string;
   prompt: string;
   drawingDataURL: string;
 }
@@ -17,11 +17,21 @@ export interface ImageSubmissionResult {
 
 class ImageStorageService {  async submitDrawing(submissionData: DrawingSubmissionData): Promise<ImageSubmissionResult> {
     try {
-      const imageData = {
+      console.log('🔍 Submission data:', {
         roundId: submissionData.roundId,
+        prompt: submissionData.prompt?.substring(0, 50) + '...',
+        hasDrawingData: !!submissionData.drawingDataURL
+      });
+
+      const imageData: any = {
         prompt: submissionData.prompt,
         originalDrawingData: submissionData.drawingDataURL
       };
+
+      // Only include roundId if it's not null/undefined
+      if (submissionData.roundId && submissionData.roundId !== 'null') {
+        imageData.roundId = submissionData.roundId;
+      }
 
       const savedImage = await dbService.image.createImage(imageData);
       const imageId = savedImage.id;

@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import NavBar from '../General/NavBar';
 import dbService from '../../services/dbService';
 import { AuthContext } from '../../firebase/firebaseAuth';
@@ -15,6 +15,7 @@ interface CaptionedImage {
 
 export default function VotingPage() {
   const navigate = useNavigate();
+  const { roomId } = useParams<{ roomId: string }>();
   const authContext = useContext(AuthContext);
   const currentUser = authContext?.currentUser;
     const [images, setImages] = useState<CaptionedImage[]>([]);
@@ -99,9 +100,8 @@ export default function VotingPage() {
         setTimeLeft(10);
         setRating(60);
         setProgress(0);        setIsSubmitting(false);
-      } else {
-        setTimeout(() => {
-          navigate('/game/results');
+      } else {        setTimeout(() => {
+          navigate(`/game/results/${roomId}`);
         }, 1500);
       }
     } catch (error) {

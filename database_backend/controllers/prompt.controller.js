@@ -1,22 +1,20 @@
 const db = require('../models');
 const Prompt = db.Prompt;
 const User = db.User;
-const GameRound = db.GameRound;
 const Game = db.Game;
 const { Op } = db.Sequelize;
 
 exports.create = async (req, res) => {
-  try {
-    if (!req.body.text || !req.body.creatorId || !req.body.roundId) {
+  try {    if (!req.body.text || !req.body.creatorId || !req.body.roundId) {
       return res.status(400).send({
-        message: "Content can't be empty! Required fields: text, creatorId, roundId"
+        message: "Content can't be empty! Required fields: text, creatorId, roundId (Note: roundId actually represents roomId for DB compatibility)"
       });
     }
     
     const prompt = {
       text: req.body.text,
       creatorId: req.body.creatorId,
-      roundId: req.body.roundId
+      roundId: req.body.roundId // Note: roundId field actually stores roomId for DB compatibility
     };
     
     const data = await Prompt.create(prompt);
@@ -57,35 +55,30 @@ exports.findByRound = async (req, res) => {
 
 exports.assignPrompts = async (req, res) => {
   try {
-    const { roundId } = req.params;
+    const { roundId } = req.params; // Note: roundId parameter actually represents roomId for compatibility
     
-    const gameRound = await GameRound.findByPk(roundId, {
+    // Find the game directly using the roomId (stored in the roundId parameter)
+    const game = await Game.findByPk(roundId, {
       include: [
         {
-          model: Game,
-          as: 'game',
-          include: [
-            {
-              model: User,
-              as: 'participants',
-              through: { attributes: [] }
-            }
-          ]
+          model: User,
+          as: 'participants',
+          through: { attributes: [] }
         }
       ]
     });
     
-    if (!gameRound) {
+    if (!game) {
       return res.status(404).send({
-        message: `Game round with id=${roundId} not found.`
+        message: `Game with roomId=${roundId} not found.`
       });
     }
     
     const prompts = await Prompt.findAll({
-      where: { roundId }
+      where: { roundId } // This field actually stores roomId for DB compatibility
     });
     
-    const participants = gameRound.game.participants;
+    const participants = game.participants;
     
     const assignments = [];
     
@@ -124,18 +117,18 @@ exports.assignPrompts = async (req, res) => {
 
 exports.getAssignedPrompt = async (req, res) => {
   try {
-    const { roundId, userId } = req.params;
+    const { roundId, userId } = req.params; // Note: roundId parameter actually represents roomId for compatibility
     
     const prompt = await Prompt.findOne({
       where: {
-        roundId,
+        roundId, // This field actually stores roomId for DB compatibility
         assignedToId: userId
       }
     });
     
     if (!prompt) {
       return res.status(404).send({
-        message: `No prompt assigned to user=${userId} for round=${roundId}.`
+        message: `No prompt assigned to user=${userId} for room=${roundId}.`
       });
     }
     
