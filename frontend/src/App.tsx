@@ -4,6 +4,7 @@ import SignUpPage from './pages/loginPages/signup';
 import ForgotPasswordPage from './pages/loginPages/forgotPassword.tsx';
 import ForgotPasswordSuccessPage from './pages/loginPages/forgotPasswordSuccess.tsx';
 import ProfilePage from './pages/user/myProfile.tsx';
+import EditProfile from './pages/user/EditProfile.tsx';
 import HomePage from './pages/home/home';
 import Help from './pages/General/Help.tsx';
 import FindGame from './pages/General/FindGame.tsx';
@@ -32,6 +33,7 @@ const App = () => {
           <Route path="/help" element={<Help />} />
           <Route path="/findGame" element={<FindGame />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/profile/edit" element={<EditProfile />} /> 
           <Route path="/game/lobby" element={<GameLobby />} />
           <Route path="/game/lobby/:roomId" element={<GameLobby />} />
           <Route path="/game/play" element={<GamePlay />} />
