@@ -1,7 +1,11 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ReactSketchCanvas, ReactSketchCanvasRef } from 'react-sketch-canvas';
 import NavBar from '../General/NavBar';
+
+import { AuthContext } from '../../firebase/firebaseAuth';
+import { ServerContext } from '../../services/serverContext';
+import imageStorageService from '../../services/imageStorageService';
 import { ImPower } from "react-icons/im";
 import { MdOutlineSwitchAccount } from "react-icons/md";
 import { BsCloudFog2Fill } from "react-icons/bs";
@@ -10,11 +14,22 @@ import { TiDelete } from "react-icons/ti";
 import { PiPaintBucket } from "react-icons/pi";
 import { ImCross, ImCheckmark } from "react-icons/im";
 
+
 export default function DrawingPage() {
   const navigate = useNavigate();
+  const authContext = useContext(AuthContext);
+  const { roomId } = useContext(ServerContext);
+  
+  if (!authContext) {
+    return <div>Loading...</div>;
+  }
+  
+  const { user: currentUser } = authContext;
+  
   const [strokeColor, setStrokeColor] = useState('#000000');
   const [strokeWidth, setStrokeWidth] = useState(4);
-  const [canvasMode, setCanvasMode] = useState<'draw' | 'erase'>('draw');  const [theme] = useState('CS major cramming for 35L final');
+  const [canvasMode, setCanvasMode] = useState<'draw' | 'erase'>('draw');
+  const [theme] = useState('CS major cramming for 35L final');
   const [timeLeft, setTimeLeft] = useState(60);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStage, setSubmitStage] = useState<'not_submitted' | 'submitting' | 'enhancing'>('not_submitted');
@@ -87,9 +102,14 @@ export default function DrawingPage() {
       canvasRef.current?.eraseMode(false);
     }
   };
-  
   const handleSubmit = async () => {
     if (isSubmitting) return;
+    
+    if (!currentUser) {
+      console.error('User not authenticated');
+      alert('Please log in to submit your drawing');
+      return;
+    }
     
     setIsSubmitting(true);
     setSubmitStage('submitting');
@@ -98,23 +118,31 @@ export default function DrawingPage() {
       // Get the drawing as a data URL
       const dataURL = await canvasRef.current?.exportImage('png');
       
-      // sending image to backend for AI enhancement
-      console.log('Drawing submitted:', dataURL);
+      if (!dataURL) {
+        throw new Error('Failed to export canvas image');
+      }      console.log('🎨 Submitting drawing to database...');    
+      const result = await imageStorageService.submitDrawing({
+        roundId: roomId || null, 
+        prompt: theme,
+        drawingDataURL: dataURL
+      });
+
+      console.log('✅ Drawing submitted successfully:', result);
       
-      // First simulate the drawing being submitted
+      setSubmitStage('enhancing');
+      
       setTimeout(() => {
-        // Show the AI enhancing stage
-        setSubmitStage('enhancing');
-        
-        // Then simulate the AI enhancement process
-        setTimeout(() => {
-          // Navigate to the caption page where other players will caption your enhanced drawing
-          navigate('/game/caption');
-        }, 3000);
-      }, 1500);
+        navigate('/game/caption', { 
+          state: { 
+            imageId: result.imageId,
+            originalImageUrl: result.originalImageUrl 
+          } 
+        });
+      }, 2000);
       
     } catch (error) {
       console.error('Error submitting drawing:', error);
+      alert('Failed to submit drawing. Please try again.');
       setIsSubmitting(false);
       setSubmitStage('not_submitted');
     }

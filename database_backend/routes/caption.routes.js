@@ -1,16 +1,20 @@
 module.exports = app => {
   const captions = require("../controllers/caption.controller.js");
   const router = require("express").Router();
+  const authentication = require("./authentication.js");
 
-  router.post("/", captions.create);
+  console.log("🚀 Setting up caption routes...");
 
-  router.post("/:id/vote", captions.vote);
+  router.post("/", authentication.authenticateFirebaseToken, captions.create);
 
-  router.get("/image/:imageId", captions.findByImageId);
+  router.post("/:id/vote", authentication.authenticateFirebaseToken, captions.vote);
 
-  router.get("/round/:roundId", captions.findByRoundId);
+  router.get("/image/:imageId", authentication.authenticateFirebaseToken, captions.findByImageId);
 
-  router.get("/:id", captions.findOne);
+  router.get("/round/:roundId", authentication.authenticateFirebaseToken, captions.findByRoundId);
+
+  router.get("/:id", authentication.authenticateFirebaseToken, captions.findOne);
 
   app.use("/api/captions", router);
+  console.log("✅ Caption routes configured successfully");
 };
