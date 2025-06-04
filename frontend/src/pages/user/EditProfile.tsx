@@ -1,7 +1,7 @@
 import { useContext, useState } from "react";
 import { AuthContext } from "../../firebase/firebaseAuth";
 import { updateProfile } from "firebase/auth";
-import { auth, storage } from "../../firebase/firebaseConfig"; // Make sure storage is exported
+import { auth, storage } from "../../firebase/firebaseConfig"; 
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useNavigate } from "react-router-dom";
 import Cropper from "react-easy-crop";
