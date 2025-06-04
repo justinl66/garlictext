@@ -235,7 +235,6 @@ const updateWritingTime = async (writingTime: number) => {
               </div>
             </div>
             
-            {user?.uid && creator == user?.uid && (
               <div>                <h3 className="text-xl font-semibold mb-4 text-[#9B5DE5]">Game Settings</h3>
                 <div className="space-y-4">
                   <div>
@@ -244,6 +243,7 @@ const updateWritingTime = async (writingTime: number) => {
                       value={gameSettings.rounds}
                       onChange={(e) => updateRounds(+e.target.value)}
                       className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9] text-gray-800"
+                      disabled={creator != user?.uid}
                     >
                       <option value={2}>2 Rounds</option>
                       <option value={3}>3 Rounds</option>
@@ -258,6 +258,7 @@ const updateWritingTime = async (writingTime: number) => {
                       value={gameSettings.drawingTime}
                       onChange={(e) => updateDrawingTime(+e.target.value)}
                       className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9] text-gray-800"
+                      disabled={user?.uid != creator}
                     >
                       <option value={30}>30 seconds</option>
                       <option value={60}>60 seconds</option>
@@ -272,6 +273,7 @@ const updateWritingTime = async (writingTime: number) => {
                       value={gameSettings.writingTime}
                       onChange={(e) => updateWritingTime(+e.target.value)}
                       className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9] text-gray-800"
+                      disabled={user?.uid != creator}
                     >
                       <option value={30}>30 seconds</option>
                       <option value={60}>60 seconds</option>
@@ -281,7 +283,6 @@ const updateWritingTime = async (writingTime: number) => {
                   </div>
                 </div>
               </div>
-            )}
           </div>
           
           <div className="flex justify-between items-center">
