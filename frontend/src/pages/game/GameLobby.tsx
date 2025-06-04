@@ -205,7 +205,7 @@ const updateWritingTime = async (writingTime: number) => {
   const startGame = () => {
     setIsStarting(true);
     setTimeout(() => {
-      navigate('/game/prompts/' + roomId);
+      navigate('/game/prompts/');
     }, 2000);
   };
   // const canStart = players.filter(p => p.isReady).length >= 2 && isCreator;

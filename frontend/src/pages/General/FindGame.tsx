@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from './NavBar';
+import { AuthContext } from '../../firebase/firebaseAuth';
+import { joinGame } from '../../services/game_backend_interact';
 
 // Define a type for a game object (adjust based on your actual game data structure)
 interface Game {
@@ -16,6 +18,8 @@ interface Game {
 export default function FindGame() {
   const navigate = useNavigate();
   
+  const {user} = useContext(AuthContext);
+
   // State for pending search/filter values (before submission)
   const [pendingSearchTerm, setPendingSearchTerm] = useState('');
   const [pendingMaxPlayersFilter, setPendingMaxPlayersFilter] = useState('');
@@ -24,6 +28,10 @@ export default function FindGame() {
 
   const [loading, setLoading] = useState(false);
   const [filteredGames, setFilteredGames] = useState<Game[]>([]);
+
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [playerName, setPlayerName] = useState('');
+  const [joinCode, setJoinCode] = useState('');
 
   const [error, setError] = useState<string | null>(null);
 
@@ -54,13 +62,35 @@ export default function FindGame() {
       setError(null); // Clear any previous errors
     }catch (e: any) {
       setError('Error fetching games:' + e.message);
+      setFilteredGames([]);
       setLoading(false);
     }
   };
 
-  const handleJoinGame = (gameId: string) => {
-    navigate(`/game/lobby/${gameId}`);
+  const handleJoinGame = async (gameId: string) => {
+    if(user?.uid){
+      try{
+            const result = await joinGame("", gameId, user)
+            navigate(`/game/lobby/${result}`);
+        }catch (error) {
+            setError(`Error joining game: ${error}`);
+        }
+    }else{
+      setJoinCode(gameId); // Store the game ID to join later
+      setShowJoinModal(true);
+      setPlayerName(''); // Reset player name for non-authenticated users
+      setError(null); // Clear any previous errors
+    }
   };
+
+  const handleJoinGameNonAuth = async () => {
+    try{
+        const result = await joinGame(playerName, joinCode, user)
+        navigate(`/game/lobby/${result}`);
+    }catch (error) {
+        setError(`Error joining game: ${error}`);
+    }
+  }
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-gradient-to-br from-[#9B5DE5] to-[#F15BB5] via-[#00BBF9]">
@@ -83,6 +113,12 @@ export default function FindGame() {
                   id="gameName"
                   value={pendingSearchTerm}
                   onChange={(e) => setPendingSearchTerm(e.target.value)}
+                  onKeyDown={(e)=> {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleSearchSubmit();
+                    }
+                  }}
                   placeholder="e.g., 'Adventure Quest'"
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9] text-gray-900"
                 />
@@ -182,6 +218,8 @@ export default function FindGame() {
               </div>
             )}
             
+            <p className="text-red-500 text-center mt-4">{error}</p>
+            
             <div className="text-center mt-8">
               <button 
                 onClick={() => navigate('/')}
@@ -192,6 +230,46 @@ export default function FindGame() {
             </div>
           </div>
         </div>
+        {showJoinModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-xl p-6 w-full max-w-md relative shadow-2xl">
+                  <button 
+                      onClick={() => setShowJoinModal(false)}
+                      className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+                  >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                  </button>
+                  
+                  <h3 className="text-2xl font-bold text-[#9B5DE5] mb-4">Join a Game</h3>                  
+                      {!user && (
+                          <div>
+                              <label className="block text-gray-700 font-medium mb-2">Your Name</label>
+                              <input 
+                                  type="text"
+                                  value={playerName}
+                                  onChange={(e) => setPlayerName(e.target.value)}
+                                  placeholder="Enter your name..."
+                                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9] text-gray-900"
+                              />
+                          </div>
+                      )}
+                      <p className='font-medium text-red-500 mb-2 text-center'>{error}</p>
+                      <button 
+                          onClick={handleJoinGameNonAuth}
+                          disabled={playerName.length < 3 || joinCode.length !== 6}
+                          className={`w-full py-4 rounded-lg font-bold text-lg ${
+                              (playerName.length  >= 3 && joinCode.length === 6)
+                                  ? 'bg-gradient-to-r from-[#9B5DE5] to-[#00BBF9] text-white hover:opacity-90 transition' 
+                                  : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                          }`}
+                      >
+                          Join Game
+                      </button>
+                  </div>
+              </div>
+          )}
       </div>
     </div>
   );
