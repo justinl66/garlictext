@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import NavBar from '../General/NavBar';
 import { AuthContext } from '../../firebase/firebaseAuth';
 import { Player } from '../../interfaces';
+import { startGame } from '../../services/game_backend_interact';
 import Cookies from "js-cookie";
 
 export default function GameLobby() {
@@ -43,13 +44,23 @@ export default function GameLobby() {
         }
 
         const data = await response.json();
-        if(data.message === "good" && !reloaded){
+        if(data.message === "good"){
             return;
+        }
+
+        if(data.status && data.status !== "lobby"){
+          if(data.status === "prompting"){
+            navigate(`/game/prompts/${urlRoomId}`);
+          }
+          else{
+            alert("Stale game: " + data.status);
+            navigate('/');
+          }
         }
         setGameName(data.name);
         setCreator(data.gameHost);
         
-        if(data.players && data.players.length < 4){
+        if(data.players && data.players.length < data.maxPlayers){
           let newPlayers: Player[] = data.players;
           for(let i = data.players.length; i < 4; i++){
             newPlayers.push({
@@ -82,7 +93,7 @@ export default function GameLobby() {
   const updateMaxPlayers = async (maxPlayers: number) => {
     setGameSettings({...gameSettings, maxPlayers: maxPlayers})
     try{
-     const response = await fetch(`http://localhost:5001/api/games/${roomId}`, {
+     const response = await fetch(`http://localhost:5001/api/games/${urlRoomId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -198,7 +209,9 @@ const updateWritingTime = async (writingTime: number) => {
   };
 
   const [copied, setCopied] = useState(false);
-  const [isStarting, setIsStarting] = useState(false);  useEffect(() => {
+  const [isStarting, setIsStarting] = useState(false);  
+
+  useEffect(() => {
     if (!urlRoomId) {
       navigate('/'); // Redirect to home if no roomId
     }
@@ -210,15 +223,40 @@ const updateWritingTime = async (writingTime: number) => {
       // alert(creator)
     }, 3000);    return () => clearInterval(pingServer);
   }, [urlRoomId]);
+
   const copyRoomCode = () => {
     navigator.clipboard.writeText(urlRoomId  || '');
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);  };const startGame = () => {    setIsStarting(true);
+    setTimeout(() => setCopied(false), 2000);  };
+
+    const gameStartHandler = () => {    
+      if (!user?.uid) {
+        setError("You must be logged in to start the game.");
+        return;
+      }
+      if (creator !== user?.uid) {
+        setError("Only the game host can start the game.");
+        return;
+      }
+      setIsStarting(true);
     // Navigate to prompts with roomId
-    setTimeout(() => {
-      navigate(`/game/prompts/${urlRoomId}`);
+    setTimeout(async () => {
+      try{
+        await startGame(urlRoomId, user?.stsTokenManager.accessToken);
+        navigate(`/game/prompts/${urlRoomId}`);
+      }catch (error) {
+        setError("Error starting game: " + (error as Error).message);
+        setIsStarting(false);
+      }
     }, 2000);
   };
+
+
+  useEffect(() => {
+    if (gameStarted) {
+      navigate(`/game/prompts/${urlRoomId}`);
+    }
+  }, [gameStarted]);
   // const canStart = players.filter(p => p.isReady).length >= 2 && isCreator;
 
   return (
@@ -357,7 +395,7 @@ const updateWritingTime = async (writingTime: number) => {
             </button>
             
             <button 
-              onClick={startGame}
+              onClick={gameStartHandler}
               disabled={creator != user?.uid || isStarting}
               className={`px-8 py-3 rounded-lg font-bold transition ${
                 (user?.uid && creator == user?.uid) && !isStarting

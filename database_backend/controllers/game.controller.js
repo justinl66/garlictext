@@ -132,11 +132,11 @@ exports.getLobbyInfo = async (req, res) => {
       })
     }
 
-    if (game.status !== 'waiting') {
-      return res.status(222).send({
-        message: "Game is not in waiting status."
-      });
-    }
+    // if (game.status !== 'lobby') {
+    //   return res.status(222).send({
+    //     message: "Game is not in lobby status."
+    //   });
+    // }
 
     players = game.participants.map(participant => ({
       id: participant.dataValues.id,
@@ -147,7 +147,7 @@ exports.getLobbyInfo = async (req, res) => {
     const lobbyInfo = {
       message: "updated",
       name: game.name,
-      satus: game.status,
+      status: game.status,
       gameHost: game.hostId,
       maxPlayers: game.maxPlayers,
       players: players,
@@ -203,7 +203,7 @@ exports.joinGameWithAuth = async (req, res) => {
         message: "Game is already full."
       });    }
 
-    if (game.status !== 'waiting') {
+    if (game.status !== 'lobby') {
       return res.status(400).send({
         message: "Cannot join game that is already in progress."
       });
@@ -271,7 +271,7 @@ exports.joinGameNoAuth = async (req, res) => {
         message: "Game is already full."
       });
     }
-    if (game.status !== 'waiting') {
+    if (game.status !== 'lobby') {
       return res.status(400).send({
         message: "Cannot join game that is already in progress."
       });
@@ -449,7 +449,7 @@ exports.joinGame = async (req, res) => {
       return res.status(400).send({
         message: "Game is already full."
       });
-    }    if (game.status !== 'waiting') {
+    }    if (game.status !== 'lobby') {
       return res.status(400).send({
         message: "Cannot join game that is already in progress."
       });
@@ -484,30 +484,36 @@ exports.joinGame = async (req, res) => {
 };
 
 exports.startGame = async (req, res) => {
-  try {    const { gameId } = req.params;
-    const { hostId } = req.body;
+  try {    
+    const { gameId } = req.params;
+    const { uid } = req.user;
 
     const game = await Game.findByPk(gameId);
     if (!game) {
       return res.status(404).send({
         message: `Game with ID ${gameId} not found.`
       });
-    }    if (game.hostId !== hostId) {
+    }    
+    if (game.hostId !== uid) {
       return res.status(403).send({
         message: "Only the host can start the game."
       });
-    }    if (game.status !== 'waiting') {
+    }    
+    if (game.status !== 'lobby') {
       return res.status(400).send({
         message: "Game is already in progress or has ended."
       });
     }
 
     // Simplified game start - no longer creating GameRound records
-    game.status = 'in_progress';
+    game.status = 'prompting';
     game.currentRound = 1;
+    game.updateNumber += 1; // Increment update number
     await game.save();
 
-    res.send(game);
+    res.status(200).send({
+      message: "Game started successfully!",
+    });
   } catch (err) {
     res.status(500).send({
       message: err.message || "Some error occurred while starting the game."
@@ -520,7 +526,7 @@ exports.query = async (req, res) => {
 
   try {
     const whereClause = {
-      status: 'waiting' // Default filter: only 'waiting' games are queryable
+      status: 'lobby' // Default filter: only 'lobby' games are queryable
     };
     const includeClause = [];
 

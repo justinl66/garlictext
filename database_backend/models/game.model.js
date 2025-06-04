@@ -13,10 +13,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false
     },
-    status: {
-      type: DataTypes.ENUM('waiting', 'in_progress', 'completed'),
-      defaultValue: 'waiting'
-    },
     hostId: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -25,6 +21,16 @@ module.exports = (sequelize, DataTypes) => {
         key: 'id'
       }
     },
+    status: {
+      type: DataTypes.ENUM('lobby', 'prompting', 'drawing', 'captioning', 'voting', 'trophies'),
+      defaultValue: 'lobby'
+    },
+
+    prompterId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
     maxPlayers: {
       type: DataTypes.INTEGER,
       defaultValue: 8

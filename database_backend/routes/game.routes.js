@@ -12,7 +12,8 @@ module.exports = app => {
 
   router.put("/leave/:id/auth", authentication.authenticateFirebaseToken, games.leaveGameWithAuth);
   router.put("/leave/:id/nauth", games.leaveGameNoAuth);
-  router.post("/:gameId/start", games.startGame);
+
+  router.put("/:gameId/start", authentication.authenticateFirebaseToken, games.startGame);
 
   router.post("/:gameId/end", games.endGame); // Simplified from endGameRound to endGame
 
