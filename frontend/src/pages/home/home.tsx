@@ -2,8 +2,7 @@ import { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../../firebase/firebaseAuth.tsx';
 import NavBar from '../General/NavBar.tsx';
 import { useNavigate } from 'react-router-dom';
-// import { ServerContext } from '../../services/serverContext.tsx';
-import Cookies from 'js-cookie';
+import { createGame, joinGame } from '../../services/game_backend_interact.ts';
 
 export default function HomePage() {
     const authContext = useContext(AuthContext);
@@ -31,85 +30,36 @@ export default function HomePage() {
         }
     }, [createdCode]);
 
-    const createGame = async () => {
-        await fetch('http://localhost:5001/api/games', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${user?.stsTokenManager.accessToken}`,
-            },
-            body: JSON.stringify({
-                name: roomName,
-            })
-        }).then(res => {
-            if (!res.ok) {
-                throw new Error(`HTTP error! status: ${res.status}`);
-            }
-            return res.json();
-        }).then(data => {
-            setCreatedCode(data.code);
+    const createGameHandler = async () => {
+        if(!roomName || roomName.length < 3) {
+            setError("Please enter a valid room name (at least 3 characters).");
+            return;
         }
-        ).catch(error => {
-            setError("Error initializing game: " + error);
-        });
-    };
+        if(user?.uid){
+            const result = await createGame(roomName, user?.stsTokenManager.accessToken);
+            if(result.startsWith("Error")) {
+                setError(result);
+                return;
+            }else{
+                setCreatedCode(result);
+            }
+        }else{
+            setError("You must be logged in to create a game.");
+            return;
+        }
+    }
 
-    const joinGame = async () => {
+    const joinGameHandler = async () => {
         if(!joinCode || joinCode.length !== 6) {
             setJoinError("Please enter a valid room code.");
             return;
         }
 
-        if(user?.uid){
-            try{
-                const result = await fetch(`http://localhost:5001/api/games/join/${joinCode}/auth`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${user?.stsTokenManager.accessToken}`,
-                    },
-                });
-
-                if (!result.ok) {
-                    // const errorText = await result.json();
-                    throw new Error(result.statusText);
-                }else{
-                    navigate(`/game/lobby/${joinCode}`);
-                }
-            }catch (error) {
-                setJoinError(`Error joining game: ${error}`);
-                return;
-            }
-        }else{
-            if(!playerName) {
-                setJoinError("Please enter your name.");
-                return;
-            }
-            try {
-                const result = await fetch(`http://localhost:5001/api/games/join/${joinCode}/nauth`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        playerName: playerName,
-                    }),
-                });
-
-                if (!result.ok) {
-                    const errorText = await result.json();
-                    throw new Error(errorText.message);
-                }else{
-                    const data = await result.json();
-                    Cookies.set('playerName', playerName, { expires: 1 }); // Store player name in cookies
-                    Cookies.set("id", data.id, { expires: 1 }); // Store player ID in cookies
-
-                    navigate(`/game/lobby/${joinCode}`);
-                }
-            } catch (error) {
-                setJoinError(`Error joining game: ${error}`);
-                return;
-            }
+        try{
+            const result = await joinGame(playerName, joinCode, user)
+            navigate(`/game/lobby/${result}`);
+        }catch (error) {
+            setJoinError(`Error joining game: ${error}`);
         }
     }
 
@@ -155,22 +105,8 @@ export default function HomePage() {
                         </div>
                         <p className='font-medium text-red-500'>{error}</p>
                         
-                        {/* {!user && (
-                            <div>
-                                <label className="block text-gray-700 font-medium mb-2">Your Name</label>
-                                <input 
-                                    type="text"
-                                    value={playerName}
-                                    onChange={(e) => setPlayerName(e.target.value)}
-                                    placeholder="Enter your name..."
-                                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9] text-gray-900"
-                                />
-                            </div>
-                        )} 
-                         We now require an account to make a game*/} 
-                        
                           <button 
-                            onClick={createGame}
+                            onClick={createGameHandler}
                             className="w-full py-4 bg-gradient-to-r from-[#9B5DE5] to-[#00BBF9] text-white font-bold text-lg rounded-lg hover:opacity-90 transition transform hover:scale-105 active:scale-95 shadow-lg"
                         >
                             Create Game
@@ -226,11 +162,7 @@ export default function HomePage() {
                                 )}
                                 <p className='font-medium text-red-500 mb-2 text-center'>{joinError}</p>
                                 <button 
-                                    onClick={() => {
-                                        if (joinCode) {
-                                            joinGame();
-                                        }
-                                    }}
+                                    onClick={joinGameHandler}
                                     disabled={!joinCode}
                                     className={`w-full py-4 rounded-lg font-bold text-lg ${
                                         joinCode 

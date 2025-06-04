@@ -1,7 +1,6 @@
 import { useEffect, useState, useContext } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import NavBar from '../General/NavBar';
-// import {ServerContext} from '../../services/serverContext';
 import { AuthContext } from '../../firebase/firebaseAuth';
 import { Player } from '../../interfaces';
 import Cookies from "js-cookie";
@@ -10,7 +9,6 @@ export default function GameLobby() {
   const { roomId } = useParams();
   const navigate = useNavigate();
 
-  // const {gameName, creator, players, gameSettings, setGameSettings, updateLobbyFromServer, gameStarted, error} = useContext(ServerContext);
   const {user} = useContext(AuthContext);
 
   const [gameName, setGameName] = useState<string>('');
@@ -48,13 +46,11 @@ export default function GameLobby() {
 
         const data = await response.json();
         if(data.message === "good" && !reloaded){
-          // alert("hppd")
             return;
         }
         setGameName(data.name);
         setCreator(data.gameHost);
-        // alert(data.gameHost);
-        // alert(JSON.stringify(data.players));
+        
         if(data.players && data.players.length < 4){
           let newPlayers: Player[] = data.players;
           for(let i = data.players.length; i < 4; i++){
@@ -209,7 +205,7 @@ const updateWritingTime = async (writingTime: number) => {
   const startGame = () => {
     setIsStarting(true);
     setTimeout(() => {
-      navigate('/game/prompts');
+      navigate('/game/prompts/');
     }, 2000);
   };
   // const canStart = players.filter(p => p.isReady).length >= 2 && isCreator;
@@ -251,7 +247,7 @@ const updateWritingTime = async (writingTime: number) => {
                       {player.avatar ? (
                         <img src={player.avatar} alt={player.name} className="w-8 h-8" />
                       ) : (
-                        player.name.charAt(0)
+                        player.name.charAt(0).toUpperCase()
                       )}
                     </div>
                     <div className="ml-3 flex-1">

@@ -21,6 +21,8 @@ module.exports = app => {
 
   router.get("/code/:code", games.findByCode);
 
+  router.get("/query", games.query);
+
   router.get("/:code/lobbyInfo", games.getLobbyInfo);
 
   router.get("/:id", games.findOne);
