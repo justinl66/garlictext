@@ -125,7 +125,7 @@ export default function FindGame() {
               </div>
 
               {/* Filters */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                 {/* Max Players Filter */}
                 <div>
                   <label htmlFor="maxPlayers" className="block text-gray-700 font-medium mb-2">Max Players</label>
@@ -136,11 +136,11 @@ export default function FindGame() {
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9] text-gray-900"
                   >
                     <option value="">Any</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                    <option value="6">6+</option>
+                    <option value="4">4 Players</option>
+                    <option value="6">6 Players</option>
+                    <option value="8">8 Players</option>
+                    <option value="10">10 Players</option>
+                    <option value="12">12 Players</option>
                   </select>
                 </div>
 
@@ -154,23 +154,47 @@ export default function FindGame() {
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9] text-gray-900"
                   >
                     <option value="">Any</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
                     <option value="5">5</option>
-                    <option value="8">8</option>
-                    <option value="10">10</option>
-                    <option value="12">12</option>
                   </select>
                 </div>
 
                 {/* Hide Full Games Checkbox */}
-                <div className="flex items-center mt-2 md:mt-0">
+                <div className="flex items-center mb-4">
                   <input
                     type="checkbox"
                     id="hideFullGames"
                     checked={pendingHideFullGames}
                     onChange={(e) => setPendingHideFullGames(e.target.checked)}
-                    className="h-5 w-5 text-[#00BBF9] rounded border-gray-300 focus:ring-[#00BBF9]"
+                    // Hide the native checkbox visually, but keep it accessible
+                    className="sr-only peer"
                   />
-                  <label htmlFor="hideFullGames" className="ml-2 block text-gray-700 font-medium">Hide Full Games</label>
+                  <div
+                    // This div will be our custom checkbox
+                    className={`
+                      relative w-5 h-5 rounded border-2 transition-all duration-200 ease-in-out
+                      ${pendingHideFullGames // Apply classes based on the pending state
+                        ? 'bg-gradient-to-br from-[#9B5DE5] via-[#00BBF9] scale-125' // Checked state: gradient background, no border
+                        : 'bg-white border-black' // Unchecked state: white background, black border
+                      }
+                      peer-focus:ring-2 peer-focus:ring-[#00BBF9] peer-focus:ring-offset-2
+                      flex items-center justify-center
+                    `}
+                    // This makes the custom div clickable and toggles the hidden input
+                    onClick={() => setPendingHideFullGames(!pendingHideFullGames)}
+                  >
+                    {pendingHideFullGames && (
+                      // Checkmark for checked state
+                      <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </div>
+                  <label htmlFor="hideFullGames" className="ml-2 block text-gray-700 font-medium cursor-pointer">
+                    Hide Full Games
+                  </label>
                 </div>
               </div>
 
