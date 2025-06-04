@@ -27,59 +27,7 @@ export default function FindGame() {
 
   const [error, setError] = useState<string | null>(null);
 
-  // Simulate fetching games from an API - This still runs once on component mount
-
-  // useEffect(() => {
-  //   setLoading(true);
-  //   setTimeout(() => {
-  //     const mockGames: Game[] = [
-  //       { id: 'GAME12', name: 'Adventure Quest', host: 'Alice', players: 3, maxPlayers: 5, rounds: 10, isFull: false },
-  //       { id: 'GAME34', name: 'Mystery Manor', host: 'Bob', players: 6, maxPlayers: 6, rounds: 8, isFull: true },
-  //       { id: 'GAME56', name: 'Space Odyssey', host: 'Charlie', players: 2, maxPlayers: 4, rounds: 12, isFull: false },
-  //       { id: 'GAME78', name: 'Fantasy Realm', host: 'David', players: 4, maxPlayers: 5, rounds: 10, isFull: false },
-  //       { id: 'GAME90', name: 'Quick Draw', host: 'Eve', players: 5, maxPlayers: 5, rounds: 5, isFull: true },
-  //     ];
-  //     setGames(mockGames);
-  //     // Initialize filtered games with all games when initially loaded
-  //     setFilteredGames(mockGames);
-  //     setLoading(false);
-  //   }, 1500);
-  // }, []);
-
-  // Apply filters whenever active filter states or games change
-  // useEffect(() => {
-  //   let currentFilteredGames = games.filter(game =>
-  //     game.name.toLowerCase().includes(activeSearchTerm.toLowerCase())
-  //   );
-
-  //   if (activeMaxPlayersFilter) {
-  //     currentFilteredGames = currentFilteredGames.filter(game =>
-  //       game.maxPlayers <= parseInt(activeMaxPlayersFilter)
-  //     );
-  //   }
-
-  //   if (activeHideFullGames) {
-  //     currentFilteredGames = currentFilteredGames.filter(game => !game.isFull);
-  //   }
-
-  //   if (activeNumRoundsFilter) {
-  //     currentFilteredGames = currentFilteredGames.filter(game =>
-  //       game.rounds === parseInt(activeNumRoundsFilter)
-  //     );
-  //   }
-
-  //   setFilteredGames(currentFilteredGames);
-  // }, [activeSearchTerm, activeMaxPlayersFilter, activeHideFullGames, activeNumRoundsFilter, games]);
-
   const handleSearchSubmit = async () => {
-    // Update active filters from pending filters
-    // setActiveSearchTerm(pendingSearchTerm);
-    // setActiveMaxPlayersFilter(pendingMaxPlayersFilter);
-    // setActiveHideFullGames(pendingHideFullGames);
-    // setActiveNumRoundsFilter(pendingNumRoundsFilter);
-    // In a real application, you might trigger a server query here based on active filters
-    // For this example, we're just re-filtering the already fetched 'games' array
-
     setLoading(true);
     try{
       let queryString = '';

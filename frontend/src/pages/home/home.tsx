@@ -2,7 +2,6 @@ import { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../../firebase/firebaseAuth.tsx';
 import NavBar from '../General/NavBar.tsx';
 import { useNavigate } from 'react-router-dom';
-// import { ServerContext } from '../../services/serverContext.tsx';
 import { createGame, joinGame } from '../../services/game_backend_interact.ts';
 
 export default function HomePage() {
@@ -105,20 +104,6 @@ export default function HomePage() {
                             />
                         </div>
                         <p className='font-medium text-red-500'>{error}</p>
-                        
-                        {/* {!user && (
-                            <div>
-                                <label className="block text-gray-700 font-medium mb-2">Your Name</label>
-                                <input 
-                                    type="text"
-                                    value={playerName}
-                                    onChange={(e) => setPlayerName(e.target.value)}
-                                    placeholder="Enter your name..."
-                                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9] text-gray-900"
-                                />
-                            </div>
-                        )} 
-                         We now require an account to make a game*/} 
                         
                           <button 
                             onClick={createGameHandler}
