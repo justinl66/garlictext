@@ -22,4 +22,14 @@ echo "Creating UUID extension..."
 psql -U postgres -d garlictext -c "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"
 
 echo "PostgreSQL database setup complete!"
-echo "You can now run 'npm install' and 'npm run dev' in the database_backend folder."
+
+# Run npm run db:setup to initialize tables and seed data
+echo "Running npm run db:setup to initialize tables and seed data..."
+npm run db:setup
+if [ $? -ne 0 ]; then
+    echo "Failed to run npm run db:setup. Make sure you have run 'npm install' first."
+    exit 1
+fi
+
+echo "Database setup and initialization complete!"
+echo "You can now run 'npm run dev' to start the server."

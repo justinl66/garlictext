@@ -1,31 +1,52 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useContext } from 'react';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import NavBar from '../General/NavBar';
+import { AuthContext } from '../../firebase/firebaseAuth';
+import { createCaptionedImage, calculateOptimalFontSize } from '../../utils/captionOverlay';
+import dbService from '../../services/dbService';
 
 export default function CaptionPage() {
   const navigate = useNavigate();
+  const authContext = useContext(AuthContext);
+  const { roomId } = useParams<{ roomId: string }>();
+  const { state } = useLocation();
   const [caption, setCaption] = useState('');
   const [timeLeft, setTimeLeft] = useState(60);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [image, setImage] = useState<string | null>(null);
+  const [imageId, setImageId] = useState<string | null>(null);
+    
+  const currentRoomId = roomId;
   
-  // Mock image for demo purposes
+  if (!authContext) {
+    return <div>Loading...</div>;
+  }
+
+  const { user: currentUser } = authContext;
+
   useEffect(() => {
-    // In a real app, you would fetch the AI-enhanced image from your backend
-    // For now, we'll use a placeholder
-    setImage('/placeholder-drawing.png');
-    
-    // Fallback to a colored div if image doesn't load
-    const timer = setTimeout(() => {
-      if (!image) {
-        setImage(null);
-      }
-    }, 2000);
-    
-    return () => clearTimeout(timer);
-  }, []);
+    if (state?.imageId && state?.originalImageUrl) {
+      setImageId(state.imageId);
+      const enhancedImageUrl = `${import.meta.env.VITE_API_URL}/api/images/${state.imageId}/enhanced`;
+      setImage(enhancedImageUrl);
+    } else {
+      const fetchLatestImage = async () => {
+        try {
+          const latestImage = await dbService.image.getLatestImage();
+          if (latestImage && latestImage.id) {
+            setImageId(latestImage.id);
+            const enhancedImageUrl = `${import.meta.env.VITE_API_URL}/api/images/${latestImage.id}/enhanced`;
+            setImage(enhancedImageUrl);
+          }
+        } catch (error) {
+          console.error('Error fetching latest image:', error);
+          setImage('/placeholder-drawing.png');
+        }
+      };
+      fetchLatestImage();
+    }
+  }, [state]);
   
-  // Timer countdown effect
   useEffect(() => {
     if (timeLeft <= 0) {
       handleSubmit();
@@ -38,28 +59,62 @@ export default function CaptionPage() {
     
     return () => clearTimeout(timer);
   }, [timeLeft]);
-  
-  const handleSubmit = async () => {
-    if (isSubmitting || !caption.trim()) return;
+    const handleSubmit = async () => {
+    if (isSubmitting || !caption.trim() || !imageId || !currentUser) return;
     
-    setIsSubmitting(true);
-    
-    try {
-      // Here you would send the caption to your backend
-      console.log('Caption submitted:', caption);
+    setIsSubmitting(true);    try {
+      if (!imageId) {
+        throw new Error('Image ID is required');
+      }      if (!currentRoomId || currentRoomId.trim() === '') {
+        throw new Error('Room ID is required');
+      }
+      if (!currentUser?.uid) {
+        throw new Error('User authentication required');
+      }      const captionData = {
+        imageId,
+        text: caption.trim(),
+        roundId: currentRoomId
+      };
+      await dbService.caption.createCaption(captionData);
       
-      // Simulate API call with timeout
-      setTimeout(() => {
-        // Navigate to the next page after submission
-        navigate('/game/voting');
+      if (image) {
+        try {
+          
+          const response = await fetch(image);
+          const blob = await response.blob();
+          const imageDataURL = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);          });
+          
+          const img = new Image();
+          await new Promise((resolve) => {
+            img.onload = resolve;
+            img.src = imageDataURL;
+          });
+            const fontSize = calculateOptimalFontSize(caption, img.width);
+          
+          const captionedResult = await createCaptionedImage(imageDataURL, caption, {
+            fontSize,
+            fontFamily: 'Arial, sans-serif',
+            textColor: '#FFFFFF',
+            backgroundColor: '#000000',
+            padding: 20          });
+          
+          await dbService.image.updateCaptionedImage(imageId, captionedResult.dataURL);
+            } catch (overlayError) {
+          console.error('❌ Error creating captioned image:', overlayError);
+        }
+      }
+        setTimeout(() => {
+        navigate(`/game/voting/${currentRoomId}`);
       }, 1500);
+      
     } catch (error) {
-      console.error('Error submitting caption:', error);
+      console.error('❌ Error submitting caption:', error);
       setIsSubmitting(false);
-    }
-  };
+    }  };
   
-  // Format time as MM:SS
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -70,9 +125,7 @@ export default function CaptionPage() {
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#9B5DE5] to-[#F15BB5] via-[#00BBF9]">
       <NavBar />
       
-      <div className="container mx-auto px-4 py-6 flex-grow flex flex-col">
-        <div className="bg-white rounded-xl shadow-2xl p-6 flex-grow flex flex-col">
-          {/* Header with instructions and timer */}
+      <div className="container mx-auto px-4 py-6 flex-grow flex flex-col">        <div className="bg-white rounded-xl shadow-2xl p-6 flex-grow flex flex-col">
           <div className="flex justify-between items-center mb-4">
             <div>
               <h2 className="text-2xl font-bold text-[#9B5DE5]">Add a caption!</h2>
@@ -82,12 +135,8 @@ export default function CaptionPage() {
               <div className={`text-2xl font-bold ${timeLeft <= 10 ? 'text-red-500 animate-pulse' : 'text-[#9B5DE5]'}`}>
                 {formatTime(timeLeft)}
               </div>
-            </div>
-          </div>
-          
-          {/* Main content area with image and caption input */}
-          <div className="flex-grow flex flex-col md:flex-row gap-6">
-            {/* Image display */}
+            </div>          </div>
+            <div className="flex-grow flex flex-col md:flex-row gap-6">
             <div className="flex-1 flex items-center justify-center border-2 border-gray-200 rounded-lg overflow-hidden bg-gray-50">
               {image ? (
                 <img 
@@ -103,10 +152,8 @@ export default function CaptionPage() {
                     In actual gameplay, this would be another player's AI-enhanced drawing.
                   </p>
                 </div>
-              )}
-            </div>
+              )}            </div>
             
-            {/* Caption input area */}
             <div className="flex-1 flex flex-col">
               <div className="mb-4">
                 <label htmlFor="caption" className="block text-lg font-medium text-gray-700 mb-2">

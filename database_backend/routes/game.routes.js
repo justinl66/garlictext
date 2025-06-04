@@ -12,10 +12,9 @@ module.exports = app => {
 
   router.put("/leave/:id/auth", authentication.authenticateFirebaseToken, games.leaveGameWithAuth);
   router.put("/leave/:id/nauth", games.leaveGameNoAuth);
-
   router.post("/:gameId/start", games.startGame);
 
-  router.post("/:gameId/rounds/:roundNumber/end", games.endGameRound);
+  router.post("/:gameId/end", games.endGame); // Simplified from endGameRound to endGame
 
   router.get("/", games.findAll);
 

@@ -160,8 +160,9 @@ const gameApi = {
   }
 };
 
-const imageApi = {  createImage: async (imageData: {
-    roundId: string;
+const imageApi = {
+  createImage: async (imageData: {
+    roundId?: string;
     prompt: string;
     originalDrawingData: string;
     enhancedImageData?: string;
@@ -224,8 +225,7 @@ const imageApi = {  createImage: async (imageData: {
       throw error;
     }  
   },
-  
-  getImageById: async (imageId: string) => {
+    getImageById: async (imageId: string) => {
     try {
       const response = await dbApi.get(`/images/${imageId}`);
       return response.data;
@@ -233,6 +233,23 @@ const imageApi = {  createImage: async (imageData: {
       console.error('Error getting image by ID:', error);
       throw error;
     }
+  },
+
+  updateCaptionedImage: async (imageId: string, captionedImageData: string, captionedImageMimeType?: string) => {
+    try {
+      const response = await dbApi.put(`/images/${imageId}/caption`, { 
+        captionedImageData,
+        captionedImageMimeType: captionedImageMimeType || 'image/png'
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error updating captioned image:', error);
+      throw error;
+    }
+  },
+
+  getCaptionedImageUrl: (imageId: string) => {
+    return `${API_BASE_URL}/images/${imageId}/captioned`;
   }
 };
 
@@ -281,9 +298,6 @@ const captionApi = {  createCaption: async (captionData: {
   }
 };
 
-// Define interfaces for results data types
-
-// Drawing with its assigned caption and votes
 interface DrawingWithVotes {
   drawingId: number;
   imageUrl: string;
@@ -303,7 +317,6 @@ interface DrawingWithVotes {
   };
 }
 
-// Player's best submission in the game
 interface BestSubmission {
   type: 'drawing';
   imageId: number;
@@ -318,23 +331,21 @@ interface BestSubmission {
   };
 }
 
-// Player in the game leaderboard
 interface GameLeaderboardItem {
   userId: number;
   username: string;
   profilePictureUrl?: string;
-  // Vote metrics
-  totalVotes: number;       // Votes for their drawings 
-  votePercentage: number;   // % of total game votes
-  // Best content
+  
+  totalVotes: number;
+  votePercentage: number;
+
   bestSubmission: BestSubmission | null;
-  bestVotes: number;        // Votes on best submission
-  // Rankings
+  bestVotes: number;
+
   medal: 'gold' | 'silver' | 'bronze' | null;
   rank: number;
 }
 
-// Overall game results
 interface GameResults {
   gameId: number;
   gameCode: string;
@@ -344,9 +355,7 @@ interface GameResults {
   leaderboard: GameLeaderboardItem[];
 }
 
-// Results-related API calls
 const resultsApi = {
-  // Get aggregate results for an entire game
   getGameResults: async (gameId: number): Promise<GameResults> => {
     try {
       const response = await dbApi.get(`/results/games/${gameId}`);
@@ -358,7 +367,6 @@ const resultsApi = {
   }
 };
 
-// Export combined API service
 const dbService = {
   user: userApi,
   game: gameApi,

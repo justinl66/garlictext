@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import NavBar from '../General/NavBar';
 
 export default function PromptPage() {
   const navigate = useNavigate();
+  const { roomId } = useParams<{ roomId: string }>();
   const [prompt, setPrompt] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [timeLeft, setTimeLeft] = useState(60); // 60 second timer
@@ -38,9 +39,8 @@ export default function PromptPage() {
     try {
       // sedning prompt to backend
       console.log('Prompt submitted:', prompt);
-      
-      setTimeout(() => {
-        navigate('/game/play');
+        setTimeout(() => {
+        navigate(`/game/play/${roomId}`);
       }, 1500);
       
     } catch (error) {

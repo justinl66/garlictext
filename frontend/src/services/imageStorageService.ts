@@ -3,7 +3,7 @@ import dbService from './dbService';
 const AI_API_URL = import.meta.env.VITE_AI_API_URL || 'http://localhost:8000';
 
 export interface DrawingSubmissionData {
-  roundId: string;
+  roundId?: string;
   prompt: string;
   drawingDataURL: string;
 }
@@ -17,16 +17,16 @@ export interface ImageSubmissionResult {
 
 class ImageStorageService {  async submitDrawing(submissionData: DrawingSubmissionData): Promise<ImageSubmissionResult> {
     try {
-      const imageData = {
-        roundId: submissionData.roundId,
+      const imageData: any = {
         prompt: submissionData.prompt,
         originalDrawingData: submissionData.drawingDataURL
       };
 
-      const savedImage = await dbService.image.createImage(imageData);
+      // Only include roundId if it's not null/undefined
+      if (submissionData.roundId && submissionData.roundId !== 'null') {
+        imageData.roundId = submissionData.roundId;
+      }      const savedImage = await dbService.image.createImage(imageData);
       const imageId = savedImage.id;
-
-      console.log('✅ Original drawing saved to database with ID:', imageId);
 
       const result: ImageSubmissionResult = {
         imageId,
@@ -35,14 +35,11 @@ class ImageStorageService {  async submitDrawing(submissionData: DrawingSubmissi
       };
 
       this.enhanceImageAsync(imageId, submissionData.drawingDataURL, submissionData.prompt)
-        .catch(error => {
-          console.error('AI enhancement failed for image', imageId, ':', error);
-        });
+        .catch(error => {});
 
       return result;
 
     } catch (error) {
-      console.error('Error submitting drawing:', error);
       throw new Error(`Failed to submit drawing: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -71,18 +68,11 @@ class ImageStorageService {  async submitDrawing(submissionData: DrawingSubmissi
       const aiResult = await aiResponse.json();
       
       if (!aiResult.images || aiResult.images.length === 0) {
-        throw new Error('AI API returned no enhanced images');      }
+        throw new Error('AI API returned no enhanced images');      }      const enhancedImageDataURL = aiResult.images[0];
 
-      const enhancedImageDataURL = aiResult.images[0];
-
-      await dbService.image.updateEnhancedImage(imageId, enhancedImageDataURL);
-
-      console.log('✅ AI enhancement completed and saved for image:', imageId);
-
-    } catch (error) {
-      console.error('Error during AI enhancement:', error);
+      await dbService.image.updateEnhancedImage(imageId, enhancedImageDataURL);    } catch (error) {
       throw error;
-    }  }
+    }}
 
   getImageUrls(imageId: string) {
     return {

@@ -1,13 +1,11 @@
 const db = require('../models');
 const Prompt = db.Prompt;
 const User = db.User;
-const GameRound = db.GameRound;
 const Game = db.Game;
 const { Op } = db.Sequelize;
 
 exports.create = async (req, res) => {
-  try {
-    if (!req.body.text || !req.body.creatorId || !req.body.roundId) {
+  try {    if (!req.body.text || !req.body.creatorId || !req.body.roundId) {
       return res.status(400).send({
         message: "Content can't be empty! Required fields: text, creatorId, roundId"
       });
@@ -59,25 +57,19 @@ exports.assignPrompts = async (req, res) => {
   try {
     const { roundId } = req.params;
     
-    const gameRound = await GameRound.findByPk(roundId, {
+    const game = await Game.findByPk(roundId, {
       include: [
         {
-          model: Game,
-          as: 'game',
-          include: [
-            {
-              model: User,
-              as: 'participants',
-              through: { attributes: [] }
-            }
-          ]
+          model: User,
+          as: 'participants',
+          through: { attributes: [] }
         }
       ]
     });
     
-    if (!gameRound) {
+    if (!game) {
       return res.status(404).send({
-        message: `Game round with id=${roundId} not found.`
+        message: `Game with roomId=${roundId} not found.`
       });
     }
     
@@ -85,7 +77,7 @@ exports.assignPrompts = async (req, res) => {
       where: { roundId }
     });
     
-    const participants = gameRound.game.participants;
+    const participants = game.participants;
     
     const assignments = [];
     
@@ -135,7 +127,7 @@ exports.getAssignedPrompt = async (req, res) => {
     
     if (!prompt) {
       return res.status(404).send({
-        message: `No prompt assigned to user=${userId} for round=${roundId}.`
+        message: `No prompt assigned to user=${userId} for room=${roundId}.`
       });
     }
     

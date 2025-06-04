@@ -19,11 +19,11 @@ module.exports = (sequelize, DataTypes) => {
         model: 'images',
         key: 'id'
       }
-    },
-    roundId: {
-      type: DataTypes.UUID,
+    },    roundId: {
+      type: DataTypes.STRING(6), // Use roomId instead of roundId - 6 digit lobby code
+      allowNull: false,
       references: {
-        model: 'gameRounds',
+        model: 'games',
         key: 'id'
       }
     },
