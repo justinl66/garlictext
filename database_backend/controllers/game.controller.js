@@ -27,7 +27,6 @@ const generateGameCode = async (length = 6, forGame = true) => {
   return code;
 };
 exports.create = async (req, res) => {
-  // console.log("Creating game with request body:", req.body);
   try {   
     if(!req.user.uid){
       return res.status(401).send({

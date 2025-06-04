@@ -11,8 +11,7 @@ const initDb = async () => {
     }
     if (process.env.NODE_ENV === 'development' || process.argv.includes('--seed')) {
       await seedData();
-    }  } catch (error) {
-  } finally {
+    }  } catch (error) {} finally {
     if (process.argv.includes('--exit')) {
       await db.sequelize.close();
       process.exit();
@@ -96,9 +95,7 @@ const seedData = async () => {
         enhancedImageData: sampleImageBuffer,
         enhancedImageMimeType: 'image/png'
       });
-      
-      // Create captions for the images
-      await Caption.create({
+        await Caption.create({
         userId: users[1].id,
         imageId: sampleImage1.id,
         roundId: activeGame.id,
@@ -118,9 +115,7 @@ const seedData = async () => {
         roundId: activeGame.id,
         text: 'Skater boy doing tricks'
       });
-      }
-  } catch (error) {
-  }
+      }  } catch (error) {}
 };
 
 initDb();

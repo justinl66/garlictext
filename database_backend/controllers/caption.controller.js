@@ -64,7 +64,6 @@ exports.findByImageId = async (req, res) => {
 
 exports.findByRoundId = async (req, res) => {
   const roundId = req.params.roundId;
-  console.log(`🔍 Fetching captions for round - ID: ${roundId}`);
 
   try {
     const data = await Caption.findAll({

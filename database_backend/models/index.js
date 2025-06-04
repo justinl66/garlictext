@@ -41,8 +41,7 @@ const testConnection = async () => {
     } finally {
       client.release();
     }
-  } catch (error) {
-  }
+  } catch (error) {}
 };
 
 testConnection();
