@@ -278,7 +278,7 @@ export default function ResultsPage() {
                    '🥉 Third Place! 🥉'}
                 </h1>
                 <p className="text-gray-600">By {currentResult?.authorName}</p>                <p className="text-2xl font-bold text-[#00BBF9] mt-2">
-                  Votes: {currentResult?.votes}
+                  Points: {currentResult?.votes}
                 </p>
               </div>
 

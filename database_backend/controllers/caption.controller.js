@@ -46,16 +46,12 @@ exports.findByImageId = async (req, res) => {
           model: User,
           as: 'user',
           attributes: ['id', 'username', 'profilePictureUrl']
-        },
-        {
-          model: Prompt,
-          as: 'promptData',
-          attributes: ['id', 'text']
         }
       ]
     });
     res.send(data);
   } catch (err) {
+    console.error("Error in findByImageId:", err);
     res.status(500).send({
       message: err.message || "Some error occurred while retrieving captions."
     });
@@ -75,17 +71,13 @@ exports.findByRoundId = async (req, res) => {
           attributes: ['id', 'username', 'profilePictureUrl']
         },
         {
-          model: Prompt,
-          as: 'promptData',
-          attributes: ['id', 'text']
-        },
-        {
           model: Image,
           as: 'image'
         }
       ]    });
     res.send(data);
   } catch (err) {
+    console.error("Error in findByRoundId:", err);
     res.status(500).send({
       message: err.message || "Some error occurred while retrieving captions."
     });
@@ -130,11 +122,6 @@ exports.findOne = async (req, res) => {
           attributes: ['id', 'username', 'profilePictureUrl']
         },
         {
-          model: Prompt,
-          as: 'promptData',
-          attributes: ['id', 'text']
-        },
-        {
           model: Image,
           as: 'image'
         }
@@ -149,6 +136,7 @@ exports.findOne = async (req, res) => {
       });
     }
   } catch (err) {
+    console.error(`Error in findOne for caption ${id}:`, err);
     res.status(500).send({
       message: `Error retrieving Caption with id=${id}: ${err.message}`
     });

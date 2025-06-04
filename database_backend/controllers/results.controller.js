@@ -13,100 +13,104 @@ exports.getGameResults = async (req, res) => {
       return res.status(400).send({
         message: "Game ID is required"
       });
-    }
-        const players = [
-      {
-        id: 1,
-        username: 'user1',
-        profilePictureUrl: 'https://example.com/avatar1.jpg',
-        totalVotes: 8
-      },
-      {
-        id: 3,
-        username: 'user3',
-        profilePictureUrl: 'https://example.com/avatar3.jpg',
-        totalVotes: 5
-      },      {
-        id: 5,
-        username: 'user5',
-        profilePictureUrl: 'https://example.com/avatar5.jpg',
-        totalVotes: 5
-      },
-      {
-        id: 7,
-        username: 'user7',
-        profilePictureUrl: 'https://example.com/avatar7.jpg',
-        totalVotes: 2
-      },      {
-        id: 9,
-        username: 'user9',
-        profilePictureUrl: 'https://example.com/avatar9.jpg',
+    }    const game = await Game.findByPk(gameId, {
+      include: [
+        {
+          model: User,
+          as: 'participants',
+          through: { attributes: [] },
+          attributes: ['id', 'username', 'profilePictureUrl']
+        }
+      ]
+    });
+
+    if (!game) {
+      return res.status(404).send({
+        message: `Game with ID ${gameId} not found.`
+      });    }
+
+    const images = await Image.findAll({
+      where: { roundId: gameId },
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'username', 'profilePictureUrl']
+        },
+        {
+          model: Caption,
+          as: 'captions',
+          include: [
+            {
+              model: User,
+              as: 'user',
+              attributes: ['id', 'username', 'profilePictureUrl']
+            }
+          ]
+        }
+      ],
+      order: [['votes', 'DESC']]    });
+
+    const playerVotesMap = new Map();
+    game.participants.forEach(participant => {
+      playerVotesMap.set(participant.id, {
+        id: participant.id,
+        username: participant.username,
+        profilePictureUrl: participant.profilePictureUrl,
         totalVotes: 0
-      }
-    ];
-    const topDrawings = [
-      {
-        drawingId: 101,
-        imageUrl: 'https://example.com/drawing1.jpg',
-        enhancedImageUrl: 'https://example.com/enhanced1.jpg',
-        votes: 5,
-        creator: {
-          id: 1,
-          username: 'user1'
-        },
-        caption: {
-          id: 201,
-          text: 'Caption for the first drawing',
-          creator: {
-            id: 2,
-            username: 'user2'
-          }
-        }
-      },
-      {
-        drawingId: 102,
-        imageUrl: 'https://example.com/drawing2.jpg',
-        enhancedImageUrl: 'https://example.com/enhanced2.jpg',
-        votes: 3,
-        creator: {
-          id: 3,
-          username: 'user3'
-        },
-        caption: {
-          id: 202,
-          text: 'Caption for the second drawing',
-          creator: {
-            id: 4,
-            username: 'user4'
-          }
-        }
-      },
-      {
-        drawingId: 103,
-        imageUrl: 'https://example.com/drawing3.jpg',
-        enhancedImageUrl: 'https://example.com/enhanced3.jpg',
-        votes: 3,
-        creator: {
-          id: 5,
-          username: 'user5'
-        },
-        caption: {
-          id: 203,
-          text: 'Caption for the third drawing',
-          creator: {
-            id: 6,
-            username: 'user6'
-          }
-        }
-      }
-    ];
-      const totalGameVotes = players.reduce((sum, player) => sum + player.totalVotes, 0);
+      });    });
     
-    players.sort((a, b) => b.totalVotes - a.totalVotes);
-    let goldVotes = players[0].totalVotes;
+    images.forEach(image => {
+      const creatorId = image.userId;
+      if (playerVotesMap.has(creatorId)) {
+        const playerData = playerVotesMap.get(creatorId);
+        playerData.totalVotes += image.votes || 0;
+        playerVotesMap.set(creatorId, playerData);
+      }    });
+    
+    for (const image of images) {
+      if (image.captions && image.captions.length > 0) {
+        for (const caption of image.captions) {
+          const captionCreatorId = caption.userId;
+          if (playerVotesMap.has(captionCreatorId)) {
+            const playerData = playerVotesMap.get(captionCreatorId);
+            playerData.totalVotes += caption.votes || 0;
+            playerVotesMap.set(captionCreatorId, playerData);
+          }
+        }
+      }    }
+    
+    const players = Array.from(playerVotesMap.values())      .sort((a, b) => b.totalVotes - a.totalVotes);
+
+    const topDrawings = images.slice(0, 5).map(image => {
+      const topCaption = image.captions && image.captions.length > 0
+        ? image.captions.sort((a, b) => b.votes - a.votes)[0]
+        : null;
+      
+      return {
+        drawingId: image.id,
+        imageUrl: null,
+        enhancedImageUrl: null,
+        votes: image.votes || 0,
+        creator: {
+          id: image.user.id,
+          username: image.user.username
+        },
+        caption: topCaption ? {
+          id: topCaption.id,
+          text: topCaption.text,
+          creator: {
+            id: topCaption.user.id,
+            username: topCaption.user.username
+          }
+        } : null
+      };    });
+    const totalGameVotes = players.reduce((sum, player) => sum + player.totalVotes, 0);
+    let goldVotes = players.length > 0 ? players[0].totalVotes : 0;
     let silverVotes = null;
     let bronzeVotes = null;
-      players.forEach(player => {
+    
+    players.forEach(player => {
       if (player.totalVotes === 0) {
         player.medal = null;
         return;
@@ -123,40 +127,55 @@ exports.getGameResults = async (req, res) => {
         bronzeVotes = player.totalVotes;
         player.medal = 'bronze';
       } else if (player.totalVotes === bronzeVotes) {
-        player.medal = 'bronze';      } else {
+        player.medal = 'bronze';
+      } else {
         player.medal = null;
       }
       
       player.votePercentage = totalGameVotes > 0 ?
         Math.round((player.totalVotes / totalGameVotes) * 100) : 0;
     });
+
     let currentRank = 1;
     let prevVotes = -1;
     let sameRankCount = 0;
-      const leaderboard = players.map((player, index) => {
-      const bestDrawing = topDrawings.find(drawing => drawing.creator.id === player.id);
+    
+    const leaderboard = players.map((player, index) => {
+      const playerImages = images.filter(image => image.userId === player.id);
+      const bestPlayerImage = playerImages.length > 0 
+        ? playerImages.sort((a, b) => b.votes - a.votes)[0] 
+        : null;
+      
       let bestSubmission = null;
       
-      if (bestDrawing) {
+      if (bestPlayerImage) {
+        const topCaption = bestPlayerImage.captions && bestPlayerImage.captions.length > 0
+          ? bestPlayerImage.captions.sort((a, b) => b.votes - a.votes)[0]
+          : null;
+          
         bestSubmission = {
           type: 'drawing',
-          imageId: bestDrawing.drawingId,
-          imageUrl: bestDrawing.imageUrl,
-          enhancedImageUrl: bestDrawing.enhancedImageUrl,
-          votes: bestDrawing.votes,
-          captionId: bestDrawing.caption.id,
-          captionText: bestDrawing.caption.text,
-          captionCreator: bestDrawing.caption.creator
+          imageId: bestPlayerImage.id,
+          imageUrl: null,
+          enhancedImageUrl: null,
+          votes: bestPlayerImage.votes || 0,
+          captionId: topCaption ? topCaption.id : null,
+          captionText: topCaption ? topCaption.text : null,
+          captionCreator: topCaption ? {
+            id: topCaption.user.id,
+            username: topCaption.user.username
+          } : null
         };
       }
-        if (index === 0) {
+
+      if (index === 0) {
         prevVotes = player.totalVotes;
         return {
           userId: player.id,
           username: player.username,
           profilePictureUrl: player.profilePictureUrl,
           totalVotes: player.totalVotes,
-          drawingVotes: player.totalVotes,
+          drawingVotes: bestSubmission ? bestSubmission.votes : 0,
           votePercentage: player.votePercentage,
           bestSubmission,
           bestVotes: bestSubmission ? bestSubmission.votes : 0,
@@ -164,7 +183,8 @@ exports.getGameResults = async (req, res) => {
           rank: currentRank
         };
       }
-        if (player.totalVotes < prevVotes) {
+        
+      if (player.totalVotes < prevVotes) {
         currentRank += sameRankCount + 1;
         sameRankCount = 0;
       } else {
@@ -177,33 +197,35 @@ exports.getGameResults = async (req, res) => {
         username: player.username,
         profilePictureUrl: player.profilePictureUrl,
         totalVotes: player.totalVotes,
-        drawingVotes: player.totalVotes,
+        drawingVotes: bestSubmission ? bestSubmission.votes : 0,
         votePercentage: player.votePercentage,
         bestSubmission,
         bestVotes: bestSubmission ? bestSubmission.votes : 0,
         medal: player.medal,
         rank: currentRank
       };
-    });
-      const topDrawingsFormatted = topDrawings.map(drawing => ({
+    });     
+    const topDrawingsFormatted = topDrawings.map(drawing => ({
       drawingId: drawing.drawingId,
-      imageUrl: drawing.imageUrl,
-      enhancedImageUrl: drawing.enhancedImageUrl,
+      imageUrl: null, 
+      enhancedImageUrl: null,
       votes: drawing.votes,
       votePercentage: totalGameVotes > 0 ? Math.round((drawing.votes / totalGameVotes) * 100) : 0,
       creator: drawing.creator,
       caption: drawing.caption
     }));
-      res.send({
-      gameId: parseInt(gameId),
-      gameCode: 'ABCDEF',
-      title: 'Placeholder Garlic Text Game',
+      
+    res.send({
+      gameId: gameId,
+      gameCode: game.id,
+      title: game.name || 'Garlic Text Game',
       totalVotes: totalGameVotes,
       topDrawings: topDrawingsFormatted,
       leaderboard
     });
     
   } catch (err) {
+    console.error("Error in getGameResults:", err);
     res.status(500).send({
       message: err.message || "Error retrieving game results"
     });

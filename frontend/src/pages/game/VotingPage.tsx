@@ -98,14 +98,14 @@ export default function VotingPage() {
       })
     );
   };
-    const handleSubmit = async () => {
+  const handleSubmit = async () => {
     if (isSubmitting) return;
     
     setIsSubmitting(true);
       try {
       const currentImage = images[currentIndex];
       
-      if (rating >= 80) {
+      if (rating >= 60) {
         if (currentImage.caption) {
           const captions = await dbService.caption.getCaptionsByImage(currentImage.id);
           if (captions && captions.length > 0) {
@@ -115,9 +115,8 @@ export default function VotingPage() {
         await dbService.image.voteForImage(currentImage.id);
       }
       
-      console.log(`Rating for image ${currentImage.id}: ${rating}${rating >= 80 ? ' (Vote submitted)' : ' (No vote - rating too low)'}`);
-        
-      if (currentIndex < images.length - 1) {
+      console.log(`Rating for image ${currentImage.id}: ${rating}${rating >= 60 ? ' (Vote submitted)' : ' (No vote - rating too low)'}`);
+        if (currentIndex < images.length - 1) {
         setCurrentIndex(prev => prev + 1);
         setTimeLeft(10);
         setRating(60);
