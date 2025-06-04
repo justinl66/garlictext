@@ -8,7 +8,7 @@ interface Result {
   imageUrl: string;
   caption: string;
   authorName: string;
-  meanRating: number;
+  votes: number;
   rank: number;
   medal: 'gold' | 'silver' | 'bronze' | null;
 }
@@ -20,27 +20,44 @@ export default function ResultsPage() {
   const [showPlayAgain, setShowPlayAgain] = useState(false);
   const [results, setResults] = useState<Result[]>([]);
   const [loading, setLoading] = useState(true);
-  
-  useEffect(() => {
-    const fetchResults = async () => {      if (!roomId) {
+    useEffect(() => {
+    const fetchResults = async () => {
+      if (!roomId) {
         setLoading(false);
         return;
       }
 
-      try {        const images = await dbService.image.getImagesByRound(roomId);
-        const processedResults: Result[] = images.map((image: any, index: number) => ({
-          id: image.id,
-          imageUrl: image.captionedImageData ? 
-            dbService.image.getCaptionedImageUrl(image.id) : 
-            dbService.image.getOriginalImageUrl(image.id),
-          caption: image.captions?.[0]?.text || `Drawing ${index + 1}`,
-          authorName: image.user?.username || 'Anonymous',
-          meanRating: Math.floor(Math.random() * 100),
-          rank: index + 1,
-          medal: null
-        }));
+      try {
+        const images = await dbService.image.getImagesByRound(roomId);
         
-        setResults(processedResults.length > 0 ? processedResults : mockResults);      } catch (error) {
+        const processedResults: Result[] = images.map((image: any, index: number) => {
+          // Calculate total votes for this image (including caption votes)
+          const imageVotes = image.votes || 0;
+          const captionVotes = image.captions?.reduce((sum: number, caption: any) => sum + (caption.votes || 0), 0) || 0;
+          const totalVotes = imageVotes + captionVotes;
+          
+          return {
+            id: image.id,
+            imageUrl: image.enhancedImageData ? 
+              dbService.image.getEnhancedImageUrl(image.id) : 
+              dbService.image.getOriginalImageUrl(image.id),
+            caption: image.captions?.[0]?.text || `Drawing ${index + 1}`,
+            authorName: image.user?.username || 'Anonymous',
+            votes: totalVotes,
+            rank: index + 1,
+            medal: null
+          };
+        });
+        
+        // Sort by votes (highest first) and assign ranks
+        processedResults.sort((a, b) => b.votes - a.votes);
+        processedResults.forEach((result, index) => {
+          result.rank = index + 1;
+        });
+        
+        setResults(processedResults.length > 0 ? processedResults : mockResults);
+      } catch (error) {
+        console.error('Error fetching results:', error);
         setResults(mockResults);
       } finally {
         setLoading(false);
@@ -50,14 +67,13 @@ export default function ResultsPage() {
     fetchResults();
   }, [roomId]);
 
-
   const mockResults: Result[] = [
     {
       id: '1',
       imageUrl: '/garlicTextNoBackground.png',
       caption: "A sweaty programmer debugging code",
       authorName: 'Justin',
-      meanRating: 90,
+      votes: 5,
       rank: 1,
       medal: null
     },
@@ -66,8 +82,8 @@ export default function ResultsPage() {
       imageUrl: '/garlicTextNoBackground.png',
       caption: "The legendary Eggert",
       authorName: 'Andrew',
-      meanRating: 80,
-      rank: 1,
+      votes: 3,
+      rank: 2,
       medal: null
     },
     {
@@ -75,46 +91,56 @@ export default function ResultsPage() {
       imageUrl: '/garlicTextNoBackground.png',
       caption: "CS 35L student in their natural habitat",
       authorName: 'Mason',
-      meanRating: 50,
-      rank: 2,
+      votes: 1,
+      rank: 3,
       medal: null
     }
   ];  const processResults = (results: Result[]): Result[] => {
     const updatedResults = [...results];
     
-    const sortedResults = [...updatedResults].sort((a, b) => b.meanRating - a.meanRating);
+    // Sort by votes (highest first)
+    const sortedResults = [...updatedResults].sort((a, b) => b.votes - a.votes);
     
     let currentMedal: 'gold' | 'silver' | 'bronze' = 'gold';
-    let currentRating = sortedResults[0]?.meanRating;
+    let currentVotes = sortedResults[0]?.votes;
     let processedResults: Result[] = [];
     
     sortedResults.forEach((result, index) => {
       if (index === 0) {
-        result.medal = 'gold';      } else if (result.meanRating === currentRating) {
+        result.medal = 'gold';
+      } else if (result.votes === currentVotes) {
+        // Same number of votes = same medal
         result.medal = currentMedal;
       } else {
+        // Different vote count, move to next medal tier
         if (currentMedal === 'gold') {
           currentMedal = 'silver';
         } else if (currentMedal === 'silver') {
           currentMedal = 'bronze';
+        } else {
+          // Bronze and below get no medal
+          result.medal = null;
         }
         result.medal = currentMedal;
       }
-      currentRating = result.meanRating;
+      currentVotes = result.votes;
       processedResults.push(result);
     });
 
-
-    const goldMedals = processedResults.filter(r => r.medal === 'gold');
+    // Only show top 3 medal categories
+    const medalsToShow = processedResults.filter(r => r.medal !== null);
+    
+    // If we have more than 3 gold medals, randomly select 3
+    const goldMedals = medalsToShow.filter(r => r.medal === 'gold');
     if (goldMedals.length > 3) {
       const selectedGolds = goldMedals.sort(() => Math.random() - 0.5).slice(0, 3);
       processedResults = processedResults.filter(r => r.medal !== 'gold' || selectedGolds.includes(r));
     }
 
-
-    return processedResults.sort((a, b) => {
-      const medalOrder = { bronze: 0, silver: 1, gold: 2 };
-      return medalOrder[a.medal!] - medalOrder[b.medal!];
+    // Sort for display: gold first, then silver, then bronze
+    return processedResults.filter(r => r.medal !== null).sort((a, b) => {
+      const medalOrder = { gold: 3, silver: 2, bronze: 1 };
+      return medalOrder[b.medal!] - medalOrder[a.medal!];
     });
   };
 
@@ -251,9 +277,8 @@ export default function ResultsPage() {
                    currentResult?.medal === 'silver' ? '🥈 Second Place! 🥈' : 
                    '🥉 Third Place! 🥉'}
                 </h1>
-                <p className="text-gray-600">By {currentResult?.authorName}</p>
-                <p className="text-2xl font-bold text-[#00BBF9] mt-2">
-                  Rating: {currentResult?.meanRating}%
+                <p className="text-gray-600">By {currentResult?.authorName}</p>                <p className="text-2xl font-bold text-[#00BBF9] mt-2">
+                  Votes: {currentResult?.votes}
                 </p>
               </div>
 

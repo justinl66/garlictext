@@ -132,11 +132,11 @@ exports.getLobbyInfo = async (req, res) => {
       })
     }
 
-    if (game.status !== 'waiting') {
-      return res.status(222).send({
-        message: "Game is not in waiting status."
-      });
-    }
+    // if (game.status !== 'lobby') {
+    //   return res.status(222).send({
+    //     message: "Game is not in lobby status."
+    //   });
+    // }
 
     players = game.participants.map(participant => ({
       id: participant.dataValues.id,
@@ -147,7 +147,7 @@ exports.getLobbyInfo = async (req, res) => {
     const lobbyInfo = {
       message: "updated",
       name: game.name,
-      satus: game.status,
+      status: game.status,
       gameHost: game.hostId,
       maxPlayers: game.maxPlayers,
       players: players,
@@ -203,7 +203,7 @@ exports.joinGameWithAuth = async (req, res) => {
         message: "Game is already full."
       });    }
 
-    if (game.status !== 'waiting') {
+    if (game.status !== 'lobby') {
       return res.status(400).send({
         message: "Cannot join game that is already in progress."
       });
@@ -271,7 +271,7 @@ exports.joinGameNoAuth = async (req, res) => {
         message: "Game is already full."
       });
     }
-    if (game.status !== 'waiting') {
+    if (game.status !== 'lobby') {
       return res.status(400).send({
         message: "Cannot join game that is already in progress."
       });
@@ -449,7 +449,7 @@ exports.joinGame = async (req, res) => {
       return res.status(400).send({
         message: "Game is already full."
       });
-    }    if (game.status !== 'waiting') {
+    }    if (game.status !== 'lobby') {
       return res.status(400).send({
         message: "Cannot join game that is already in progress."
       });
@@ -484,33 +484,151 @@ exports.joinGame = async (req, res) => {
 };
 
 exports.startGame = async (req, res) => {
-  try {    const { gameId } = req.params;
-    const { hostId } = req.body;
+  try {    
+    const { gameId } = req.params;
+    const { uid } = req.user;
 
-    const game = await Game.findByPk(gameId);
+    const game = await Game.findByPk(gameId, {
+      include: [
+        {
+          model: User,
+          as: 'participants',
+          attributes:["id"]
+        }
+      ]
+    });
     if (!game) {
       return res.status(404).send({
         message: `Game with ID ${gameId} not found.`
       });
-    }    if (game.hostId !== hostId) {
+    }    
+    if (game.hostId !== uid) {
       return res.status(403).send({
         message: "Only the host can start the game."
       });
-    }    if (game.status !== 'waiting') {
+    }    
+    if (game.status !== 'lobby') {
       return res.status(400).send({
         message: "Game is already in progress or has ended."
       });
     }
 
+    if(game.participants.length < 2) {
+      return res.status(400).send({
+        message: "At least 2 players are required to start the game."
+      });
+    }
+
+    game.prompterId = game.participants[Math.floor(Math.random() * (game.participants.length))].id;
     // Simplified game start - no longer creating GameRound records
-    game.status = 'in_progress';
+    game.status = 'prompting';
+
     game.currentRound = 1;
+    game.updateNumber += 1; // Increment update number
     await game.save();
 
-    res.send(game);
+    res.status(200).send({
+      message: "Game started successfully!",
+    });
   } catch (err) {
     res.status(500).send({
       message: err.message || "Some error occurred while starting the game."
+    });
+  }
+};
+
+exports.getPromptInfo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const version = req.query.version;
+
+    if (!id) {
+      return res.status(400).send({
+        message: "Game ID is required!"
+      });
+    }
+    if (!version) {
+      return res.status(400).send({
+        message: "Version is required!"
+      });
+    }
+
+    const game = await Game.findByPk(id);
+    if (!game) {
+      return res.status(404).send({
+        message: `Game with ID ${id} not found.`
+      });
+    }
+
+    if(id + game.updateNumber == version) {
+      return res.status(200).send({
+        message: "good",
+      });
+    }
+
+    console.log("Prompter ID:", game.prompterId);
+
+    return res.status(200).send({
+      message: "updated",
+      prompterId: game.prompterId,
+      status: game.status,
+      currentUpdate: game.id + game.updateNumber,
+    });
+    
+
+  } catch (err) {
+    res.status(500).send({
+      message: err.message || "Some error occurred while retrieving the prompt info."
+    });
+  }
+};
+
+exports.updatePrompt = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { promptString } = req.body;
+    if (!id) {
+      return res.status(400).send({
+        message: "Game ID is required!"
+      });
+    }
+    if (!promptString) {
+      return res.status(400).send({
+        message: "Prompt string is required!"
+      });
+    }
+    const game = await Game.findByPk(id);
+    if (!game) {
+      return res.status(404).send({
+        message: `Game with ID ${id} not found.`
+      });
+    }
+    if (game.status !== 'prompting') {
+      return res.status(400).send({
+        message: "Game is not in prompting status."
+      });
+    }
+
+    game.promptString = promptString;
+    game.status = 'drawing';
+    game.updateNumber += 1; // Increment update number
+    await game.save();
+    res.status(200).send({
+      message: "Prompt updated successfully!",
+    });
+  }catch (err) {
+    res.status(500).send({
+      message: err.message || "Some error occurred while updating the prompt."
+    });
+  }
+};
+
+exports.getPromptString = async (req, res) => {
+  try {
+    const { gameId } = req.params;
+  }catch (err) {
+    res.status(500).send({
+      message: err.message || "Some error occurred while retrieving the prompt string."
     });
   }
 };
@@ -520,7 +638,7 @@ exports.query = async (req, res) => {
 
   try {
     const whereClause = {
-      status: 'waiting' // Default filter: only 'waiting' games are queryable
+      status: 'lobby' // Default filter: only 'lobby' games are queryable
     };
     const includeClause = [];
 
