@@ -68,43 +68,42 @@ export default function PromptPage() {
         }
       }
 
-
-      // if(loading){
-      //   await delay(1000); // Wait for auth state to resolve
-      // }
-
       const userId = user? user.uid : Cookies.get('id') // Get user ID from context or cookies
 
       setIsPrompter(data.prompterId == userId); // Check if current user is the prompter
-
-       // Set prompter status based on fetched data
     }catch (e:any) {
       setError('Error fetching room data:' + e.message);
       // Handle error (e.g., show a message, redirect, etc.)
     }
   }
 
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = async () => {
     if (isSubmitting || !prompt.trim()) return;
 
     setIsSubmitting(true);
 
     try {
-      // sending prompt to backend
-      console.log('Prompt submitted:', prompt, 'for room:', roomId);
-      // TODO: Replace with actual API call to submit prompt, e.g.:
-      // await backendApi.submitPrompt(roomId, prompt);
+      const result = await fetch(`http://localhost:5001/api/games/${roomId}/promptSubmit`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          promptString: prompt.trim(),
+        }),
+      });
 
-      // Simulate backend delay then navigate
-      setTimeout(() => {
-        navigate(`/game/play/${roomId}`); // Prompter navigates
-      }, 1500);
+      if (!result.ok) {
+        throw new Error("HTTP error! status: " + result.statusText);
+      }
 
-    } catch (error) {
-      console.error('Error submitting prompt:', error);
+      navigate(`/game/play/${roomId}`); 
+
+    } catch (e:any) {
+      setError('Error submitting prompt:' + e.message);
       setIsSubmitting(false); // Reset on error to allow retry
     }
-  }, [prompt, isSubmitting, roomId, navigate]);
+  }
 
   // Timer countdown
   useEffect(() => {

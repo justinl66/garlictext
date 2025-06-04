@@ -26,6 +26,7 @@ module.exports = app => {
   router.get("/:code/lobbyInfo", games.getLobbyInfo);
 
   router.get("/:id/promptInfo", games.getPromptInfo);
+  router.put("/:id/promptSubmit", games.updatePrompt);
 
   router.get("/:id", games.findOne);
 

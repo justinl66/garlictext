@@ -583,6 +583,46 @@ exports.getPromptInfo = async (req, res) => {
   }
 };
 
+exports.updatePrompt = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { promptString } = req.body;
+    if (!id) {
+      return res.status(400).send({
+        message: "Game ID is required!"
+      });
+    }
+    if (!promptString) {
+      return res.status(400).send({
+        message: "Prompt string is required!"
+      });
+    }
+    const game = await Game.findByPk(id);
+    if (!game) {
+      return res.status(404).send({
+        message: `Game with ID ${id} not found.`
+      });
+    }
+    if (game.status !== 'prompting') {
+      return res.status(400).send({
+        message: "Game is not in prompting status."
+      });
+    }
+
+    game.promptString = promptString;
+    game.status = 'drawing';
+    game.updateNumber += 1; // Increment update number
+    await game.save();
+    res.status(200).send({
+      message: "Prompt updated successfully!",
+    });
+  }catch (err) {
+    res.status(500).send({
+      message: err.message || "Some error occurred while updating the prompt."
+    });
+  }
+};
+
 exports.getPromptString = async (req, res) => {
   try {
     const { gameId } = req.params;
