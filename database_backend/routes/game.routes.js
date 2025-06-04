@@ -7,7 +7,11 @@ module.exports = app => {
   
   router.put("/:id", authentication.authenticateFirebaseToken, games.update);
 
-  router.post("/join", games.joinGame);
+  router.put("/join/:id/auth", authentication.authenticateFirebaseToken, games.joinGameWithAuth);
+  router.put("/join/:id/nauth", games.joinGameNoAuth)
+
+  router.put("/leave/:id/auth", authentication.authenticateFirebaseToken, games.leaveGameWithAuth);
+  router.put("/leave/:id/nauth", games.leaveGameNoAuth);
 
   router.post("/:gameId/start", games.startGame);
 

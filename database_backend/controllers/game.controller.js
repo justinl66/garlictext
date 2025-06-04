@@ -4,18 +4,22 @@ const User = db.User;
 const GameRound = db.GameRound;
 const { Op } = db.Sequelize;
 
-const generateGameCode = async () => {
+const generateGameCode = async (length = 6, forGame = true) => {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code;
   let isUnique = false;
 
   while (!isUnique) {
     code = '';
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < length; i++) {
       code += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-
-    const existingGame = await Game.findByPk(code);
+    let existingGame;
+    if(forGame){
+      existingGame = await Game.findByPk(code);
+    }else{
+      existingGame = await User.findByPk(code);
+    }
     if (!existingGame) {
       isUnique = true;
     }
@@ -52,7 +56,7 @@ exports.create = async (req, res) => {
       await createdGame.addParticipant(host);
     }
 
-    res.status(201).send({
+    return res.status(201).send({
       code:code
     });
   } catch (err) {
@@ -171,6 +175,276 @@ exports.getLobbyInfo = async (req, res) => {
   }
 }
 
+
+exports.joinGameWithAuth = async (req, res) => {
+  try {
+    if(!req.params.id){
+      return res.status(400).send({
+        message: "Game ID is required!"
+      });
+    }
+
+    console.log("User ID from request:", req.user.uid);
+
+    const newUser = await User.findByPk(req.user.uid);
+    if (!newUser) {
+      return res.status(404).send({
+        message: `User with ID ${req.user.uid} not found.`
+      });
+    }
+
+    const username = newUser.dataValues.username;
+
+    const game = await Game.findByPk(req.params.id, {
+      include: [
+        {
+          model: User,
+          as: 'participants',
+          through: { attributes: [] }
+        }
+      ]
+    });
+
+    console.log("Game found:", game ? game.id : "No game found");
+
+    if (!game) {
+      return res.status(404).send({
+        message: `Game with ID ${req.params.id} not found.`
+      });
+    }
+
+    if (game.participants.length >= game.maxPlayers) {
+      return res.status(400).send({
+        message: "Game is already full."
+      });
+    }
+
+    console.log("Game status:", game.status);
+
+    if (game.status !== 'waiting') {
+      return res.status(400).send({
+        message: "Cannot join game that is already in progress."
+      });
+    }
+
+    for (const participant of game.participants) {
+      if (participant.id === req.user.uid) {
+        return res.status(400).send({
+          message: "User is already in this game."
+        });
+      }
+
+      console.log("Checking participant:", participant.username);
+
+      if(participant.username === username){
+        return res.status(400).send({
+          message: "Username already exists in this game."
+        });
+      }
+    }
+
+    console.log("Adding user to game:", username);
+
+    await game.addParticipant(newUser);
+    game.updateNumber += 1; // Increment update number
+    await game.save();
+
+    return res.status(200).send({
+      message: "User successfully joined the game.",
+    })
+
+    
+  }catch (err) {
+    return res.status(500).send({
+      message: err.message || "Some error occurred while authenticating the user."
+    });
+  }
+}
+
+exports.joinGameNoAuth = async (req, res) => {
+  try {
+    if (!req.body.playerName) {
+      return res.status(400).send({
+        message: "User ID required!"
+      });
+    }    
+    if (!req.params.id) {
+      return res.status(400).send({
+        message: "Game ID is required!"
+      });
+    }
+
+    let name = req.body.playerName;
+
+      const game = await Game.findByPk(req.params.id, {
+      include: [
+        {
+          model: User,
+          as: 'participants',
+          through: { attributes: [] }
+        }
+      ]
+    });
+    if (!game) {
+      return res.status(404).send({
+        message: `Game with ID ${req.params.id} not found.`
+      });
+    }
+    if (game.participants.length >= game.maxPlayers) {
+      return res.status(400).send({
+        message: "Game is already full."
+      });
+    }
+    if (game.status !== 'waiting') {
+      return res.status(400).send({
+        message: "Cannot join game that is already in progress."
+      });
+    }
+    for (const participant of game.participants) {
+      if(participant.username === name){
+        return res.status(400).send({
+          message: "Username already exists in this game."
+        });
+      }
+    }
+
+    const newUserId = await generateGameCode(28, false);
+    const newUser = {
+      id: newUserId,
+      username: name,
+      email:`${newUserId}@gartictext.com`,
+      profilePictureUrl: null,
+    }
+
+    const user = await User.create(newUser);
+    if (!user) {
+      return res.status(500).send({
+        message: "Failed to create user for joining the game."
+      });
+    }
+
+    await game.addParticipant(user);
+    game.updateNumber += 1; // Increment update number
+    await game.save();
+
+    return res.status(200).send({
+      message: "User successfully joined the game without authentication.",
+      id: newUserId,
+    });
+
+  }catch (err) {
+    return res.status(500).send({
+      message: err.message || "Some error occurred while joining the game without authentication."
+    });
+  }
+}
+
+exports.leaveGameWithAuth = async (req, res) => {
+  try {
+    if(!req.params.id){
+      return res.status(400).send({
+        message: "Game ID is required!"
+      });
+    }
+
+    const game = await Game.findByPk(req.params.id, {
+      include: [
+        {
+          model: User,
+          as: 'participants',
+          through: { attributes: [] }
+        }
+      ]
+    });
+
+    if (!game) {
+      return res.status(404).send({
+        message: `Game with ID ${req.params.id} not found.`
+      });
+    }
+
+    const user = await User.findByPk(req.user.uid);
+    if (!user) {
+      return res.status(404).send({
+        message: `User with ID ${req.user.uid} not found.`
+      });
+    }
+
+    const isParticipant = game.dataValues.participants.some(participant => participant.id === req.user.uid);
+    if (!isParticipant) {
+      return res.status(400).send({
+        message: "User is not a participant in this game."
+      });
+    }
+
+    if(game.dataValues.hostId === req.user.uid){
+      await game.destroy();
+    }else{
+      await game.removeParticipant(user);
+    }
+
+    game.updateNumber += 1; // Increment update number
+    await game.save();
+
+    return res.status(200).send({
+      message: "User successfully left the game.",
+    });
+
+  }catch(error){
+    return res.status(500).send({
+      message: error.message || "Some error occurred while leaving the game."
+    });
+  }
+}
+
+exports.leaveGameNoAuth = async (req, res) => {
+  try {
+    if (!req.body.userId || !req.params.id) {
+      return res.status(400).send({
+        message: "User ID and game ID are required!"
+      });
+    }
+    const userId = req.body.userId;
+    const game = await Game.findByPk(req.params.id, {
+      include: [
+        {
+          model: User,
+          as: 'participants',
+          through: { attributes: [] }
+        }
+      ]
+    });
+    if (!game) {
+      return res.status(404).send({
+        message: `Game with ID ${req.params.id} not found.`
+      });
+    }
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).send({
+        message: `User with ID ${userId} not found.`
+      });
+    }
+    const isParticipant = game.dataValues.participants.some(participant => participant.id === userId);
+    if (!isParticipant) {
+      return res.status(400).send({
+        message: "User is not a participant in this game."
+      });
+    }
+
+    await game.removeParticipant(user);
+    game.updateNumber += 1; // Increment update number
+    await game.save()
+
+    return res.status(200).send({
+      message: "User successfully left the game.",
+    });
+  } catch (error) {
+    return res.status(500).send({
+      message: error.message || "Some error occurred while leaving the game."
+    });
+  }
+}
 
 exports.joinGame = async (req, res) => {
   try {

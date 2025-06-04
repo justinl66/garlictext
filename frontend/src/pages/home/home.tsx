@@ -3,6 +3,7 @@ import { AuthContext } from '../../firebase/firebaseAuth.tsx';
 import NavBar from '../General/NavBar.tsx';
 import { useNavigate } from 'react-router-dom';
 // import { ServerContext } from '../../services/serverContext.tsx';
+import Cookies from 'js-cookie';
 
 export default function HomePage() {
     const authContext = useContext(AuthContext);
@@ -19,22 +20,13 @@ export default function HomePage() {
     const [showJoinModal, setShowJoinModal] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [createdCode, setCreatedCode] = useState<string | null>(null);
+
+    const [joinError, setJoinError] = useState<string | null>(null);
+
     const navigate = useNavigate();
 
     useEffect(() => {
         if(createdCode){
-            // setCreator(user?.uid);
-            // setPlayers([
-            //     { id: user?.uid || '1', name: user?.name, avatar: '/garlicTextNoBackground.png', isReady: true },
-            //     { id: '2', name: 'Waiting for player...', isReady: false },
-            //     { id: '3', name: 'Waiting for player...', isReady: false },
-            //     { id: '4', name: 'Waiting for player...', isReady: false }
-            // ]);
-            // setGameSettings({
-            //     rounds: 3,
-            //     drawingTime: 60,
-            //     writingTime: 60,
-            // });
             navigate(`/game/lobby/${createdCode}`);
         }
     }, [createdCode]);
@@ -61,6 +53,65 @@ export default function HomePage() {
             setError("Error initializing game: " + error);
         });
     };
+
+    const joinGame = async () => {
+        if(!joinCode || joinCode.length !== 6) {
+            setJoinError("Please enter a valid room code.");
+            return;
+        }
+
+        if(user?.uid){
+            try{
+                const result = await fetch(`http://localhost:5001/api/games/join/${joinCode}/auth`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${user?.stsTokenManager.accessToken}`,
+                    },
+                });
+
+                if (!result.ok) {
+                    // const errorText = await result.json();
+                    throw new Error(result.statusText);
+                }else{
+                    navigate(`/game/lobby/${joinCode}`);
+                }
+            }catch (error) {
+                setJoinError(`Error joining game: ${error}`);
+                return;
+            }
+        }else{
+            if(!playerName) {
+                setJoinError("Please enter your name.");
+                return;
+            }
+            try {
+                const result = await fetch(`http://localhost:5001/api/games/join/${joinCode}/nauth`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        playerName: playerName,
+                    }),
+                });
+
+                if (!result.ok) {
+                    const errorText = await result.json();
+                    throw new Error(errorText.message);
+                }else{
+                    const data = await result.json();
+                    Cookies.set('playerName', playerName, { expires: 1 }); // Store player name in cookies
+                    Cookies.set("id", data.id, { expires: 1 }); // Store player ID in cookies
+
+                    navigate(`/game/lobby/${joinCode}`);
+                }
+            } catch (error) {
+                setJoinError(`Error joining game: ${error}`);
+                return;
+            }
+        }
+    }
 
     // Show loading state while Firebase is determining auth state
     if (loading) {
@@ -173,11 +224,11 @@ export default function HomePage() {
                                         />
                                     </div>
                                 )}
-                                
+                                <p className='font-medium text-red-500 mb-2 text-center'>{joinError}</p>
                                 <button 
                                     onClick={() => {
                                         if (joinCode) {
-                                            navigate(`/game/lobby/${joinCode}`);
+                                            joinGame();
                                         }
                                     }}
                                     disabled={!joinCode}

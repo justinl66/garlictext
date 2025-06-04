@@ -150,6 +150,40 @@ const updateWritingTime = async (writingTime: number) => {
   }
 }
 
+  const leaveGame = async () => {
+    try {
+      if(user?.uid){
+        const response = await fetch(`http://localhost:5001/api/games/leave/${roomId}/auth`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${user?.stsTokenManager.accessToken}`,
+          },
+          body: JSON.stringify({ userId: user?.uid }),
+        });
+        if (!response.ok) {
+          const errorText = await response.json();
+          throw new Error(errorText.message);
+        }
+      }else{
+        const response = await fetch(`http://localhost:5001/api/games/leave/${roomId}/nauth`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userId: Cookies.get('id') }),
+        });
+        if (!response.ok) {
+          const errorText = await response.json();
+          throw new Error(errorText.message);
+        }
+      }
+      navigate('/');
+    } catch (error) {
+      setError("Error leaving game: " + (error as Error).message);
+    }
+  };
+
   const [copied, setCopied] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   useEffect(() => {
@@ -224,18 +258,25 @@ const updateWritingTime = async (writingTime: number) => {
                       <p className="font-medium text-gray-800">{player.name}</p>
                     </div>
                     <div>
-                      {player.isReady ? (
-                        <span className="text-green-500 text-sm font-medium">Ready</span>
-                      ) : (
-                        <span className="text-gray-400 text-sm">Waiting...</span>
+                      
+                      {creator == player.id ?(
+                        <img src="/crown.png" alt="Host" className="w-8 h-8 mr-1.5" />
+                      ): (
+                        <>
+                          {player.isReady ? (
+                            <span className="text-green-500 text-sm font-medium">Ready</span>
+                          ) : (
+                            <span className="text-gray-400 text-sm">Waiting...</span>
+                          )}
+                        </>
                       )}
+
                     </div>
                   </div>
                 ))}
               </div>
             </div>
             
-            {user?.uid && creator == user?.uid && (
               <div>                <h3 className="text-xl font-semibold mb-4 text-[#9B5DE5]">Game Settings</h3>
                 <div className="space-y-4">
                   <div>
@@ -244,6 +285,7 @@ const updateWritingTime = async (writingTime: number) => {
                       value={gameSettings.rounds}
                       onChange={(e) => updateRounds(+e.target.value)}
                       className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9] text-gray-800"
+                      disabled={creator != user?.uid}
                     >
                       <option value={2}>2 Rounds</option>
                       <option value={3}>3 Rounds</option>
@@ -258,6 +300,7 @@ const updateWritingTime = async (writingTime: number) => {
                       value={gameSettings.drawingTime}
                       onChange={(e) => updateDrawingTime(+e.target.value)}
                       className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9] text-gray-800"
+                      disabled={user?.uid != creator}
                     >
                       <option value={30}>30 seconds</option>
                       <option value={60}>60 seconds</option>
@@ -272,6 +315,7 @@ const updateWritingTime = async (writingTime: number) => {
                       value={gameSettings.writingTime}
                       onChange={(e) => updateWritingTime(+e.target.value)}
                       className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9] text-gray-800"
+                      disabled={user?.uid != creator}
                     >
                       <option value={30}>30 seconds</option>
                       <option value={60}>60 seconds</option>
@@ -281,12 +325,11 @@ const updateWritingTime = async (writingTime: number) => {
                   </div>
                 </div>
               </div>
-            )}
           </div>
           
           <div className="flex justify-between items-center">
             <button 
-              onClick={() => navigate('/')}
+              onClick={leaveGame}
               className="px-6 py-3 border border-[#9B5DE5] text-[#9B5DE5] rounded-lg hover:bg-[#9B5DE5] hover:text-white transition"
             >
               Leave Game
