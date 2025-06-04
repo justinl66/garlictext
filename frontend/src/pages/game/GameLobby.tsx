@@ -150,6 +150,40 @@ const updateWritingTime = async (writingTime: number) => {
   }
 }
 
+  const leaveGame = async () => {
+    try {
+      if(user?.uid){
+        const response = await fetch(`http://localhost:5001/api/games/leave/${roomId}/auth`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${user?.stsTokenManager.accessToken}`,
+          },
+          body: JSON.stringify({ userId: user?.uid }),
+        });
+        if (!response.ok) {
+          const errorText = await response.json();
+          throw new Error(errorText.message);
+        }
+      }else{
+        const response = await fetch(`http://localhost:5001/api/games/leave/${roomId}/nauth`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userId: Cookies.get('id') }),
+        });
+        if (!response.ok) {
+          const errorText = await response.json();
+          throw new Error(errorText.message);
+        }
+      }
+      navigate('/');
+    } catch (error) {
+      setError("Error leaving game: " + (error as Error).message);
+    }
+  };
+
   const [copied, setCopied] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   useEffect(() => {
@@ -295,7 +329,7 @@ const updateWritingTime = async (writingTime: number) => {
           
           <div className="flex justify-between items-center">
             <button 
-              onClick={() => navigate('/')}
+              onClick={leaveGame}
               className="px-6 py-3 border border-[#9B5DE5] text-[#9B5DE5] rounded-lg hover:bg-[#9B5DE5] hover:text-white transition"
             >
               Leave Game

@@ -339,6 +339,113 @@ exports.joinGameNoAuth = async (req, res) => {
   }
 }
 
+exports.leaveGameWithAuth = async (req, res) => {
+  try {
+    if(!req.params.id){
+      return res.status(400).send({
+        message: "Game ID is required!"
+      });
+    }
+
+    const game = await Game.findByPk(req.params.id, {
+      include: [
+        {
+          model: User,
+          as: 'participants',
+          through: { attributes: [] }
+        }
+      ]
+    });
+
+    if (!game) {
+      return res.status(404).send({
+        message: `Game with ID ${req.params.id} not found.`
+      });
+    }
+
+    const user = await User.findByPk(req.user.uid);
+    if (!user) {
+      return res.status(404).send({
+        message: `User with ID ${req.user.uid} not found.`
+      });
+    }
+
+    const isParticipant = game.dataValues.participants.some(participant => participant.id === req.user.uid);
+    if (!isParticipant) {
+      return res.status(400).send({
+        message: "User is not a participant in this game."
+      });
+    }
+
+    if(game.dataValues.hostId === req.user.uid){
+      await game.destroy();
+    }else{
+      await game.removeParticipant(user);
+    }
+
+    game.updateNumber += 1; // Increment update number
+    await game.save();
+
+    return res.status(200).send({
+      message: "User successfully left the game.",
+    });
+
+  }catch(error){
+    return res.status(500).send({
+      message: error.message || "Some error occurred while leaving the game."
+    });
+  }
+}
+
+exports.leaveGameNoAuth = async (req, res) => {
+  try {
+    if (!req.body.userId || !req.params.id) {
+      return res.status(400).send({
+        message: "User ID and game ID are required!"
+      });
+    }
+    const userId = req.body.userId;
+    const game = await Game.findByPk(req.params.id, {
+      include: [
+        {
+          model: User,
+          as: 'participants',
+          through: { attributes: [] }
+        }
+      ]
+    });
+    if (!game) {
+      return res.status(404).send({
+        message: `Game with ID ${req.params.id} not found.`
+      });
+    }
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).send({
+        message: `User with ID ${userId} not found.`
+      });
+    }
+    const isParticipant = game.dataValues.participants.some(participant => participant.id === userId);
+    if (!isParticipant) {
+      return res.status(400).send({
+        message: "User is not a participant in this game."
+      });
+    }
+
+    await game.removeParticipant(user);
+    game.updateNumber += 1; // Increment update number
+    await game.save()
+
+    return res.status(200).send({
+      message: "User successfully left the game.",
+    });
+  } catch (error) {
+    return res.status(500).send({
+      message: error.message || "Some error occurred while leaving the game."
+    });
+  }
+}
+
 exports.joinGame = async (req, res) => {
   try {
     if (!req.body.userId || !req.body.gameCode) {
