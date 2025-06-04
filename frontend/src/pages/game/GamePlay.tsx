@@ -100,11 +100,8 @@ export default function DrawingPage() {
       
       if (!dataURL) {
         throw new Error('Failed to export canvas image');
-      }
-
-      console.log('🎨 Submitting drawing to database...');    
+      }      console.log('🎨 Submitting drawing to database...');    
       const result = await imageStorageService.submitDrawing({
-        userId: currentUser.uid,
         roundId: roomId || null, 
         prompt: theme,
         drawingDataURL: dataURL
