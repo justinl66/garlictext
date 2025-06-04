@@ -215,8 +215,7 @@ const imageApi = {
       throw error;
     }  
   },
-  
-  getLatestImage: async () => {
+    getLatestImage: async () => {
     try {
       const response = await dbApi.get(`/images/latest`);
       return response.data;
@@ -224,8 +223,17 @@ const imageApi = {
       console.error('Error getting latest image:', error);
       throw error;
     }  
+  },  getAssignedImageForUser: async (gameId: string) => {
+    try {
+      const response = await dbApi.get(`/images/assigned/${gameId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error getting assigned image for user:', error);
+      throw error;
+    }
   },
-    getImageById: async (imageId: string) => {
+
+  getImageById: async (imageId: string) => {
     try {
       const response = await dbApi.get(`/images/${imageId}`);
       return response.data;

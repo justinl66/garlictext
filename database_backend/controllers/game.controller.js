@@ -511,11 +511,9 @@ exports.startGame = async (req, res) => {
       return res.status(400).send({
         message: "Game is already in progress or has ended."
       });
-    }
-
-    if(game.participants.length < 2) {
+    }    if(game.participants.length < 1) {
       return res.status(400).send({
-        message: "At least 2 players are required to start the game."
+        message: "At least 1 player is required to start the game."
       });
     }
 

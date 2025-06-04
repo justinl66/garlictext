@@ -21,31 +21,44 @@ export default function CaptionPage() {
   if (!authContext) {
     return <div>Loading...</div>;
   }
-
   const { user: currentUser } = authContext;
-
   useEffect(() => {
-    if (state?.imageId && state?.originalImageUrl) {
-      setImageId(state.imageId);
-      const enhancedImageUrl = `${import.meta.env.VITE_API_URL}/api/images/${state.imageId}/enhanced`;
-      setImage(enhancedImageUrl);
-    } else {
-      const fetchLatestImage = async () => {
+    if (currentRoomId) {
+      const fetchAssignedImage = async () => {
         try {
-          const latestImage = await dbService.image.getLatestImage();
-          if (latestImage && latestImage.id) {
-            setImageId(latestImage.id);
-            const enhancedImageUrl = `${import.meta.env.VITE_API_URL}/api/images/${latestImage.id}/enhanced`;
+          const assignedImageData = await dbService.image.getAssignedImageForUser(currentRoomId);
+          
+          if (assignedImageData && assignedImageData.image) {
+            const assignedImage = assignedImageData.image;
+            setImageId(assignedImage.id);
+            const enhancedImageUrl = `${import.meta.env.VITE_API_URL}/api/images/${assignedImage.id}/enhanced`;
             setImage(enhancedImageUrl);
+          } else {
+            const latestImage = await dbService.image.getLatestImage();
+            if (latestImage && latestImage.id) {
+              setImageId(latestImage.id);
+              const enhancedImageUrl = `${import.meta.env.VITE_API_URL}/api/images/${latestImage.id}/enhanced`;
+              setImage(enhancedImageUrl);
+            }
           }
         } catch (error) {
-          console.error('Error fetching latest image:', error);
-          setImage('/placeholder-drawing.png');
+          console.error('Error fetching assigned image:', error);
+          try {
+            const latestImage = await dbService.image.getLatestImage();
+            if (latestImage && latestImage.id) {
+              setImageId(latestImage.id);
+              const enhancedImageUrl = `${import.meta.env.VITE_API_URL}/api/images/${latestImage.id}/enhanced`;
+              setImage(enhancedImageUrl);
+            }
+          } catch (fallbackError) {
+            console.error('Error fetching fallback image:', fallbackError);
+            setImage('/placeholder-drawing.png');
+          }
         }
       };
-      fetchLatestImage();
+      fetchAssignedImage();
     }
-  }, [state]);
+  }, [state, currentRoomId]);
   
   useEffect(() => {
     if (timeLeft <= 0) {
@@ -93,27 +106,25 @@ export default function CaptionPage() {
             img.src = imageDataURL;
           });
             const fontSize = calculateOptimalFontSize(caption, img.width);
-          
-          const captionedResult = await createCaptionedImage(imageDataURL, caption, {
+            const captionedResult = await createCaptionedImage(imageDataURL, caption, {
             fontSize,
             fontFamily: 'Arial, sans-serif',
             textColor: '#FFFFFF',
             backgroundColor: '#000000',
-            padding: 20          });
+            padding: 20
+          });
           
-          await dbService.image.updateCaptionedImage(imageId, captionedResult.dataURL);
-            } catch (overlayError) {
-          console.error('❌ Error creating captioned image:', overlayError);
+          await dbService.image.updateCaptionedImage(imageId, captionedResult.dataURL);        } catch (overlayError) {
+          console.error('Error creating captioned image:', overlayError);
         }
       }
         setTimeout(() => {
         navigate(`/game/voting/${currentRoomId}`);
       }, 1500);
-      
-    } catch (error) {
-      console.error('❌ Error submitting caption:', error);
+        } catch (error) {
+      console.error('Error submitting caption:', error);
       setIsSubmitting(false);
-    }  };
+    }};
   
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
