@@ -251,7 +251,7 @@ const updateWritingTime = async (writingTime: number) => {
                       {player.avatar ? (
                         <img src={player.avatar} alt={player.name} className="w-8 h-8" />
                       ) : (
-                        player.name.charAt(0)
+                        player.name.charAt(0).toUpperCase()
                       )}
                     </div>
                     <div className="ml-3 flex-1">

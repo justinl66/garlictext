@@ -542,6 +542,108 @@ exports.startGame = async (req, res) => {
   }
 };
 
+exports.query = async (req, res) => {
+  const { name, maxPlayers, rounds, hideFull } = req.query;
+
+  try {
+    const whereClause = {
+      status: 'waiting' // Default filter: only 'waiting' games are queryable
+    };
+    const includeClause = [];
+
+    if (name) {
+      // Using Op.iLike for case-insensitive search (PostgreSQL specific)
+      whereClause.name = { [Op.iLike]: `%${name}%` };
+    }
+
+    if (maxPlayers) {
+      const numMaxPlayers = parseInt(maxPlayers);
+      if (!isNaN(numMaxPlayers) && numMaxPlayers > 0) {
+        whereClause.maxPlayers = { [Op.lte]: numMaxPlayers };
+      }
+    }
+
+    if (rounds) {
+      const numRounds = parseInt(rounds);
+      if (!isNaN(numRounds) && numRounds > 0) {
+        whereClause.totalRounds = numRounds;
+      }
+    }
+
+    // Attributes to select from the Game model to be economical
+    const gameAttributes = ['id', 'name', 'hostId', 'maxPlayers', 'totalRounds', 'status'];
+
+    // Include participants to count them.
+    // This is necessary to determine current player count and if the game is full.
+    includeClause.push({
+      model: User,
+      as: 'participants', // This 'as' must match the association in models/index.js
+      attributes: ['id'], // Fetching only 'id' is economical for counting
+      through: { attributes: [] } // Don't need attributes from the GameParticipants join table
+    });
+
+    const games = await Game.findAll({
+      attributes: gameAttributes,
+      where: whereClause,
+      include: includeClause,
+      order: [['createdAt', 'DESC']] // Show newest games first
+    });
+
+    // Transform the games to match the frontend's expected structure
+    // and perform calculations like current player count and isFull status.
+    // let resultGames = await games.map((game) => {
+    //   const participantsCount = game.participants ? game.participants.length : 0;
+    //   // const host = await User.findByPk(game.hostId);
+    //   return {
+    //     id: game.id,
+    //     name: game.name,
+    //     host: game.hostId, // Frontend's 'Game' interface has 'host: string'. Assuming hostId.
+    //     players: participantsCount,
+    //     maxPlayers: game.maxPlayers,
+    //     rounds: game.totalRounds,
+    //     isFull: participantsCount >= game.maxPlayers,
+    //     // status: game.status // Could be useful for frontend, but not in current Game interface in FindGame.tsx
+    //   };
+    // });
+
+    let resultGames = []
+    for (const game of games) {
+      const participantsCount = game.participants ? game.participants.length : 0;
+      const isFull = participantsCount >= game.maxPlayers;
+      if(hideFull === 'true' && isFull) {
+        continue; // Skip full games if hideFull is true
+      }
+
+      const host = await User.findByPk(game.hostId);
+
+      resultGames.push({
+        id: game.id,
+        name: game.name,
+        host: host.username, // Assuming hostId is sufficient for the frontend's 'host' field
+        players: participantsCount,
+        maxPlayers: game.maxPlayers,
+        rounds: game.totalRounds,
+        isFull: isFull,
+        status: game.status // Including status for potential future use
+      });
+    }
+
+    // Filter for hideFull if the flag is set to 'true'
+    if (hideFull === 'true') {
+      resultGames = resultGames.filter(game => !game.isFull);
+    }
+
+    res.status(200).send(resultGames);
+
+  } catch (err) {
+    console.error("Error querying games:", err.message, err.stack);
+    res.status(500).send({
+      message: err.message || "Some error occurred while querying games."
+    });
+  }
+};
+
+
 exports.findAll = async (req, res) => {
   try {
     const data = await Game.findAll({
