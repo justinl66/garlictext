@@ -1,7 +1,6 @@
 const db = require('../models');
 const Game = db.Game;
 const User = db.User;
-const GameRound = db.GameRound;
 const { Op } = db.Sequelize;
 
 const generateGameCode = async (length = 6, forGame = true) => {
@@ -28,7 +27,6 @@ const generateGameCode = async (length = 6, forGame = true) => {
   return code;
 };
 exports.create = async (req, res) => {
-  // console.log("Creating game with request body:", req.body);
   try {   
     if(!req.user.uid){
       return res.status(401).send({
@@ -40,9 +38,7 @@ exports.create = async (req, res) => {
       return res.status(400).send({
         message: "Host ID and game name are required!"
       });
-    }    
-    const code = await generateGameCode();
-    console.log("Generated game code:" , req.user.uid);
+    }      const code = await generateGameCode();
     const game = {
       id: code,
       name: req.body.name,
@@ -57,10 +53,8 @@ exports.create = async (req, res) => {
     }
 
     return res.status(201).send({
-      code:code
-    });
+      code:code    });
   } catch (err) {
-    console.error("Error creating game:", err.message);
     res.status(500).send({
       message: err.message || "Some error occurred while creating the Game."
     });
@@ -148,10 +142,7 @@ exports.getLobbyInfo = async (req, res) => {
       id: participant.dataValues.id,
       name: participant.dataValues.username,
       avatar: participant.dataValues.profilePictureUrl,
-      isReady:true
-    }))
-
-    // console.log("players:", players);
+      isReady:true    }))
 
     const lobbyInfo = {
       message: "updated",
@@ -181,10 +172,7 @@ exports.joinGameWithAuth = async (req, res) => {
     if(!req.params.id){
       return res.status(400).send({
         message: "Game ID is required!"
-      });
-    }
-
-    console.log("User ID from request:", req.user.uid);
+      });    }
 
     const newUser = await User.findByPk(req.user.uid);
     if (!newUser) {
@@ -202,10 +190,7 @@ exports.joinGameWithAuth = async (req, res) => {
           as: 'participants',
           through: { attributes: [] }
         }
-      ]
-    });
-
-    console.log("Game found:", game ? game.id : "No game found");
+      ]    });
 
     if (!game) {
       return res.status(404).send({
@@ -216,10 +201,7 @@ exports.joinGameWithAuth = async (req, res) => {
     if (game.participants.length >= game.maxPlayers) {
       return res.status(400).send({
         message: "Game is already full."
-      });
-    }
-
-    console.log("Game status:", game.status);
+      });    }
 
     if (game.status !== 'waiting') {
       return res.status(400).send({
@@ -231,19 +213,13 @@ exports.joinGameWithAuth = async (req, res) => {
       if (participant.id === req.user.uid) {
         return res.status(400).send({
           message: "User is already in this game."
-        });
-      }
-
-      console.log("Checking participant:", participant.username);
+        });      }
 
       if(participant.username === username){
         return res.status(400).send({
           message: "Username already exists in this game."
         });
-      }
-    }
-
-    console.log("Adding user to game:", username);
+      }    }
 
     await game.addParticipant(newUser);
     game.updateNumber += 1; // Increment update number
@@ -524,15 +500,12 @@ exports.startGame = async (req, res) => {
       return res.status(400).send({
         message: "Game is already in progress or has ended."
       });
-    }    game.status = 'in_progress';
+    }
+
+    // Simplified game start - no longer creating GameRound records
+    game.status = 'in_progress';
     game.currentRound = 1;
     await game.save();
-    await GameRound.create({
-      gameId,
-      roundNumber: 1,
-      status: 'drawing',
-      startTime: new Date()
-    });
 
     res.send(game);
   } catch (err) {
@@ -634,9 +607,7 @@ exports.query = async (req, res) => {
     }
 
     res.status(200).send(resultGames);
-
   } catch (err) {
-    console.error("Error querying games:", err.message, err.stack);
     res.status(500).send({
       message: err.message || "Some error occurred while querying games."
     });
@@ -666,17 +637,12 @@ exports.findAll = async (req, res) => {
 exports.findOne = async (req, res) => {
   const id = req.params.id;
 
-  try {
-    const data = await Game.findByPk(id, {
+  try {    const data = await Game.findByPk(id, {
       include: [
         {
           model: User,
           as: 'participants',
           through: { attributes: [] }
-        },
-        {
-          model: GameRound,
-          as: 'rounds'
         }
       ]
     });
@@ -698,18 +664,13 @@ exports.findOne = async (req, res) => {
 exports.findByCode = async (req, res) => {
   const code = req.params.code;
 
-  try {
-    const data = await Game.findOne({ 
+  try {    const data = await Game.findOne({ 
       where: { id: code },
       include: [
         {
           model: User,
           as: 'participants',
           through: { attributes: [] }
-        },
-        {
-          model: GameRound,
-          as: 'rounds'
         }
       ] 
     });
@@ -728,55 +689,28 @@ exports.findByCode = async (req, res) => {
   }
 };
 
-exports.endGameRound = async (req, res) => {
-  try {    const { gameId, roundNumber } = req.params;
+exports.endGame = async (req, res) => {
+  try {
+    const { gameId } = req.params;
 
     const game = await Game.findByPk(gameId);
     if (!game) {
       return res.status(404).send({
         message: `Game with ID ${gameId} not found.`
       });
-    }    const currentRound = await GameRound.findOne({
-      where: { 
-        gameId,
-        roundNumber: parseInt(roundNumber)
-      }
-    });
+    }
 
-    if (!currentRound) {
-      return res.status(404).send({
-        message: `Round ${roundNumber} not found for game with ID ${gameId}.`
-      });
-    }    currentRound.status = 'completed';
-    currentRound.endTime = new Date();
-    await currentRound.save();
-    if (parseInt(roundNumber) >= game.totalRounds) {
-      game.status = 'completed';
-      await game.save();
-      
-      return res.send({
-        message: "Game completed successfully!",
-        game
-      });
-    }    const nextRoundNumber = parseInt(roundNumber) + 1;
-    game.currentRound = nextRoundNumber;
+    // Simplified game ending - no longer dealing with multiple rounds
+    game.status = 'completed';
     await game.save();
-    const nextRound = await GameRound.create({
-      gameId,
-      roundNumber: nextRoundNumber,
-      status: 'drawing',
-      startTime: new Date()
-    });
-
+    
     res.send({
-      message: `Round ${roundNumber} completed, Round ${nextRoundNumber} started!`,
-      currentRound,
-      nextRound,
+      message: "Game completed successfully!",
       game
     });
   } catch (err) {
     res.status(500).send({
-      message: err.message || "Some error occurred while processing the game round."
+      message: err.message || "Some error occurred while ending the game."
     });
   }
 };

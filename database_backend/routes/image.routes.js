@@ -3,11 +3,13 @@ module.exports = app => {
   const router = require("express").Router();
   const authentication = require("./authentication.js");
 
-  console.log("🚀 Setting up image routes...");
+
 
   router.post("/", authentication.authenticateFirebaseToken, images.create);
 
   router.put("/:id/enhance", authentication.authenticateFirebaseToken, images.updateEnhanced);
+
+  router.put("/:id/caption", authentication.authenticateFirebaseToken, images.updateCaptionedImage);
 
   router.post("/:id/vote", authentication.authenticateFirebaseToken, images.vote);
 
@@ -19,8 +21,8 @@ module.exports = app => {
 
   router.get("/:id/enhanced", images.getEnhancedImage);
 
-  router.get("/:id", authentication.authenticateFirebaseToken, images.findOne);
+  router.get("/:id/captioned", images.getCaptionedImage);
 
+  router.get("/:id", authentication.authenticateFirebaseToken, images.findOne);
   app.use("/api/images", router);
-  console.log("✅ Image routes configured successfully");
 };

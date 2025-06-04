@@ -1,7 +1,7 @@
 // https://medium.com/@sajadshafi/implementing-firebase-auth-in-react-js-typescript-vite-js-88465ac84170
 
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { getAuth, setPersistence, browserLocalPersistence } from 'firebase/auth';
 
 const app = initializeApp({
   apiKey: import.meta.env.VITE_API_KEY,
@@ -14,4 +14,6 @@ const app = initializeApp({
 });
 
 export const auth = getAuth(app);
+setPersistence(auth, browserLocalPersistence);
+
 export default app;

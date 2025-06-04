@@ -13,7 +13,6 @@ exports.authenticateFirebaseToken = async (req, res, next) => {
     req.user = decodedToken;
     next();
   } catch (error) {
-    console.error('Token verification failed:', error);
     res.status(401).send({
       message: 'Unauthorized! Invalid or expired token.'
     });

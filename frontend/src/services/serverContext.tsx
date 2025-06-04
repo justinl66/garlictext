@@ -4,7 +4,7 @@ import Cookies from "js-cookie";
 export const ServerContext = createContext<any>(null);
 
 export function ServerContextWrapper({ children }: { children: React.ReactNode }) {
-    // const [roomId, setRoomId] = useState<string>("");
+    const [roomId, setRoomId] = useState<string | null>(null);
     const [gameName, setGameName] = useState<string>("");
     const [creator, setCreator] = useState<string>("");
     const [players, setPlayers] = useState<any[]>([]);
@@ -98,12 +98,11 @@ export function ServerContextWrapper({ children }: { children: React.ReactNode }
         //     // alert(players)
         // }).catch(error => {
         //     setError("Error fetching data: " + error.message);
-        //     // setLoading(false);
-        // });
+        //     // setLoading(false);        // });
     }
 
     return (
-        <ServerContext.Provider value={{updateLobbyFromServer, gameName, creator, players, gameSettings, gameStarted, loading, error }}>
+        <ServerContext.Provider value={{updateLobbyFromServer, roomId, setRoomId, gameName, creator, players, gameSettings, gameStarted, loading, error}}>
             {children}
         </ServerContext.Provider>
     );

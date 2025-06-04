@@ -13,7 +13,7 @@ export default function SignUpPage() {
         return <div>Loading...</div>;
     }
     
-    const {register} = authContext;
+    const {register, signInWithGoogle} = authContext;
       const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -73,6 +73,22 @@ export default function SignUpPage() {
         
     }
 
+    const handleGoogleSignIn = async () => {
+        setLoading(true);
+        const result = await signInWithGoogle();
+        if (result !== "success") {
+            setError(result);
+            setLoading(false);
+            return;
+        }
+        setError("");
+        setLoading(false);
+        setSuccess(true);
+        setTimeout(() => {
+            navigate("/");
+        }, 1500);
+    };
+
     return (
         <div className="w-screen h-full min-h-screen pb-20 flex flex-col bg-linear-to-br from-[#9B5DE5] to-[#F15BB5] via-[#00BBF9] ">
             < NavBar />
@@ -121,10 +137,12 @@ export default function SignUpPage() {
                     </div>
                     <p className="text-red-500 text-sm font-sans font-semibold mt-3">{error}</p>
                     <button onClick={handleSignup} className="w-full max-w-sm h-10 mt-8 bg-[#00CCB1] text-white font-sans font-semibold rounded-md hover:opacity-80 transition duration-200">Sign up</button>
-                    {/* <p className="text-black text-xl font-semibold  mt-7">Or</p> */}
                     <div className="w-full flex flex-col mt-10">
                         <div className="w-full flex flex-row justify-center mt-4">
-                            <button className="w-full max-w-xs h-12 bg-white border border-gray-300 rounded-md flex items-center justify-center shadow-xs hover:shadow-md transition duration-200">
+                            <button 
+                                onClick={handleGoogleSignIn} 
+                                className="w-full max-w-xs h-12 bg-white border border-gray-300 rounded-md flex items-center justify-center shadow-xs hover:shadow-md transition duration-200"
+                            >
                                 <img src="/google.png" alt="Google Icon" className="w-6 h-6 mr-3" />
                                 <span className="text-gray-700 text-md font-medium">Sign in with Google</span>
                             </button>

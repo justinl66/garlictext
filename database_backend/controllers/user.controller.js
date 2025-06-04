@@ -3,10 +3,8 @@ const User = db.User;
 const Game = db.Game;
 const { Op } = db.Sequelize;
 
-exports.create = async (req, res) => {
-  try {
+exports.create = async (req, res) => {  try {
     if (!req.user.name || !req.user.email || !req.user.uid) {
-      console.log("Request user data is missing:" + req.user.name + ", " + req.user.email + ", " + req.user.uid);
       return res.status(400).send({
         message: "Content can't be empty!"
       });
@@ -18,13 +16,8 @@ exports.create = async (req, res) => {
       email: req.user.email,
       profilePictureUrl: null,
     };    const data = await User.create(user);
-    
-    res.status(201).send(data);
+      res.status(201).send(data);
   } catch (err) {
-    console.log(`Error creating user: ${err.message}`);
-    console.log(`Error name: ${err.name}`);
-    console.log(`Error details:`, err);
-    
     if (err.name === 'SequelizeUniqueConstraintError') {
       return res.status(400).send({
         message: "User with this email or username already exists."
@@ -129,10 +122,8 @@ exports.delete = async (req, res) => {
   }
 };
 
-exports.ensureUserExists = async (req, res) => {
-  try {
+exports.ensureUserExists = async (req, res) => {  try {
     if (!req.user.name || !req.user.email || !req.user.uid) {
-      console.log("Request user data is missing:" + req.user.name + ", " + req.user.email + ", " + req.user.uid);
       return res.status(400).send({
         message: "User data is incomplete!"
       });
@@ -158,13 +149,8 @@ exports.ensureUserExists = async (req, res) => {
     
     res.status(201).send({
       message: "User created successfully",
-      user: data
-    });
+      user: data    });
   } catch (err) {
-    console.log(`Error ensuring user exists: ${err.message}`);
-    console.log(`Error name: ${err.name}`);
-    console.log(`Error details:`, err);
-    
     if (err.name === 'SequelizeUniqueConstraintError') {
       return res.status(400).send({
         message: "User with this email or username already exists."
