@@ -32,6 +32,8 @@ const App = () => {
           <Route path="/help" element={<Help />} />
           <Route path="/findGame" element={<FindGame />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/profile/edit" element={<EditProfile />} /> 
+          <Route path="/profile/verifyemail" element={<VerifyEmail />} /> 
           {/* <Route path="/game/lobby" element={<GameLobby />} /> */}          <Route path="/game/lobby/:roomId" element={<GameLobby />} />
           <Route path="/game/play/:roomId" element={<GamePlay />} />
           <Route path="/game/prompts/:roomId" element={<PromptPage />} />
