@@ -25,6 +25,8 @@ module.exports = app => {
 
   router.get("/:code/lobbyInfo", games.getLobbyInfo);
 
+  router.get("/:id/promptInfo", games.getPromptInfo);
+
   router.get("/:id", games.findOne);
 
   app.use("/api/games", router);

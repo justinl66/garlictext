@@ -488,7 +488,15 @@ exports.startGame = async (req, res) => {
     const { gameId } = req.params;
     const { uid } = req.user;
 
-    const game = await Game.findByPk(gameId);
+    const game = await Game.findByPk(gameId, {
+      include: [
+        {
+          model: User,
+          as: 'participants',
+          attributes:["id"]
+        }
+      ]
+    });
     if (!game) {
       return res.status(404).send({
         message: `Game with ID ${gameId} not found.`
@@ -505,8 +513,16 @@ exports.startGame = async (req, res) => {
       });
     }
 
+    if(game.participants.length < 2) {
+      return res.status(400).send({
+        message: "At least 2 players are required to start the game."
+      });
+    }
+
+    game.prompterId = game.participants[Math.floor(Math.random() * (game.participants.length))].id;
     // Simplified game start - no longer creating GameRound records
     game.status = 'prompting';
+
     game.currentRound = 1;
     game.updateNumber += 1; // Increment update number
     await game.save();
@@ -517,6 +533,62 @@ exports.startGame = async (req, res) => {
   } catch (err) {
     res.status(500).send({
       message: err.message || "Some error occurred while starting the game."
+    });
+  }
+};
+
+exports.getPromptInfo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const version = req.query.version;
+
+    if (!id) {
+      return res.status(400).send({
+        message: "Game ID is required!"
+      });
+    }
+    if (!version) {
+      return res.status(400).send({
+        message: "Version is required!"
+      });
+    }
+
+    const game = await Game.findByPk(id);
+    if (!game) {
+      return res.status(404).send({
+        message: `Game with ID ${id} not found.`
+      });
+    }
+
+    if(id + game.updateNumber == version) {
+      return res.status(200).send({
+        message: "good",
+      });
+    }
+
+    console.log("Prompter ID:", game.prompterId);
+
+    return res.status(200).send({
+      message: "updated",
+      prompterId: game.prompterId,
+      status: game.status,
+      currentUpdate: game.id + game.updateNumber,
+    });
+    
+
+  } catch (err) {
+    res.status(500).send({
+      message: err.message || "Some error occurred while retrieving the prompt info."
+    });
+  }
+};
+
+exports.getPromptString = async (req, res) => {
+  try {
+    const { gameId } = req.params;
+  }catch (err) {
+    res.status(500).send({
+      message: err.message || "Some error occurred while retrieving the prompt string."
     });
   }
 };

@@ -31,6 +31,11 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
     },
 
+    promptString:{
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
     maxPlayers: {
       type: DataTypes.INTEGER,
       defaultValue: 8
