@@ -1,7 +1,7 @@
 // https://medium.com/@sajadshafi/implementing-firebase-auth-in-react-js-typescript-vite-js-88465ac84170
 
 import { useState, useEffect, createContext } from "react";
-import { onAuthStateChanged, User, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, updateProfile, deleteUser } from "firebase/auth";
+import { onAuthStateChanged, User, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, updateProfile, deleteUser, GoogleAuthProvider, signInWithPopup, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { auth } from "./firebaseConfig";
 
 export const AuthContext = createContext<any>(null);
@@ -11,32 +11,34 @@ export function AuthContextWrapper({children}:{children: React.ReactNode}) {
     const [loading, setLoading] = useState<boolean>(true);
       async function login(email: string, password: string) {
         setLoading(true);
-        return await signInWithEmailAndPassword(auth, email, password)
-            .then(async () => {
-                try {
-                    const token = await auth.currentUser?.getIdToken(true);
-                    const response = await fetch('http://localhost:5001/api/users/ensure', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + token,
-                        },
-                    });
-                    
-                    if (!response.ok) {
-                        console.error('Failed to ensure user exists in database:', response.statusText);
-                    }
-                } catch (error) {
-                    console.error('Error ensuring user exists in database:', error);
-                }
+        try {
+            const result = await signInWithEmailAndPassword(auth, email, password);
+            setCurrentUser(result.user); 
+            
+            try {
+                const token = await result.user.getIdToken(true);
+                const response = await fetch('http://localhost:5001/api/users/ensure', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                    },
+                });
                 
-                setLoading(false);
-                return "success";
-            })
-            .catch((error) => {
-                setLoading(false);
-                return error.message;
-            });
+                if (!response.ok) {
+                    console.error('Failed to ensure user exists in database:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error ensuring user exists in database:', error);
+                // Continue with sign-in even if this fails
+            }
+            
+            setLoading(false);
+            return "success";
+        } catch (error: any) {
+            setLoading(false);
+            return error.message;
+        }
     }
 
     async function register(username:string, email: string, password: string) {
@@ -117,7 +119,43 @@ export function AuthContextWrapper({children}:{children: React.ReactNode}) {
             setLoading(false);
             return "No user is currently logged in.";
         }
-    }    useEffect(()=>{
+    }
+
+    async function signInWithGoogle() {
+        setLoading(true);
+        const provider = new GoogleAuthProvider();
+        try {
+            const result = await signInWithPopup(auth, provider);
+            setCurrentUser(result.user); 
+            
+            
+            try {
+                const token = await result.user.getIdToken(true);
+                const response = await fetch('http://localhost:5001/api/users/ensure', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                    },
+                });
+                
+                if (!response.ok) {
+                    console.error('Failed to ensure user exists in database:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error ensuring user exists in database:', error);
+                // Continue with sign-in even if this fails
+            }
+            
+            setLoading(false);
+            return "success";
+        } catch (error: any) {
+            setLoading(false);
+            return error.message;
+        }
+    }
+
+    useEffect(()=>{
         // alert(user?.email);
          const unsubscribe = onAuthStateChanged(auth, async (updatedUser) => {
             setCurrentUser(updatedUser);
@@ -154,6 +192,7 @@ export function AuthContextWrapper({children}:{children: React.ReactNode}) {
         logout,
         resetPassword,
         deleteAccount,
+        signInWithGoogle,
     }
 
     return (

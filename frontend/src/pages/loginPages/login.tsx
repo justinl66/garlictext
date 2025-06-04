@@ -13,7 +13,7 @@ export default function LoginPage() {
         return <div>Loading...</div>;
     }
     
-    const {login} = authContext;
+    const {login, signInWithGoogle} = authContext;
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -48,6 +48,19 @@ export default function LoginPage() {
         navigate("../");
     }
 
+    const handleGoogleSignIn = async () => {
+        setLoading(true);
+        const result = await signInWithGoogle();
+        if (result !== "success") {
+            setError(result);
+            setLoading(false);
+            return;
+        }
+        setError("");
+        setLoading(false);
+        navigate("/");
+    };
+
     return (
         <div className="w-screen h-screen flex flex-col bg-linear-to-br from-[#9B5DE5] to-[#F15BB5] via-[#00BBF9] ">
             < NavBar />
@@ -57,7 +70,17 @@ export default function LoginPage() {
             </div>
             <div className="w-full max-w-96 shadow-xl shadow-slate-600 flex flex-col items-center mt-10 p-8 self-center bg-white rounded-xl transition duration-700 ease-in-out">
                 <h1 className="text-[#00B8F5] text-4xl font-sans font-bold self-start">Sign in</h1>
-                {loading? 
+                {loading ? 
+                    <div className="w-full flex flex-col items-center mt-20 mb-20">
+                        <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mb-4">
+                            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <h2 className="text-2xl font-bold text-green-600 mb-2">Account Created Successfully!</h2>
+                        <p className="text-gray-600 text-center">Welcome to GarlicText! Redirecting you to the homepage...</p>
+                    </div>
+                : loading ? 
                     <div className="w-24 h-24 mt-36 mb-36 border-8 border-t-[#FEE440] border-white rounded-full animate-spin"></div>
                 :
                 <>
@@ -74,11 +97,25 @@ export default function LoginPage() {
                         <button onClick={()=>navigate('../signup')}><p className="text-black text-sm font-sans font-semibold mt-4">Don't have an account? <span className="text-[#00CCB1] cursor-pointer">Sign up</span></p></button>
                     </div>
                     <div className="w-full flex flex-col mt-8">
-                        <p className="text-black text-sm font-sans font-semibold">Or sign in with</p>
+                        <div className="relative flex items-center justify-center">
+                            <div className="flex-grow border-t border-gray-300"></div>
+                            <span className="flex-shrink mx-4 text-gray-600">Or</span>
+                            <div className="flex-grow border-t border-gray-300"></div>
+                        </div>
                         <div className="w-full flex flex-row justify-center mt-4">
-                            <button className="w-full max-w-xs h-12 bg-white border border-gray-300 rounded-md flex items-center justify-center shadow-xs hover:shadow-md transition duration-200">
-                                <img src="/google.png" alt="Google Icon" className="w-6 h-6 mr-3" />
-                                <span className="text-gray-700 text-md font-medium">Sign in with Google</span>
+                            <button 
+                                onClick={handleGoogleSignIn}
+                                disabled={loading}
+                                className="w-full h-12 bg-white border border-gray-300 rounded-md flex items-center justify-center shadow-sm hover:shadow-md transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <img 
+                                    src="/google.png" 
+                                    alt="Google Icon" 
+                                    className="w-5 h-5 mr-3"
+                                />
+                                <span className="text-gray-700 text-sm font-medium">
+                                    Sign in with Google
+                                </span>
                             </button>
                         </div>
                     </div>
