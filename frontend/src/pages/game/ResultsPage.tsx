@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '../General/NavBar';
-import dbService from '../../services/dbService';
 
 interface Result {
   id: string;
@@ -17,13 +16,12 @@ export default function ResultsPage() {
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showPlayAgain, setShowPlayAgain] = useState(false);
-  const [latestImageId, setLatestImageId] = useState<string | null>(null);
   
   // Mock data - replace with actual data from backend
   const [results] = useState<Result[]>([
     {
       id: '1',
-      imageUrl: '/garlicTextNoBackground.png', // This will be replaced with actual image
+      imageUrl: '/garlicTextNoBackground.png',
       caption: "A sweaty programmer debugging code",
       authorName: 'Justin',
       meanRating: 90,
@@ -49,34 +47,17 @@ export default function ResultsPage() {
       medal: null
     }
   ]);
-  useEffect(() => {
-    const fetchLatestImage = async () => {
-      try {
-        const latestImage = await dbService.image.getLatestImage();
-        if (latestImage && latestImage.id) {
-          setLatestImageId(latestImage.id);
-          console.log('✅ Latest image fetched:', latestImage.id);
-        }
-      } catch (error) {
-        console.error('❌ Failed to fetch latest image:', error);
-      }
-    };
 
-    fetchLatestImage();
-  }, []);
+  // Process results to handle ties and assign medals
   const processResults = (results: Result[]): Result[] => {
-    const updatedResults = [...results];
-    if (latestImageId && updatedResults.length > 0) {
-      updatedResults[0] = {
-        ...updatedResults[0],
-        imageUrl: dbService.image.getOriginalImageUrl(latestImageId)
-      };    }
-    
-    const sortedResults = [...updatedResults].sort((a, b) => b.meanRating - a.meanRating);
+    // Sort by meanRating in descending order
+    const sortedResults = [...results].sort((a, b) => b.meanRating - a.meanRating);
     
     let currentMedal: 'gold' | 'silver' | 'bronze' = 'gold';
-    let currentRating = sortedResults[0]?.meanRating;    let processedResults: Result[] = [];
+    let currentRating = sortedResults[0]?.meanRating;
+    let processedResults: Result[] = [];
     
+    // Assign medals based on ties
     sortedResults.forEach((result, index) => {
       if (index === 0) {
         result.medal = 'gold';
@@ -111,11 +92,15 @@ export default function ResultsPage() {
   };
 
   const topResults = processResults(results);
+
   useEffect(() => {
+    // Auto-advance to next result every 3 seconds
     const timer = setInterval(() => {
       if (currentIndex < topResults.length - 1) {
         setCurrentIndex(prev => prev + 1);
-      } else {        clearInterval(timer);
+      } else {
+        clearInterval(timer);
+        // Show play again button after showing all results
         setTimeout(() => {
           setShowPlayAgain(true);
         }, 3000);

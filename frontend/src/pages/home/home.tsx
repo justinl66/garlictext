@@ -1,9 +1,8 @@
-import { useContext, useState, useEffect } from 'react';
+import { useContext, useState } from 'react';
 import { AuthContext } from '../../firebase/firebaseAuth.tsx';
 import NavBar from '../General/NavBar.tsx';
 import { useNavigate } from 'react-router-dom';
-// import { ServerContext } from '../../services/serverContext.tsx';
-import Cookies from 'js-cookie';
+import { initializeGameBackend } from '../../services/game_backend_interact.ts';
 
 export default function HomePage() {
     const authContext = useContext(AuthContext);
@@ -18,100 +17,18 @@ export default function HomePage() {
     const [playerName, setPlayerName] = useState("");
     const [joinCode, setJoinCode] = useState("");
     const [showJoinModal, setShowJoinModal] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [createdCode, setCreatedCode] = useState<string | null>(null);
-
-    const [joinError, setJoinError] = useState<string | null>(null);
-
     const navigate = useNavigate();
 
-    useEffect(() => {
-        if(createdCode){
-            navigate(`/game/lobby/${createdCode}`);
-        }
-    }, [createdCode]);
-
     const createGame = async () => {
-        await fetch('http://localhost:5001/api/games', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${user?.stsTokenManager.accessToken}`,
-            },
-            body: JSON.stringify({
-                name: roomName,
-            })
-        }).then(res => {
-            if (!res.ok) {
-                throw new Error(`HTTP error! status: ${res.status}`);
-            }
-            return res.json();
-        }).then(data => {
-            setCreatedCode(data.code);
-        }
-        ).catch(error => {
-            setError("Error initializing game: " + error);
-        });
-    };
-
-    const joinGame = async () => {
-        if(!joinCode || joinCode.length !== 6) {
-            setJoinError("Please enter a valid room code.");
+        let result = await initializeGameBackend(user?.stsTokenManager.accessToken, roomName);
+        
+        if (result != "success") {
+            alert("Error creating game: " + result);
             return;
-        }
-
-        if(user?.uid){
-            try{
-                const result = await fetch(`http://localhost:5001/api/games/join/${joinCode}/auth`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${user?.stsTokenManager.accessToken}`,
-                    },
-                });
-
-                if (!result.ok) {
-                    // const errorText = await result.json();
-                    throw new Error(result.statusText);
-                }else{
-                    navigate(`/game/lobby/${joinCode}`);
-                }
-            }catch (error) {
-                setJoinError(`Error joining game: ${error}`);
-                return;
-            }
         }else{
-            if(!playerName) {
-                setJoinError("Please enter your name.");
-                return;
-            }
-            try {
-                const result = await fetch(`http://localhost:5001/api/games/join/${joinCode}/nauth`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        playerName: playerName,
-                    }),
-                });
-
-                if (!result.ok) {
-                    const errorText = await result.json();
-                    throw new Error(errorText.message);
-                }else{
-                    const data = await result.json();
-                    Cookies.set('playerName', playerName, { expires: 1 }); // Store player name in cookies
-                    Cookies.set("id", data.id, { expires: 1 }); // Store player ID in cookies
-
-                    navigate(`/game/lobby/${joinCode}`);
-                }
-            } catch (error) {
-                setJoinError(`Error joining game: ${error}`);
-                return;
-            }
+            navigate('/game/lobby');
         }
-    }
+    };
 
     // Show loading state while Firebase is determining auth state
     if (loading) {
@@ -153,9 +70,8 @@ export default function HomePage() {
                                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9] text-gray-900"
                             />
                         </div>
-                        <p className='font-medium text-red-500'>{error}</p>
                         
-                        {/* {!user && (
+                        {!user && (
                             <div>
                                 <label className="block text-gray-700 font-medium mb-2">Your Name</label>
                                 <input 
@@ -166,9 +82,7 @@ export default function HomePage() {
                                     className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9] text-gray-900"
                                 />
                             </div>
-                        )} 
-                         We now require an account to make a game*/} 
-                        
+                        )}
                           <button 
                             onClick={createGame}
                             className="w-full py-4 bg-gradient-to-r from-[#9B5DE5] to-[#00BBF9] text-white font-bold text-lg rounded-lg hover:opacity-90 transition transform hover:scale-105 active:scale-95 shadow-lg"
@@ -224,11 +138,11 @@ export default function HomePage() {
                                         />
                                     </div>
                                 )}
-                                <p className='font-medium text-red-500 mb-2 text-center'>{joinError}</p>
+                                
                                 <button 
                                     onClick={() => {
                                         if (joinCode) {
-                                            joinGame();
+                                            navigate(`/game/lobby/${joinCode}`);
                                         }
                                     }}
                                     disabled={!joinCode}

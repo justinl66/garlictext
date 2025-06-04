@@ -29,14 +29,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       defaultValue: 8
     },
-    drawingTime: {
-      type: DataTypes.INTEGER,
-      defaultValue: 60
-    },
-    writingTime: {
-      type: DataTypes.INTEGER,
-      defaultValue: 60
-    },
     currentRound: {
       type: DataTypes.INTEGER,
       defaultValue: 0
@@ -44,11 +36,7 @@ module.exports = (sequelize, DataTypes) => {
     totalRounds: {
       type: DataTypes.INTEGER,
       defaultValue: 3
-    },
-    updateNumber: {
-      type: DataTypes.INTEGER,
-      defaultValue: 0
-    },
+    }
   }, {
     timestamps: true
   });

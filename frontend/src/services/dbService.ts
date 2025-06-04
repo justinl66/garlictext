@@ -1,18 +1,6 @@
-import axios from 'axios';
-import { auth } from '../firebase/firebaseConfig';
+// Database Service client for frontend
 
-const getCurrentUserToken = async (): Promise<string | null> => {
-  try {
-    const currentUser = auth.currentUser;
-    if (!currentUser) {
-      return null;
-    }
-    return await currentUser.getIdToken(true);
-  } catch (error) {
-    console.error('Error getting auth token:', error);
-    return null;
-  }
-};
+import axios from 'axios';
 
 // Define TypeScript interfaces for data structures
 interface UserData {
@@ -34,8 +22,30 @@ interface GameData {
   [key: string]: any; // For any additional properties
 }
 
+interface ImageData {
+  id?: number;
+  roundId?: number;
+  creatorId?: number;
+  promptId?: number;
+  imageUrl?: string;
+  enhancedImageUrl?: string;
+  [key: string]: any; // For any additional properties
+}
+
+interface CaptionData {
+  id?: number;
+  imageId?: number;
+  creatorId?: number;
+  text?: string;
+  [key: string]: any; // For any additional properties
+}
+
+// Only using these interfaces with the API methods
+
+// Base URL from environment variable or default to localhost in development
 const API_BASE_URL = import.meta.env.VITE_DB_API_URL || 'http://localhost:5001/api';
 
+// Create an axios instance for the database API
 const dbApi = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
@@ -44,19 +54,7 @@ const dbApi = axios.create({
   }
 });
 
-dbApi.interceptors.request.use(
-  async (config) => {
-    const token = await getCurrentUserToken();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
+// User-related API calls
 const userApi = {
   // Create a new user
   createUser: async (userData: UserData) => {
@@ -77,7 +75,7 @@ const userApi = {
     } catch (error) {
       console.error('Error getting user by Firebase UID:', error);
       throw error;
-    }  
+    }
   },
   
   // Update a user
@@ -92,6 +90,7 @@ const userApi = {
   }
 };
 
+// Game-related API calls
 const gameApi = {
   // Create a new game
   createGame: async (gameData: GameData) => {
@@ -101,7 +100,7 @@ const gameApi = {
     } catch (error) {
       console.error('Error creating game:', error);
       throw error;
-    }  
+    }
   },
   
   // Join a game
@@ -112,7 +111,7 @@ const gameApi = {
     } catch (error) {
       console.error('Error joining game:', error);
       throw error;
-    }  
+    }
   },
   
   // Start a game
@@ -123,7 +122,7 @@ const gameApi = {
     } catch (error) {
       console.error('Error starting game:', error);
       throw error;
-    }  
+    }
   },
   
   // End a game round
@@ -134,7 +133,7 @@ const gameApi = {
     } catch (error) {
       console.error('Error ending game round:', error);
       throw error;
-    }  
+    }
   },
   
   // Get a game by code
@@ -145,7 +144,7 @@ const gameApi = {
     } catch (error) {
       console.error('Error getting game by code:', error);
       throw error;
-    }  
+    }
   },
   
   // Get a game by ID
@@ -160,87 +159,57 @@ const gameApi = {
   }
 };
 
-const imageApi = {  createImage: async (imageData: {
-    roundId: string;
-    prompt: string;
-    originalDrawingData: string;
-    enhancedImageData?: string;
-    enhancedImageMimeType?: string;
-  }) => {
+// Image-related API calls
+const imageApi = {
+  // Create a new image
+  createImage: async (imageData: ImageData) => {
     try {
       const response = await dbApi.post('/images', imageData);
       return response.data;
     } catch (error) {
       console.error('Error creating image:', error);
       throw error;
-    }  
+    }
   },
   
-  updateEnhancedImage: async (imageId: string, enhancedImageData: string, enhancedImageMimeType?: string) => {
+  // Update an image with enhanced version
+  updateEnhancedImage: async (imageId: number, enhancedImageUrl: string) => {
     try {
-      const response = await dbApi.put(`/images/${imageId}/enhance`, { 
-        enhancedImageData,
-        enhancedImageMimeType: enhancedImageMimeType || 'image/png'
-      });
+      const response = await dbApi.put(`/images/${imageId}/enhance`, { enhancedImageUrl });
       return response.data;
     } catch (error) {
       console.error('Error updating enhanced image:', error);
       throw error;
-    }  
+    }
   },
   
-  getOriginalImageUrl: (imageId: string) => {
-    return `${API_BASE_URL}/images/${imageId}/original`;  },
-  
-  getEnhancedImageUrl: (imageId: string) => {
-    return `${API_BASE_URL}/images/${imageId}/enhanced`;  },
-  
-  voteForImage: async (imageId: string) => {
+  // Add a vote to an image
+  voteForImage: async (imageId: number) => {
     try {
       const response = await dbApi.post(`/images/${imageId}/vote`);
       return response.data;
     } catch (error) {
       console.error('Error voting for image:', error);
       throw error;
-    }  
+    }
   },
   
-  getImagesByRound: async (roundId: string) => {
+  // Get images for a round
+  getImagesByRound: async (roundId: number) => {
     try {
       const response = await dbApi.get(`/images/round/${roundId}`);
       return response.data;
     } catch (error) {
       console.error('Error getting images by round:', error);
       throw error;
-    }  
-  },
-  
-  getLatestImage: async () => {
-    try {
-      const response = await dbApi.get(`/images/latest`);
-      return response.data;
-    } catch (error) {
-      console.error('Error getting latest image:', error);
-      throw error;
-    }  
-  },
-  
-  getImageById: async (imageId: string) => {
-    try {
-      const response = await dbApi.get(`/images/${imageId}`);
-      return response.data;
-    } catch (error) {
-      console.error('Error getting image by ID:', error);
-      throw error;
     }
   }
 };
 
-const captionApi = {  createCaption: async (captionData: {
-    imageId: string;
-    roundId: string;
-    text: string;
-  }) => {
+// Caption-related API calls
+const captionApi = {
+  // Create a new caption
+  createCaption: async (captionData: CaptionData) => {
     try {
       const response = await dbApi.post('/captions', captionData);
       return response.data;
@@ -250,7 +219,8 @@ const captionApi = {  createCaption: async (captionData: {
     }
   },
   
-  voteForCaption: async (captionId: string) => {
+  // Add a vote to a caption
+  voteForCaption: async (captionId: number) => {
     try {
       const response = await dbApi.post(`/captions/${captionId}/vote`);
       return response.data;
@@ -260,7 +230,8 @@ const captionApi = {  createCaption: async (captionData: {
     }
   },
   
-  getCaptionsByImage: async (imageId: string) => {
+  // Get captions for an image
+  getCaptionsByImage: async (imageId: number) => {
     try {
       const response = await dbApi.get(`/captions/image/${imageId}`);
       return response.data;
@@ -270,7 +241,8 @@ const captionApi = {  createCaption: async (captionData: {
     }
   },
   
-  getCaptionsByRound: async (roundId: string) => {
+  // Get captions for a round
+  getCaptionsByRound: async (roundId: number) => {
     try {
       const response = await dbApi.get(`/captions/round/${roundId}`);
       return response.data;

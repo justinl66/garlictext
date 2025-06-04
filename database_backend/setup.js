@@ -99,29 +99,23 @@ const seedData = async () => {
         startTime: new Date()
       });
         console.log('In-progress game created.');
-        console.log('Creating sample images and captions...');
       
-      const samplePngBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
-      const sampleImageBuffer = Buffer.from(samplePngBase64, 'base64');
+      console.log('Creating sample images and captions...');
       
       const sampleImage1 = await Image.create({
         userId: users[0].id,
         roundId: gameRound.id,
         prompt: 'A funny cat wearing sunglasses',
-        originalDrawingData: sampleImageBuffer,
-        originalDrawingMimeType: 'image/png',
-        enhancedImageData: sampleImageBuffer,
-        enhancedImageMimeType: 'image/png'
+        originalDrawingUrl: 'https://via.placeholder.com/400x300',
+        enhancedImageUrl: 'https://via.placeholder.com/800x600'
       });
       
       const sampleImage2 = await Image.create({
         userId: users[1].id,
         roundId: gameRound.id,
         prompt: 'A dog riding a skateboard',
-        originalDrawingData: sampleImageBuffer,
-        originalDrawingMimeType: 'image/png',
-        enhancedImageData: sampleImageBuffer,
-        enhancedImageMimeType: 'image/png'
+        originalDrawingUrl: 'https://via.placeholder.com/400x300',
+        enhancedImageUrl: 'https://via.placeholder.com/800x600'
       });
       
       // Create captions for the images

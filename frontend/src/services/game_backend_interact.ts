@@ -1,4 +1,4 @@
-async function initializeGameBackend(userToken: string, roomName: string): Promise<any>{
+async function initializeGameBackend(userToken: string, roomName: string): Promise<string> {
     await fetch('/api/initialize_game', {
         method: 'POST',
         headers: {
@@ -17,6 +17,7 @@ async function initializeGameBackend(userToken: string, roomName: string): Promi
     ).catch(error => {
         return "Error initializing game: " + error.message;
     });
+    return "Unable to fetch"
 }
 
 async function createGameBackend(userToken: string, roomName: string, maxPlayers: number, totalRounds: number) {

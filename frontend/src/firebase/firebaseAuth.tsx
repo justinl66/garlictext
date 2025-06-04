@@ -9,27 +9,13 @@ export const AuthContext = createContext<any>(null);
 export function AuthContextWrapper({children}:{children: React.ReactNode}) {
     const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
-      async function login(email: string, password: string) {
+    
+    async function login(email: string, password: string) {
         setLoading(true);
         return await signInWithEmailAndPassword(auth, email, password)
-            .then(async () => {
-                try {
-                    const token = await auth.currentUser?.getIdToken(true);
-                    const response = await fetch('http://localhost:5001/api/users/ensure', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + token,
-                        },
-                    });
-                    
-                    if (!response.ok) {
-                        console.error('Failed to ensure user exists in database:', response.statusText);
-                    }
-                } catch (error) {
-                    console.error('Error ensuring user exists in database:', error);
-                }
-                
+            .then(() => {
+                // Signed in 
+                // setUser(auth.currentUser);
                 setLoading(false);
                 return "success";
             })
@@ -119,28 +105,8 @@ export function AuthContextWrapper({children}:{children: React.ReactNode}) {
         }
     }    useEffect(()=>{
         // alert(user?.email);
-         const unsubscribe = onAuthStateChanged(auth, async (updatedUser) => {
+         const unsubscribe = onAuthStateChanged(auth, updatedUser=>{
             setCurrentUser(updatedUser);
-            
-            if (updatedUser) {
-                try {
-                    const token = await updatedUser.getIdToken(true);
-                    const response = await fetch('http://localhost:5001/api/users/ensure', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + token,
-                        },
-                    });
-                    
-                    if (!response.ok) {
-                        console.error('Failed to ensure user exists in database:', response.statusText);
-                    }
-                } catch (error) {
-                    console.error('Error ensuring user exists in database:', error);
-                }
-            }
-            
             setLoading(false);
         })
         return unsubscribe;

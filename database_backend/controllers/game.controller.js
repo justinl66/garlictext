@@ -4,22 +4,18 @@ const User = db.User;
 const GameRound = db.GameRound;
 const { Op } = db.Sequelize;
 
-const generateGameCode = async (length = 6, forGame = true) => {
+const generateGameCode = async () => {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code;
   let isUnique = false;
 
   while (!isUnique) {
     code = '';
-    for (let i = 0; i < length; i++) {
+    for (let i = 0; i < 6; i++) {
       code += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    let existingGame;
-    if(forGame){
-      existingGame = await Game.findByPk(code);
-    }else{
-      existingGame = await User.findByPk(code);
-    }
+
+    const existingGame = await Game.findOne({ where: { code } });
     if (!existingGame) {
       isUnique = true;
     }
@@ -28,423 +24,38 @@ const generateGameCode = async (length = 6, forGame = true) => {
   return code;
 };
 exports.create = async (req, res) => {
-  // console.log("Creating game with request body:", req.body);
   try {   
     if(!req.user.uid){
       return res.status(401).send({
         message: "Unauthorized! Please log in."
       });
     }
-
     if (!req.body.name) {
       return res.status(400).send({
         message: "Host ID and game name are required!"
       });
-    }    
-    const code = await generateGameCode();
-    console.log("Generated game code:" , req.user.uid);
+    }    const code = await generateGameCode();
+
     const game = {
       id: code,
       name: req.body.name,
-      hostId: req.user.uid,
+      hostId: req.user.hostId,
       maxPlayers: req.body.maxPlayers || 8,
       totalRounds: req.body.totalRounds || 3
     };    const createdGame = await Game.create(game);
     
-    const host = await User.findByPk(req.user.uid);
+    const host = await User.findByPk(req.body.hostId);
     if (host) {
       await createdGame.addParticipant(host);
     }
 
-    return res.status(201).send({
-      code:code
-    });
+    res.status(201).send(createdGame);
   } catch (err) {
-    console.error("Error creating game:", err.message);
     res.status(500).send({
       message: err.message || "Some error occurred while creating the Game."
     });
   }
 };
-
-exports.update = async (req, res) => {
-    try {
-    const gameId = req.params.id;
-    const game = await Game.findByPk(gameId);
-    
-    if (!game) {
-      return res.status(404).send({
-        message: `Game with ID ${gameId} not found.`
-      });
-    }
-    if(game.hostId !== req.user.uid) {
-      return res.status(403).send({
-        message: "Only the host can update the game settings."
-      });
-    }
-    if (req.body.maxPlayers) {
-      game.maxPlayers = req.body.maxPlayers;
-    }
-    if (req.body.rounds) {
-      game.totalRounds = req.body.rounds;
-    }
-    if (req.body.drawingTime) {
-      game.drawingTime = req.body.drawingTime;
-    }
-    if (req.body.writingTime) {
-      game.writingTime = req.body.writingTime;
-    }
-    game.updateNumber += 1; // Increment update number
-    await game.save();
-    res.status(200).send({
-      message: "Game settings updated successfully!",
-    });
-  } catch (err) {
-    res.status(500).send({
-      message: err.message || "Some error occurred while updating the game settings."
-    });
-  }
-}
-
-exports.getLobbyInfo = async (req, res) => {
-  try {
-    const gameCode = req.params.code;
-    const version = req.query.version;
-    const game = await Game.findByPk(gameCode, {
-      include: [
-        {
-          model: User,
-          as: 'participants',
-          through: { attributes: [] }
-        }
-      ]
-    });
-    if (!game) {
-      return res.status(404).send({
-        message: `Game with code ${gameCode} not found.`
-      });
-    }
-
-    
-    if(!version){
-      return res.status(400).send({
-        message: "Version is required!"
-      });
-    }
-
-    if(gameCode + game.updateNumber == version){
-      return res.status(200).send({
-        message: "good",
-      })
-    }
-
-    if (game.status !== 'waiting') {
-      return res.status(222).send({
-        message: "Game is not in waiting status."
-      });
-    }
-
-    players = game.participants.map(participant => ({
-      id: participant.dataValues.id,
-      name: participant.dataValues.username,
-      avatar: participant.dataValues.profilePictureUrl,
-      isReady:true
-    }))
-
-    // console.log("players:", players);
-
-    const lobbyInfo = {
-      message: "updated",
-      name: game.name,
-      satus: game.status,
-      gameHost: game.hostId,
-      maxPlayers: game.maxPlayers,
-      players: players,
-      rounds: game.totalRounds,
-      drawingTime: game.drawingTime,
-      writingTime: game.writingTime,
-      currentUpdate: gameCode + game.updateNumber
-    }
-    
-
-    return res.status(200).send(lobbyInfo);
-  }catch (err) {
-    return res.status(500).send({
-      message: err.message || "Some error occurred while retrieving lobby information."
-    });
-  }
-}
-
-
-exports.joinGameWithAuth = async (req, res) => {
-  try {
-    if(!req.params.id){
-      return res.status(400).send({
-        message: "Game ID is required!"
-      });
-    }
-
-    console.log("User ID from request:", req.user.uid);
-
-    const newUser = await User.findByPk(req.user.uid);
-    if (!newUser) {
-      return res.status(404).send({
-        message: `User with ID ${req.user.uid} not found.`
-      });
-    }
-
-    const username = newUser.dataValues.username;
-
-    const game = await Game.findByPk(req.params.id, {
-      include: [
-        {
-          model: User,
-          as: 'participants',
-          through: { attributes: [] }
-        }
-      ]
-    });
-
-    console.log("Game found:", game ? game.id : "No game found");
-
-    if (!game) {
-      return res.status(404).send({
-        message: `Game with ID ${req.params.id} not found.`
-      });
-    }
-
-    if (game.participants.length >= game.maxPlayers) {
-      return res.status(400).send({
-        message: "Game is already full."
-      });
-    }
-
-    console.log("Game status:", game.status);
-
-    if (game.status !== 'waiting') {
-      return res.status(400).send({
-        message: "Cannot join game that is already in progress."
-      });
-    }
-
-    for (const participant of game.participants) {
-      if (participant.id === req.user.uid) {
-        return res.status(400).send({
-          message: "User is already in this game."
-        });
-      }
-
-      console.log("Checking participant:", participant.username);
-
-      if(participant.username === username){
-        return res.status(400).send({
-          message: "Username already exists in this game."
-        });
-      }
-    }
-
-    console.log("Adding user to game:", username);
-
-    await game.addParticipant(newUser);
-    game.updateNumber += 1; // Increment update number
-    await game.save();
-
-    return res.status(200).send({
-      message: "User successfully joined the game.",
-    })
-
-    
-  }catch (err) {
-    return res.status(500).send({
-      message: err.message || "Some error occurred while authenticating the user."
-    });
-  }
-}
-
-exports.joinGameNoAuth = async (req, res) => {
-  try {
-    if (!req.body.playerName) {
-      return res.status(400).send({
-        message: "User ID required!"
-      });
-    }    
-    if (!req.params.id) {
-      return res.status(400).send({
-        message: "Game ID is required!"
-      });
-    }
-
-    let name = req.body.playerName;
-
-      const game = await Game.findByPk(req.params.id, {
-      include: [
-        {
-          model: User,
-          as: 'participants',
-          through: { attributes: [] }
-        }
-      ]
-    });
-    if (!game) {
-      return res.status(404).send({
-        message: `Game with ID ${req.params.id} not found.`
-      });
-    }
-    if (game.participants.length >= game.maxPlayers) {
-      return res.status(400).send({
-        message: "Game is already full."
-      });
-    }
-    if (game.status !== 'waiting') {
-      return res.status(400).send({
-        message: "Cannot join game that is already in progress."
-      });
-    }
-    for (const participant of game.participants) {
-      if(participant.username === name){
-        return res.status(400).send({
-          message: "Username already exists in this game."
-        });
-      }
-    }
-
-    const newUserId = await generateGameCode(28, false);
-    const newUser = {
-      id: newUserId,
-      username: name,
-      email:`${newUserId}@gartictext.com`,
-      profilePictureUrl: null,
-    }
-
-    const user = await User.create(newUser);
-    if (!user) {
-      return res.status(500).send({
-        message: "Failed to create user for joining the game."
-      });
-    }
-
-    await game.addParticipant(user);
-    game.updateNumber += 1; // Increment update number
-    await game.save();
-
-    return res.status(200).send({
-      message: "User successfully joined the game without authentication.",
-      id: newUserId,
-    });
-
-  }catch (err) {
-    return res.status(500).send({
-      message: err.message || "Some error occurred while joining the game without authentication."
-    });
-  }
-}
-
-exports.leaveGameWithAuth = async (req, res) => {
-  try {
-    if(!req.params.id){
-      return res.status(400).send({
-        message: "Game ID is required!"
-      });
-    }
-
-    const game = await Game.findByPk(req.params.id, {
-      include: [
-        {
-          model: User,
-          as: 'participants',
-          through: { attributes: [] }
-        }
-      ]
-    });
-
-    if (!game) {
-      return res.status(404).send({
-        message: `Game with ID ${req.params.id} not found.`
-      });
-    }
-
-    const user = await User.findByPk(req.user.uid);
-    if (!user) {
-      return res.status(404).send({
-        message: `User with ID ${req.user.uid} not found.`
-      });
-    }
-
-    const isParticipant = game.dataValues.participants.some(participant => participant.id === req.user.uid);
-    if (!isParticipant) {
-      return res.status(400).send({
-        message: "User is not a participant in this game."
-      });
-    }
-
-    if(game.dataValues.hostId === req.user.uid){
-      await game.destroy();
-    }else{
-      await game.removeParticipant(user);
-    }
-
-    game.updateNumber += 1; // Increment update number
-    await game.save();
-
-    return res.status(200).send({
-      message: "User successfully left the game.",
-    });
-
-  }catch(error){
-    return res.status(500).send({
-      message: error.message || "Some error occurred while leaving the game."
-    });
-  }
-}
-
-exports.leaveGameNoAuth = async (req, res) => {
-  try {
-    if (!req.body.userId || !req.params.id) {
-      return res.status(400).send({
-        message: "User ID and game ID are required!"
-      });
-    }
-    const userId = req.body.userId;
-    const game = await Game.findByPk(req.params.id, {
-      include: [
-        {
-          model: User,
-          as: 'participants',
-          through: { attributes: [] }
-        }
-      ]
-    });
-    if (!game) {
-      return res.status(404).send({
-        message: `Game with ID ${req.params.id} not found.`
-      });
-    }
-    const user = await User.findByPk(userId);
-    if (!user) {
-      return res.status(404).send({
-        message: `User with ID ${userId} not found.`
-      });
-    }
-    const isParticipant = game.dataValues.participants.some(participant => participant.id === userId);
-    if (!isParticipant) {
-      return res.status(400).send({
-        message: "User is not a participant in this game."
-      });
-    }
-
-    await game.removeParticipant(user);
-    game.updateNumber += 1; // Increment update number
-    await game.save()
-
-    return res.status(200).send({
-      message: "User successfully left the game.",
-    });
-  } catch (error) {
-    return res.status(500).send({
-      message: error.message || "Some error occurred while leaving the game."
-    });
-  }
-}
 
 exports.joinGame = async (req, res) => {
   try {

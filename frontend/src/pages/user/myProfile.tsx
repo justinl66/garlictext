@@ -15,14 +15,8 @@ export default function ProfilePage(){
     if (!authContext) {
         return <div>Loading...</div>;
     }
-      const {user, logout, deleteAccount} = authContext
-
-    const handleLogout = async () => {
-        const result = await logout();
-        if (result === "success") {
-            navigate("/");
-        }
-    }
+    
+    const {user, logout, deleteAccount} = authContext
 
     const handleDeleteAccount = async () => {
         setDeleteLoading(true)
@@ -61,7 +55,7 @@ export default function ProfilePage(){
                     </div>
                 </div>                <div className="mt-6 ml-4 flex flex-col gap-y-2">
                     <h2 className="text-xl font-semibold text-gray-700">Actions</h2>
-                    <button onClick={handleLogout} className="mt-4 bg-[#00BBF9] text-white font-semibold py-2 px-4 rounded hover:bg-[#009BD9] transition duration-200">Logout</button>
+                    <button onClick={() => logout()} className="mt-4 bg-[#00BBF9] text-white font-semibold py-2 px-4 rounded hover:bg-[#009BD9] transition duration-200">Logout</button>
                     <button onClick={() => navigate("/resetPassword")} className="mt-4 bg-[#9B5DE5] text-white font-semibold py-2 px-4 rounded hover:bg-[#7A3EB0] transition duration-200">Change Password</button>
                     
                     {!showDeleteConfirm ? (
