@@ -158,7 +158,7 @@ export default function EditProfile() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Display Name
+              User Name
             </label>
             <input
               value={displayName}
