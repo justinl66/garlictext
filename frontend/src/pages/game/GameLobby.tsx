@@ -267,10 +267,12 @@ const updateWritingTime = async (writingTime: number) => {
         <div className="w-full max-w-4xl bg-white rounded-xl shadow-2xl p-8 relative overflow-hidden">
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#FEE440] rounded-full opacity-20"></div>
           <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-[#F15BB5] rounded-full opacity-20"></div>
-          
-          <div className="flex flex-col md:flex-row justify-between items-start mb-10 relative z-10">
+            <div className="flex flex-col md:flex-row justify-between items-start mb-10 relative z-10">
             <div>
               <h2 className="text-3xl font-bold text-[#9B5DE5]">Game Lobby</h2>
+              {gameName && (
+                <h3 className="text-2xl font-semibold text-[#F15BB5] mt-2 mb-1">"{gameName}"</h3>
+              )}
               <p className="text-gray-600">Waiting for players to join...</p>
             </div>
               <div className="mt-4 md:mt-0 bg-gray-100 p-4 rounded-lg flex items-center shadow-md">              <div>

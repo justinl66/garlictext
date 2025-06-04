@@ -5,6 +5,7 @@ import NavBar from '../General/NavBar';
 
 import { AuthContext } from '../../firebase/firebaseAuth';
 import imageStorageService from '../../services/imageStorageService';
+import dbService from '../../services/dbService';
 import { ImPower } from "react-icons/im";
 import { MdOutlineSwitchAccount } from "react-icons/md";
 import { BsCloudFog2Fill } from "react-icons/bs";
@@ -28,7 +29,8 @@ export default function DrawingPage() {
   const [strokeColor, setStrokeColor] = useState('#000000');
   const [strokeWidth, setStrokeWidth] = useState(4);
   const [canvasMode, setCanvasMode] = useState<'draw' | 'erase'>('draw');
-  const [theme] = useState('CS major cramming for 35L final');
+  const [theme, setTheme] = useState<string>('');
+  const [isLoadingTheme, setIsLoadingTheme] = useState(true);
   const [timeLeft, setTimeLeft] = useState(60);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStage, setSubmitStage] = useState<'not_submitted' | 'submitting' | 'enhancing'>('not_submitted');
@@ -46,6 +48,34 @@ export default function DrawingPage() {
   const [backgroundColor, setBackgroundColor] = useState('');
   
   const canvasRef = useRef<ReactSketchCanvasRef>(null);
+
+  useEffect(() => {
+    const fetchGameData = async () => {
+      if (!roomId) {
+        console.error('Room ID is required');
+        return;
+      }
+
+      try {
+        setIsLoadingTheme(true);
+        const gameData = await dbService.game.getGameByCode(roomId);
+        
+        if (gameData && gameData.promptString) {
+          setTheme(gameData.promptString);
+        } else {
+          console.warn('No theme found in game data, using fallback');
+          setTheme('Draw anything you like!');
+        }
+      } catch (error) {
+        console.error('Error fetching game data:', error);
+        setTheme('Draw anything you like!');
+      } finally {
+        setIsLoadingTheme(false);
+      }
+    };
+
+    fetchGameData();
+  }, [roomId]);
   
   // Timer countdown
   useEffect(() => {
@@ -220,11 +250,14 @@ export default function DrawingPage() {
         <div className="bg-white rounded-xl shadow-2xl p-6 flex-grow flex flex-col">
           {/* Header with theme and timer */}
           <div className="flex justify-between items-center mb-4">
-            <div>
-              <h2 className="text-2xl font-bold text-[#9B5DE5]">
+            <div>              <h2 className="text-2xl font-bold text-[#9B5DE5]">
                 {timeLeft <= 10 ? 'Draw! 10 Second Remaining!' : 'Draw!'}
               </h2>
-              <p className="text-gray-600">Theme: <span className="font-bold text-[#F15BB5]">{theme}</span></p>
+              <p className="text-gray-600">Theme: {' '}
+                <span className="font-bold text-[#F15BB5]">
+                  {isLoadingTheme ? 'Loading theme...' : theme}
+                </span>
+              </p>
               <p className="text-gray-500 text-sm mt-1">Your drawing will be enhanced by AI before others caption it</p>
             </div>
             <div className="flex items-center">

@@ -9,7 +9,6 @@ const getCurrentUserToken = async (): Promise<string | null> => {
     }
     return await currentUser.getIdToken(true);
   } catch (error) {
-    console.error('Error getting auth token:', error);
     return null;
   }
 };
@@ -195,46 +194,45 @@ const imageApi = {
   
   getEnhancedImageUrl: (imageId: string) => {
     return `${API_BASE_URL}/images/${imageId}/enhanced`;  },
-  
-  voteForImage: async (imageId: string) => {
+  voteForImage: async (imageId: string, rating: number = 1) => {
     try {
-      const response = await dbApi.post(`/images/${imageId}/vote`);
+      const response = await dbApi.post(`/images/${imageId}/vote`, { rating });
       return response.data;
     } catch (error) {
-      console.error('Error voting for image:', error);
       throw error;
     }  
   },
-  
-  getImagesByRound: async (roundId: string) => {
+    getImagesByRound: async (roundId: string) => {
     try {
       const response = await dbApi.get(`/images/round/${roundId}`);
       return response.data;
     } catch (error) {
-      console.error('Error getting images by round:', error);
       throw error;
     }  
   },
-  
   getLatestImage: async () => {
     try {
       const response = await dbApi.get(`/images/latest`);
       return response.data;
     } catch (error) {
-      console.error('Error getting latest image:', error);
       throw error;
     }  
+  },  getAssignedImageForUser: async (gameId: string) => {
+    try {
+      const response = await dbApi.get(`/images/assigned/${gameId}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   },
-    getImageById: async (imageId: string) => {
+  getImageById: async (imageId: string) => {
     try {
       const response = await dbApi.get(`/images/${imageId}`);
       return response.data;
     } catch (error) {
-      console.error('Error getting image by ID:', error);
       throw error;
     }
   },
-
   updateCaptionedImage: async (imageId: string, captionedImageData: string, captionedImageMimeType?: string) => {
     try {
       const response = await dbApi.put(`/images/${imageId}/caption`, { 
@@ -243,7 +241,6 @@ const imageApi = {
       });
       return response.data;
     } catch (error) {
-      console.error('Error updating captioned image:', error);
       throw error;
     }
   },
@@ -262,27 +259,22 @@ const captionApi = {  createCaption: async (captionData: {
       const response = await dbApi.post('/captions', captionData);
       return response.data;
     } catch (error) {
-      console.error('Error creating caption:', error);
       throw error;
     }
   },
-  
-  voteForCaption: async (captionId: string) => {
+  voteForCaption: async (captionId: string, rating: number = 1) => {
     try {
-      const response = await dbApi.post(`/captions/${captionId}/vote`);
+      const response = await dbApi.post(`/captions/${captionId}/vote`, { rating });
       return response.data;
     } catch (error) {
-      console.error('Error voting for caption:', error);
       throw error;
     }
   },
-  
-  getCaptionsByImage: async (imageId: string) => {
+    getCaptionsByImage: async (imageId: string) => {
     try {
       const response = await dbApi.get(`/captions/image/${imageId}`);
       return response.data;
     } catch (error) {
-      console.error('Error getting captions by image:', error);
       throw error;
     }
   },
@@ -292,7 +284,6 @@ const captionApi = {  createCaption: async (captionData: {
       const response = await dbApi.get(`/captions/round/${roundId}`);
       return response.data;
     } catch (error) {
-      console.error('Error getting captions by round:', error);
       throw error;
     }
   }

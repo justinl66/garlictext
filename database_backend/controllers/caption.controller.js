@@ -46,11 +46,6 @@ exports.findByImageId = async (req, res) => {
           model: User,
           as: 'user',
           attributes: ['id', 'username', 'profilePictureUrl']
-        },
-        {
-          model: Prompt,
-          as: 'promptData',
-          attributes: ['id', 'text']
         }
       ]
     });
@@ -75,11 +70,6 @@ exports.findByRoundId = async (req, res) => {
           attributes: ['id', 'username', 'profilePictureUrl']
         },
         {
-          model: Prompt,
-          as: 'promptData',
-          attributes: ['id', 'text']
-        },
-        {
           model: Image,
           as: 'image'
         }
@@ -95,6 +85,7 @@ exports.findByRoundId = async (req, res) => {
 exports.vote = async (req, res) => {
   try {
     const { id } = req.params;
+    const rating = req.body && req.body.rating ? parseInt(req.body.rating, 10) : 1;
     
     const caption = await Caption.findByPk(id);
     
@@ -104,7 +95,7 @@ exports.vote = async (req, res) => {
       });
     }
     
-    caption.votes += 1;
+    caption.votes += rating;
     await caption.save();
     
     res.send({
@@ -128,11 +119,6 @@ exports.findOne = async (req, res) => {
           model: User,
           as: 'user',
           attributes: ['id', 'username', 'profilePictureUrl']
-        },
-        {
-          model: Prompt,
-          as: 'promptData',
-          attributes: ['id', 'text']
         },
         {
           model: Image,
