@@ -28,6 +28,13 @@ module.exports = app => {
   router.get("/:id/promptInfo", games.getPromptInfo);
   router.put("/:id/promptSubmit", games.updatePrompt);
 
+  router.get("/:id/status", games.getGameStatus);
+
+  // router.put("/:id/drawingSubmit", games.drawingSubmit);
+  // router.put("/:id/captionSubmit", games.captionSubmit);
+
+
+
   router.get("/:id", games.findOne);
 
   app.use("/api/games", router);

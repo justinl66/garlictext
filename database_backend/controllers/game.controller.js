@@ -517,12 +517,15 @@ exports.startGame = async (req, res) => {
       return res.status(400).send({
         message: "At least 1 player is required to start the game."
       });
-    }
-
+    }    
     game.prompterId = game.participants[Math.floor(Math.random() * (game.participants.length))].id;
     // Simplified game start - no longer creating GameRound records
     game.status = 'prompting';
 
+    game.submittedImages = 0;
+    game.submittedCaptions = 0;
+    game.votingDoneCount = 0;
+    
     game.currentRound = 1;
     game.updateNumber += 1; // Increment update number
     await game.save();
@@ -567,6 +570,7 @@ exports.getPromptInfo = async (req, res) => {
     return res.status(200).send({
       message: "updated",
       prompterId: game.prompterId,
+      time: game.writingTime,
       status: game.status,
       currentUpdate: game.id + game.updateNumber,
     });
@@ -603,11 +607,10 @@ exports.updatePrompt = async (req, res) => {
       return res.status(400).send({
         message: "Game is not in prompting status."
       });
-    }
-
-    game.promptString = promptString;
+    }    game.promptString = promptString;
     game.status = 'drawing';
-    game.updateNumber += 1; // Increment update number
+    game.submittedImages = 0;
+    game.updateNumber += 1;
     await game.save();
     res.status(200).send({
       message: "Prompt updated successfully!",
@@ -802,6 +805,49 @@ exports.findByCode = async (req, res) => {
     });
   }
 };
+
+exports.getGameStatus = async (req, res) => {
+  const id = req.params.id;
+  const version = req.query.version;
+  // console.log("getGameStatus called with id:", id, "and version:", version);
+  try{
+    if (!id) {
+      return res.status(400).send({
+        message: "Game ID is required!"
+      });
+    }
+    if (!version) {
+      return res.status(400).send({
+        message: "Version is required!"
+      });
+    }
+
+    const game = await Game.findByPk(id);
+    if (!game) {
+      return res.status(404).send({
+        message: `Game with ID ${id} not found.`
+      });
+    }
+    
+    if(id + game.updateNumber == version){
+      return res.status(200).send({
+        message: "good",
+      });
+    }
+
+    res.status(200).send({
+      message: "updated",
+      status: game.status,
+      writingTime: game.writingTime,
+      drawingTime: game.drawingTime,
+      currentUpdate: game.id + game.updateNumber,
+    });
+  }catch (err) {
+    res.status(500).send({
+      message: err.message || "Some error occurred while retrieving the game status."
+    });
+  }
+}
 
 exports.endGame = async (req, res) => {
   try {

@@ -1,8 +1,9 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import NavBar from '../General/NavBar';
 import dbService from '../../services/dbService';
 import { AuthContext } from '../../firebase/firebaseAuth';
+import Cookies from 'js-cookie';
 
 interface CaptionedImage {
   id: string;
@@ -25,7 +26,59 @@ export default function VotingPage() {
   const [timeLeft, setTimeLeft] = useState(10);
   const [isSubmitting, setIsSubmitting] = useState(false);  
   const [progress, setProgress] = useState(0);
-    useEffect(() => {
+  const [isWaitingForOthers, setIsWaitingForOthers] = useState(false);
+
+
+  useEffect(() => {
+      checkGameStatus(true); // Fetch room data on mount
+    const pingServer = setInterval(async () => {
+      await checkGameStatus(false);
+      // alert(creator)
+    }, 3000);    return () => clearInterval(pingServer);
+  })
+
+
+  const checkGameStatus = async (reloaded:boolean) =>{
+      if (!roomId) {
+        return;
+      }
+
+      try {
+        let currentUpdate = reloaded? '0' : (Cookies.get('currentUpdate') || '0');
+        const result = await fetch(`http://localhost:5001/api/games/${roomId}/status?version=${currentUpdate}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        })
+        if(!result.ok) {
+          throw new Error(`HTTP error! status: ${result.status}`);
+        }
+
+        const gameData = await result.json();
+
+        if(gameData.message === 'good') {
+          return;
+        }
+
+        Cookies.set('currentUpdate', gameData.currentUpdate);
+        
+        // alert(gameData.status)
+        if (gameData.status && gameData.status !== 'voting') {
+          if (gameData.status == 'trophies') {
+            navigate(`/game/results/${roomId}`);
+          } else {
+            alert(`Stale game: ${gameData.status}`);
+            navigate('/');
+          }
+        }
+        
+      } catch (error) {
+        console.log('Error checking game status:', error);
+      }
+    }
+
+  useEffect(() => {
     const fetchImages = async () => {
       if (!roomId) {
         return;
@@ -57,12 +110,57 @@ export default function VotingPage() {
           }
         ];
         setImages(mockImages);
-      }    };
-      fetchImages();
+      }    };      fetchImages();
   }, [roomId, currentUser]);
 
-  useEffect(() => {
+    const handleImageError = (imageId: string) => {
+    setImages(prevImages => 
+      prevImages.map(img => {
+        if (img.id === imageId && !img.isUsingFallback) {
+          return {
+            ...img,
+            imageUrl: dbService.image.getOriginalImageUrl(imageId),
+            isUsingFallback: true
+          };
+        }
+        return img;
+      })
+    );  };const handleSubmit = useCallback(async (ratingValue?: number) => {
     if (isSubmitting) return;
+    
+    setIsSubmitting(true);
+      try {
+      const currentImage = images[currentIndex];
+      const voteRating = ratingValue !== undefined ? ratingValue : rating;
+      await dbService.image.voteForImage(currentImage.id, voteRating, (currentIndex >= images.length - 1) );
+        if (currentIndex < images.length - 1) {
+        setCurrentIndex(prev => prev + 1);
+        setTimeLeft(10);
+        setRating(3);
+        setProgress(0);        setIsSubmitting(false);
+      } else {
+        // User has finished voting on all images, show waiting state
+        setIsWaitingForOthers(true);
+        // TODO: Add backend polling logic here to check if all players have finished voting
+        // For now, just navigate after a timeout (you can replace this with actual backend logic)
+        
+      }
+    } catch (error) {
+      console.error('Error submitting vote:', error);      if (currentIndex < images.length - 1) {
+        setCurrentIndex(prev => prev + 1);
+        setTimeLeft(10);
+        setRating(3);
+        setProgress(0);
+      } else {
+        setIsWaitingForOthers(true);
+        
+      }
+      setIsSubmitting(false);    }
+  }, [images, currentIndex, rating, isSubmitting]);
+  
+  // Timer useEffect - placed after handleSubmit to avoid hoisting issues
+  useEffect(() => {
+    if (isSubmitting || isWaitingForOthers) return;
     
     const duration = 10000;
     const interval = 100;
@@ -76,63 +174,65 @@ export default function VotingPage() {
       
       setTimeLeft(seconds);
       setProgress(Math.min(progressPercent, 100));
-        if (remaining <= 0) {
+      
+      if (remaining <= 0) {
         clearInterval(timer);
         handleSubmit(); // Use default rating when timer expires
       }
     }, interval);
-      return () => clearInterval(timer);
-  }, [currentIndex, isSubmitting]);
-    const handleImageError = (imageId: string) => {
-    setImages(prevImages => 
-      prevImages.map(img => {
-        if (img.id === imageId && !img.isUsingFallback) {
-          return {
-            ...img,
-            imageUrl: dbService.image.getOriginalImageUrl(imageId),
-            isUsingFallback: true
-          };
-        }
-        return img;
-      })
-    );
-  };const handleSubmit = async (ratingValue?: number) => {
-    if (isSubmitting) return;
     
-    setIsSubmitting(true);
-      try {
-      const currentImage = images[currentIndex];
-      const voteRating = ratingValue !== undefined ? ratingValue : rating;
-      await dbService.image.voteForImage(currentImage.id, voteRating);
-        if (currentIndex < images.length - 1) {
-        setCurrentIndex(prev => prev + 1);
-        setTimeLeft(10);
-        setRating(3);
-        setProgress(0);        setIsSubmitting(false);
-      } else {
-        setTimeout(() => {
-          navigate(`/game/results/${roomId}`);
-        }, 1500);
-      }
-    } catch (error) {
-      console.error('Error submitting vote:', error);      if (currentIndex < images.length - 1) {
-        setCurrentIndex(prev => prev + 1);
-        setTimeLeft(10);
-        setRating(3);
-        setProgress(0);
-      } else {
-        setTimeout(() => {
-          navigate(`/game/results/${roomId}`);
-        }, 1500);
-      }
-      setIsSubmitting(false);
-    }
-  };
+    return () => clearInterval(timer);
+  }, [currentIndex, isSubmitting, isWaitingForOthers, handleSubmit]);
   
   const currentImage = images[currentIndex];
   
   if (!currentImage) {
     return <div>Loading...</div>;
+  }
+
+  // Show waiting for others UI when user has completed all voting
+  if (isWaitingForOthers) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#9B5DE5] to-[#F15BB5] via-[#00BBF9]">
+        <NavBar />
+        
+        <div className="container mx-auto px-4 py-6 flex-grow flex items-center justify-center">
+          <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-2xl text-center">
+            {/* Loading spinner */}
+            <div className="flex justify-center mb-6">
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#9B5DE5] border-t-transparent"></div>
+            </div>
+            
+            {/* Waiting message */}
+            <h2 className="text-2xl font-bold text-[#9B5DE5] mb-4">
+              Great job! 🎉
+            </h2>
+            <p className="text-lg text-gray-700 mb-6">
+              You've finished voting on all drawings!
+            </p>
+            <p className="text-gray-600">
+              Waiting for other players to complete their voting...
+            </p>
+            
+            {/* Progress indicator */}
+            <div className="mt-8">
+              <div className="flex justify-center gap-2">
+                {[...Array(3)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="w-2 h-2 bg-[#9B5DE5] rounded-full animate-pulse"
+                    style={{
+                      animationDelay: `${i * 0.2}s`,
+                      animationDuration: '1s'
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
   
   return (
