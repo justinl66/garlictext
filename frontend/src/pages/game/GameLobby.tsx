@@ -26,67 +26,76 @@ export default function GameLobby() {
 
 
   const updateLobbyFromServer = async (reloaded: boolean) => {
-    let currentUpdate = reloaded? "0" : (Cookies.get('currentUpdate') || "0");        try{
-            const response = await fetch(`http://localhost:5001/api/games/${urlRoomId}/lobbyInfo?version=${currentUpdate}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-
-        if (!response.ok) {
-            if(response.status === 222){
-                setGameStarted(true);
-                setError(null);
-                return;
-            }
-            throw new Error('Network response was not ok: ' + response.statusText); 
+    let currentUpdate = reloaded ? "0" : Cookies.get('currentUpdate') || "0";
+    try {
+      const response = await fetch(`http://localhost:5001/api/games/${urlRoomId}/lobbyInfo?version=${currentUpdate}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      if (!response.ok) {
+        if (response.status === 222) {
+          setGameStarted(true);
+          setError(null);
+          return;
         }
-
-        const data = await response.json();
-        if(data.message === "good"){
-            return;
-        }
-
-        if(data.status && data.status !== "lobby"){
-          if(data.status === "prompting"){
-            navigate(`/game/prompts/${urlRoomId}`);
-          }
-          else{
-            alert("Stale game: " + data.status);
-            navigate('/');
-          }
-        }
-        setGameName(data.name);
-        setCreator(data.gameHost);
-        
-        if(data.players && data.players.length < data.maxPlayers){
-          let newPlayers: Player[] = data.players;
-          for(let i = data.players.length; i < 4; i++){
-            newPlayers.push({
-              id: i,
-              name: "Waiting for player...",
-              avatar: '/garlicTextNoBackground.png',
-              isReady: false,
-            });
-          }
-          setPlayers(newPlayers);
-        }else{
-          setPlayers(data.players || []);
-        }
-
-        setGameSettings({
-            rounds: data.rounds,
-            drawingTime: data.drawingTime,
-            writingTime: data.writingTime,
-            maxPlayers: data.maxPlayers,
-        });
-        Cookies.set('currentUpdate', data.currentUpdate || "0");
-        setError(null);
-
-    }catch(e:any){
-        setError("Error fetching data: " + e.message);
+        throw new Error('Network response was not ok: ' + response.statusText);
+      }
+  
+      const data = await response.json();
+      if (data.message === "good") {
         return;
+      }
+  
+      if (data.status && data.status !== "lobby") {
+        if (data.status === "prompting") {
+          navigate(`/game/prompts/${urlRoomId}`);
+        } else {
+          alert("Stale game: " + data.status);
+          navigate('/');
+        }
+      }
+      setGameName(data.name);
+      setCreator(data.gameHost);
+  
+      if (data.players && data.players.length < data.maxPlayers) {
+        let newPlayers: Player[] = (data.players as Array<{
+          id: string | number;
+          name: string;
+          avatar?: string;
+          isReady: boolean;
+        }>).map((player) => ({
+          ...player,
+          id: String(player.id),
+          name: player.name, // Ensure updated username is displayed
+          avatar: player.avatar || '/garlicTextNoBackground.png', // Ensure avatar is displayed
+        }));
+        for (let i = data.players.length; i < 4; i++) {
+          newPlayers.push({
+            id: i,
+            name: "Waiting for player...",
+            avatar: '/garlicTextNoBackground.png',
+            isReady: false,
+          });
+        }
+        setPlayers(newPlayers);
+      } else {
+        setPlayers(data.players || []);
+      }
+  
+      setGameSettings({
+        rounds: data.rounds,
+        drawingTime: data.drawingTime,
+        writingTime: data.writingTime,
+        maxPlayers: data.maxPlayers,
+      });
+      Cookies.set('currentUpdate', data.currentUpdate || "0");
+      setError(null);
+    } catch (e: any) {
+      setError("Error fetching data: " + e.message);
+      return;
     }
   }
 
