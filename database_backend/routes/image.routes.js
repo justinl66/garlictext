@@ -12,8 +12,7 @@ module.exports = app => {
   router.put("/:id/caption", authentication.authenticateFirebaseToken, images.updateCaptionedImage);
 
   router.post("/:id/vote", authentication.authenticateFirebaseToken, images.vote);
-
-  router.get("/round/:roundId", authentication.authenticateFirebaseToken, images.findByRoundId);
+  router.get("/round/:roundId", authentication.authenticateFirebaseToken, images.findByRoundId);  router.get("/assigned/:gameId", authentication.authenticateFirebaseToken, images.getAssignedImageForUser);
 
   router.get("/latest", images.getLatestImage);
 

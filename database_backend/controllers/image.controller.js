@@ -2,6 +2,7 @@ const db = require('../models');
 const Image = db.Image;
 const User = db.User;
 const Caption = db.Caption;
+const Game = db.Game;
 const { Op } = db.Sequelize;
 
 exports.create = async (req, res) => {  try {
@@ -133,6 +134,7 @@ exports.findByRoundId = async (req, res) => {
 exports.vote = async (req, res) => {
   try {
     const { id } = req.params;
+    const rating = req.body && req.body.rating ? parseInt(req.body.rating, 10) : 1;
     
     const image = await Image.findByPk(id);
     
@@ -142,11 +144,11 @@ exports.vote = async (req, res) => {
       });
     }
     
-    image.votes += 1;
+    image.votes += rating;
     await image.save();
     
     res.send({
-      message: "Vote added successfully!",
+      message: `Vote added successfully with rating ${rating}!`,
       image
     });
   } catch (err) {
@@ -337,7 +339,6 @@ exports.updateCaptionedImage = async (req, res) => {
   }
 };
 
-// Add endpoint to serve captioned images
 exports.getCaptionedImage = async (req, res) => {
   const id = req.params.id;
   
@@ -359,6 +360,112 @@ exports.getCaptionedImage = async (req, res) => {
   } catch (err) {
     res.status(500).send({
       message: `Error retrieving captioned image with id=${id}: ${err.message}`
+    });
+  }
+};
+
+exports.getAssignedImageForUser = async (req, res) => {
+  try {
+    const userId = req.user ? req.user.uid : req.body.userId;
+    const gameId = req.params.gameId || req.body.gameId;
+
+    if (!userId || !gameId) {
+      return res.status(400).send({
+        message: "User ID and game ID are required"
+      });
+    }
+    const game = await Game.findByPk(gameId, {
+      include: [
+        {
+          model: User,
+          as: 'participants',
+          through: { attributes: [] },
+          include: [
+            {
+              model: Image,
+              as: 'images',
+              where: { roundId: gameId },
+              required: false,
+              include: [
+                {
+                  model: Caption,
+                  as: 'captions',
+                  include: [
+                    {
+                      model: User,
+                      as: 'user',
+                      attributes: ['id', 'username', 'profilePictureUrl']
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    });
+
+    if (!game) {
+      return res.status(404).send({
+        message: `Game with ID ${gameId} not found.`
+      });
+    }    const participants = game.participants.sort((a, b) => a.id.localeCompare(b.id));
+    const participantCount = participants.length;
+
+    if (participantCount === 0) {
+      return res.status(400).send({
+        message: "No participants found in the game"
+      });
+    }
+
+    const currentUserIndex = participants.findIndex(p => p.id === userId);
+    
+    if (currentUserIndex === -1) {
+      return res.status(400).send({
+        message: "User is not a participant in this game"
+      });
+    }    let assignedImageOwnerIndex;
+    
+    if (participantCount === 1) {
+      assignedImageOwnerIndex = currentUserIndex;
+    } else if (participantCount === 2) {
+      assignedImageOwnerIndex = currentUserIndex === 0 ? 1 : 0;
+    } else {
+      assignedImageOwnerIndex = (currentUserIndex + 1) % participantCount;
+    }
+
+    const assignedImageOwner = participants[assignedImageOwnerIndex];
+    
+    const assignedImage = assignedImageOwner.images.find(img => img.roundId === gameId);
+
+    if (!assignedImage) {
+      return res.status(404).send({
+        message: `No image found for assigned user ${assignedImageOwner.username} in this round`
+      });
+    }
+
+    const existingCaption = assignedImage.captions.find(caption => caption.userId === userId);
+    
+    if (existingCaption) {
+      return res.status(200).send({
+        image: assignedImage,
+        alreadyCaptioned: true,
+        existingCaption: existingCaption
+      });
+    }
+
+    res.status(200).send({
+      image: assignedImage,
+      alreadyCaptioned: false,
+      assignedTo: {
+        id: assignedImageOwner.id,
+        username: assignedImageOwner.username
+      }
+    });
+    
+  } catch (err) {
+    res.status(500).send({
+      message: err.message || "Some error occurred while retrieving assigned image."
     });
   }
 };

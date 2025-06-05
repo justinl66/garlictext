@@ -155,6 +155,28 @@ export function AuthContextWrapper({children}:{children: React.ReactNode}) {
         }
     }
 
+    async function sendVerificationCode(email: string, code: string) {
+        try {
+            const response = await fetch("https://us-central1-YOUR_PROJECT.cloudfunctions.net/api/send-code", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ email, code })
+            });
+    
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(text || "Failed to send verification email.");
+            }
+    
+            return "success";
+        } catch (error: any) {
+            return error.message || "Failed to send verification email.";
+        }
+    }
+
+
     useEffect(()=>{
         // alert(user?.email);
          const unsubscribe = onAuthStateChanged(auth, async (updatedUser) => {
@@ -193,6 +215,7 @@ export function AuthContextWrapper({children}:{children: React.ReactNode}) {
         resetPassword,
         deleteAccount,
         signInWithGoogle,
+        sendVerificationCode,
     }
 
     return (

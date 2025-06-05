@@ -1,108 +1,147 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../firebase/firebaseAuth";
 import { useNavigate } from "react-router-dom";
+import { auth } from "../../firebase/firebaseConfig";
 
+export default function ProfilePage() {
+  const navigate = useNavigate();
+  const { user, deleteAccount } = useContext(AuthContext);
 
-export default function ProfilePage(){
-    const navigate = useNavigate()
-    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-    const [deleteLoading, setDeleteLoading] = useState(false)
-    const [deleteMessage, setDeleteMessage] = useState("")
+  const bio = localStorage.getItem("bio") || "No bio yet.";
+  const badge = localStorage.getItem("badge") || "";
 
-    const authContext = useContext(AuthContext)
-    
-    // Handle null context
-    if (!authContext) {
-        return <div>Loading...</div>;
-    }
-      const {user, logout, deleteAccount} = authContext
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteMessage, setDeleteMessage] = useState("");
 
-    const handleLogout = async () => {
-        const result = await logout();
-        if (result === "success") {
-            navigate("/");
-        }
-    }
+  useEffect(() => {
+    const refreshUser = async () => {
+      await auth.currentUser?.reload();
+    };
+    refreshUser();
+  }, []);
 
-    const handleDeleteAccount = async () => {
-        setDeleteLoading(true)
-        setDeleteMessage("")
-        
-        const result = await deleteAccount()
-        
-        if (result === "success") {
-            setDeleteMessage("Account successfully deleted!")
-            // Account deleted, user will be automatically signed out
-            // Navigate to home page after a brief delay
-            setTimeout(() => {
-                navigate("/")
-            }, 2000)
-        } else {
-            setDeleteMessage(`Error: ${result}`)
-        }
-        
-        setDeleteLoading(false)
+  const handleSignOut = async () => {
+    await auth.signOut();
+    navigate("/");
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeleteLoading(true);
+    setDeleteMessage("");
+
+    const result = await deleteAccount();
+
+    if (result === "success") {
+      setDeleteMessage("Account successfully deleted!");
+      setTimeout(() => {
+        navigate("/");
+      }, 2000);
+    } else {
+      setDeleteMessage(`Error: ${result}`);
     }
 
-    return(
-        <div className="flex flex-col w-screen min-h-screen h-full px-10 py-12 items-center bg-gradient-to-br from-purple-200 via-pink-200 to-sky-200">
-            <div className="flex flex-col w-full max-w-2xl bg-white rounded-lg shadow-lg p-8">
-                <h1 className="text-3xl font-semibold text-black">My Profile</h1>
-                <div className="mt-6 ml-4">
-                    <h2 className="text-xl font-semibold text-gray-700">User Information</h2>
-                    <div className="ml-3">
-                        <p className="mt-2 text-gray-600">Display Name: {user?.displayName}</p>
-                        <p className="mt-2 text-gray-600">Email: {user?.email}</p>
-                        <p className="mt-2 text-gray-600">Email Verified: {user?.emailVerified ? "Yes" : "No"}</p>
-                        <p className="mt-2 text-gray-600">Photo URL: {user?.photoURL}</p>
-                        <p className="mt-2 text-gray-600">UID: {user?.uid}</p>
-                        <p className="mt-2 text-gray-600">Last Sign-In Time: {user?.metadata.lastSignInTime}</p> 
-                        <p className="mt-2 text-gray-600">Account created: {user?.metadata.creationTime}</p>
-                    </div>
-                </div>                <div className="mt-6 ml-4 flex flex-col gap-y-2">
-                    <h2 className="text-xl font-semibold text-gray-700">Actions</h2>
-                    <button onClick={handleLogout} className="mt-4 bg-[#00BBF9] text-white font-semibold py-2 px-4 rounded hover:bg-[#009BD9] transition duration-200">Logout</button>
-                    <button onClick={() => navigate("/resetPassword")} className="mt-4 bg-[#9B5DE5] text-white font-semibold py-2 px-4 rounded hover:bg-[#7A3EB0] transition duration-200">Change Password</button>
-                    
-                    {!showDeleteConfirm ? (
-                        <button 
-                            onClick={() => setShowDeleteConfirm(true)} 
-                            className="mt-4 bg-red-500 text-white font-semibold py-2 px-4 rounded hover:bg-red-600 transition duration-200"
-                        >
-                            Delete Account
-                        </button>
-                    ) : (
-                        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded">
-                            <p className="text-red-800 font-semibold mb-3">Are you sure you want to delete your account?</p>
-                            <p className="text-red-600 text-sm mb-4">This action cannot be undone. All your data will be permanently deleted.</p>
-                            <div className="flex gap-2">
-                                <button 
-                                    onClick={handleDeleteAccount} 
-                                    disabled={deleteLoading}
-                                    className="bg-red-600 text-white font-semibold py-2 px-4 rounded hover:bg-red-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {deleteLoading ? "Deleting..." : "Yes, Delete Account"}
-                                </button>
-                                <button 
-                                    onClick={() => {
-                                        setShowDeleteConfirm(false)
-                                        setDeleteMessage("")
-                                    }} 
-                                    disabled={deleteLoading}
-                                    className="bg-gray-500 text-white font-semibold py-2 px-4 rounded hover:bg-gray-600 transition duration-200 disabled:opacity-50"
-                                >
-                                    Cancel
-                                </button>
-                            </div>
-                            {deleteMessage && (
-                                <div className={`mt-3 p-2 rounded ${deleteMessage.includes("Error") ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}`}>
-                                    {deleteMessage}
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
-            </div>
+    setDeleteLoading(false);
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-purple-700 to-pink-500 text-white p-6">
+      <div className="bg-white bg-opacity-10 backdrop-blur-lg rounded-2xl shadow-lg p-8 w-full max-w-md text-center">
+        
+        {/* Avatar or Fallback */}
+        <div className="w-28 h-28 rounded-full bg-white bg-opacity-20 flex items-center justify-center mx-auto text-4xl font-bold overflow-hidden mb-4">
+          {user?.photoURL ? (
+            <img
+              src={user.photoURL}
+              alt="Profile"
+              className="w-full h-full object-cover rounded-full"
+            />
+          ) : (
+            <span>{user?.displayName?.[0] || "?"}</span>
+          )}
         </div>
-    )
+
+        {/* User Info */}
+        <h1 className="text-3xl font-extrabold mb-1">{user?.displayName || "Anonymous"}</h1>
+        <p className="text-sm text-gray-200 mb-1">{user?.email || "No email"}</p>
+        <p className="text-xs text-gray-300 mb-4">UID: {user?.uid || "N/A"}</p>
+
+        {/* Email Verified */}
+        <div className="mb-4">
+          {user?.emailVerified ? (
+            <p className="text-green-300 font-medium">Email Verified ✅</p>
+          ) : (
+            <button
+              onClick={() => navigate("/profile/verify")}
+              className="bg-yellow-400 hover:bg-yellow-300 text-black font-semibold py-1 px-3 rounded transition"
+            >
+              Verify Email
+            </button>
+          )}
+        </div>
+
+        {/* Bio */}
+        <p className="italic text-gray-200 mb-6">"{bio}"</p>
+
+        {/* Stats */}
+        <div className="bg-white bg-opacity-10 rounded-lg p-4 mb-6">
+          <p>Games Played: <span className="font-bold">placeholder</span></p>
+          <p>Rounds Completed: <span className="font-bold">placeholder</span></p>
+          <p>Wins: <span className="font-bold">placeholder</span></p>
+        </div>
+
+        {/* Edit Profile */}
+        <button
+          onClick={() => navigate("/profile/edit")}
+          className="bg-white text-purple-700 hover:bg-purple-100 font-bold py-2 px-4 rounded-xl transition mb-4"
+        >
+          Edit Profile
+        </button>
+
+        {/* Delete Account Section */}
+        <div className="mt-6">
+          {deleteMessage && (
+            <p className="text-sm text-yellow-200 mb-2">{deleteMessage}</p>
+          )}
+
+          {deleteConfirm ? (
+            <div>
+              <p className="mb-2 text-sm text-red-200">Are you sure?</p>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleteLoading}
+                className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded mr-2"
+              >
+                {deleteLoading ? "Deleting..." : "Yes, Delete"}
+              </button>
+              <button
+                onClick={() => setDeleteConfirm(false)}
+                className="bg-gray-300 text-black py-2 px-4 rounded"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setDeleteConfirm(true)}
+              className="text-red-300 text-sm underline"
+            >
+              Delete Account
+            </button>
+          )}
+        </div>
+
+        {/* Return to Home */}
+        <div className="mt-12">
+          <button
+            onClick={() => navigate("/")}
+            className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-4 rounded-md shadow-sm transition"
+          >
+            Return To Home Page
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 }
