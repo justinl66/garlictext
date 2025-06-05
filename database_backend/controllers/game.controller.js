@@ -109,10 +109,12 @@ exports.getLobbyInfo = async (req, res) => {
         {
           model: User,
           as: 'participants',
-          through: { attributes: [] }
-        }
-      ]
+          through: { attributes: [] },
+          attributes: ['id', 'username', 'profilePictureUrl'], //avatar
+        },
+      ],
     });
+
     if (!game) {
       return res.status(404).send({
         message: `Game with code ${gameCode} not found.`
@@ -138,11 +140,12 @@ exports.getLobbyInfo = async (req, res) => {
     //   });
     // }
 
-    players = game.participants.map(participant => ({
+    const players = game.participants.map((participant) => ({
       id: participant.dataValues.id,
       name: participant.dataValues.username,
-      avatar: participant.dataValues.profilePictureUrl,
-      isReady:true    }))
+      avatar: participant.dataValues.profilePictureUrl || '/defaultAvatar.png', // use default if no avatar
+      isReady: true,
+    }));
 
     const lobbyInfo = {
       message: "updated",
@@ -156,16 +159,15 @@ exports.getLobbyInfo = async (req, res) => {
       writingTime: game.writingTime,
       currentUpdate: gameCode + game.updateNumber
     }
-    
 
     return res.status(200).send(lobbyInfo);
   }catch (err) {
     return res.status(500).send({
       message: err.message || "Some error occurred while retrieving lobby information."
     });
-  }
-}
 
+  }
+};
 
 exports.joinGameWithAuth = async (req, res) => {
   try {

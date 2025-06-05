@@ -295,7 +295,7 @@ const updateWritingTime = async (writingTime: number) => {
                 <div key={player.id} className="flex items-center p-3 bg-gray-50 rounded-lg">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#9B5DE5] to-[#00BBF9] flex items-center justify-center text-white font-bold">
                       {player.avatar ? (
-                        <img src={player.avatar} alt={player.name} className="w-8 h-8" />
+                        <img src={player.avatar} alt={player.name} className="w-10 h-10 rounded-full object-cover" />
                       ) : (
                         player.name.charAt(0).toUpperCase()
                       )}

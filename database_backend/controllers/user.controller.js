@@ -77,10 +77,19 @@ exports.findOne = async (req, res) => {
 
 exports.update = async (req, res) => {
   const id = req.params.id;
+  const id = req.params.id; //
 
   try {
-    const num = await User.update(req.body, {
-      where: { id }
+    const updateData = {};
+    if (req.body.profilePictureUrl) {
+      updateData.profilePictureUrl = req.body.profilePictureUrl;
+    }
+    if (req.body.username) {
+      updateData.username = req.body.username;
+    }
+
+    const num = await User.update(updateData, {
+      where: { id },
     });
     
     if (num[0] === 1) {

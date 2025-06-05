@@ -66,6 +66,16 @@ export default function EditProfile() {
         photoURL: finalPhotoURL,
       });
 
+      // Send avatar URL to the backend
+      await fetch(`http://localhost:5001/api/users/${user.uid}`, { // Include user ID in the URL
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.stsTokenManager.accessToken}`,
+        },
+        body: JSON.stringify({ profilePictureUrl: finalPhotoURL }),
+      });
+
       localStorage.setItem("bio", bio);
       localStorage.setItem("badge", badge);
 
