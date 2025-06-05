@@ -8,7 +8,7 @@ module.exports = app => {
   router.get("/", authentication.authenticateFirebaseToken, users.findAll);
   router.get("/:id", users.findOne);
 
-  router.put("/", authentication.authenticateFirebaseToken, users.update);
+  router.put("/:id", authentication.authenticateFirebaseToken, users.update);
 
   router.delete("/", authentication.authenticateFirebaseToken, users.delete);
   
