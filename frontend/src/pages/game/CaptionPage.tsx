@@ -12,40 +12,52 @@ export default function CaptionPage() {
   const { state } = useLocation();
   const [caption, setCaption] = useState('');
   const [timeLeft, setTimeLeft] = useState(60);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [image, setImage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);  const [image, setImage] = useState<string | null>(null);
   const [imageId, setImageId] = useState<string | null>(null);
+  const [isUsingFallback, setIsUsingFallback] = useState(false);
     
   const currentRoomId = roomId;
   
   if (!authContext) {
     return <div>Loading...</div>;
   }
-
-  const { user: currentUser } = authContext;
-
-  useEffect(() => {
-    if (state?.imageId && state?.originalImageUrl) {
-      setImageId(state.imageId);
-      const enhancedImageUrl = `${import.meta.env.VITE_API_URL}/api/images/${state.imageId}/enhanced`;
-      setImage(enhancedImageUrl);
-    } else {
-      const fetchLatestImage = async () => {
+  const { user: currentUser } = authContext;  useEffect(() => {
+    if (currentRoomId) {
+      const fetchAssignedImage = async () => {
         try {
-          const latestImage = await dbService.image.getLatestImage();
-          if (latestImage && latestImage.id) {
-            setImageId(latestImage.id);
-            const enhancedImageUrl = `${import.meta.env.VITE_API_URL}/api/images/${latestImage.id}/enhanced`;
+          const assignedImageData = await dbService.image.getAssignedImageForUser(currentRoomId);          if (assignedImageData && assignedImageData.image) {
+            const assignedImage = assignedImageData.image;
+            setImageId(assignedImage.id);
+            setIsUsingFallback(false);
+            const enhancedImageUrl = dbService.image.getEnhancedImageUrl(assignedImage.id);
             setImage(enhancedImageUrl);
+          } else {
+            const latestImage = await dbService.image.getLatestImage();
+            if (latestImage && latestImage.id) {
+              setImageId(latestImage.id);
+              setIsUsingFallback(false);
+              const enhancedImageUrl = dbService.image.getEnhancedImageUrl(latestImage.id);
+              setImage(enhancedImageUrl);
+            }
           }
         } catch (error) {
-          console.error('Error fetching latest image:', error);
-          setImage('/placeholder-drawing.png');
+          console.error('Error fetching assigned image:', error);
+          try {            const latestImage = await dbService.image.getLatestImage();
+            if (latestImage && latestImage.id) {
+              setImageId(latestImage.id);
+              setIsUsingFallback(false);
+              const enhancedImageUrl = dbService.image.getEnhancedImageUrl(latestImage.id);
+              setImage(enhancedImageUrl);
+            }
+          } catch (fallbackError) {
+            console.error('Error fetching fallback image:', fallbackError);
+            setImage('/placeholder-drawing.png');
+          }
         }
       };
-      fetchLatestImage();
+      fetchAssignedImage();
     }
-  }, [state]);
+  }, [state, currentRoomId]);
   
   useEffect(() => {
     if (timeLeft <= 0) {
@@ -59,6 +71,15 @@ export default function CaptionPage() {
     
     return () => clearTimeout(timer);
   }, [timeLeft]);
+    const handleImageError = () => {
+    if (imageId && !isUsingFallback) {
+      setIsUsingFallback(true);
+      const originalImageUrl = dbService.image.getOriginalImageUrl(imageId);
+      setImage(originalImageUrl);
+    } else {
+      setImage(null);
+    }
+  };
     const handleSubmit = async () => {
     if (isSubmitting || !caption.trim() || !imageId || !currentUser) return;
     
@@ -93,27 +114,25 @@ export default function CaptionPage() {
             img.src = imageDataURL;
           });
             const fontSize = calculateOptimalFontSize(caption, img.width);
-          
-          const captionedResult = await createCaptionedImage(imageDataURL, caption, {
+            const captionedResult = await createCaptionedImage(imageDataURL, caption, {
             fontSize,
             fontFamily: 'Arial, sans-serif',
             textColor: '#FFFFFF',
             backgroundColor: '#000000',
-            padding: 20          });
+            padding: 20
+          });
           
-          await dbService.image.updateCaptionedImage(imageId, captionedResult.dataURL);
-            } catch (overlayError) {
-          console.error('❌ Error creating captioned image:', overlayError);
+          await dbService.image.updateCaptionedImage(imageId, captionedResult.dataURL);        } catch (overlayError) {
+          console.error('Error creating captioned image:', overlayError);
         }
       }
         setTimeout(() => {
         navigate(`/game/voting/${currentRoomId}`);
       }, 1500);
-      
-    } catch (error) {
-      console.error('❌ Error submitting caption:', error);
+        } catch (error) {
+      console.error('Error submitting caption:', error);
       setIsSubmitting(false);
-    }  };
+    }};
   
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -137,13 +156,12 @@ export default function CaptionPage() {
               </div>
             </div>          </div>
             <div className="flex-grow flex flex-col md:flex-row gap-6">
-            <div className="flex-1 flex items-center justify-center border-2 border-gray-200 rounded-lg overflow-hidden bg-gray-50">
-              {image ? (
+            <div className="flex-1 flex items-center justify-center border-2 border-gray-200 rounded-lg overflow-hidden bg-gray-50">              {image ? (
                 <img 
                   src={image} 
                   alt="AI-enhanced drawing" 
                   className="max-w-full max-h-full object-contain"
-                  onError={() => setImage(null)}
+                  onError={handleImageError}
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300">
