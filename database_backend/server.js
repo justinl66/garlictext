@@ -1,7 +1,10 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const cron = require('node-cron');
 const db = require('./models');
+const { cleanupTemporaryUsers } = require('./jobs/cleanup');
+const cronConfig = require('./config/cronConfig');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -28,9 +31,27 @@ require('./routes/image.routes')(app);
 require('./routes/caption.routes')(app);
 require('./routes/prompt.routes')(app);
 require('./routes/results.routes')(app);
+require('./routes/admin.routes')(app);
+
+if (cronConfig.enableTempUserCleanup) {
+  cron.schedule(cronConfig.cleanupSchedule, async () => {
+    console.log('Running scheduled cleanup job for temporary users');
+    await cleanupTemporaryUsers();
+  });
+  console.log(`Temporary user cleanup scheduled: ${cronConfig.cleanupSchedule}`);
+}
 
 db.sequelize.sync({ alter: process.env.NODE_ENV === 'development' })
   .then(() => {
-    app.listen(PORT, () => {});
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+      
+      if (cronConfig.enableTempUserCleanup) {
+        console.log(`Temporary user cleanup enabled. Will clean up users older than ${cronConfig.tempUserTtlHours} hours`);      } else {
+        console.log('Temporary user cleanup is disabled');
+      }
+    });
   })
-  .catch(err => {});
+  .catch(err => {
+    console.error('Failed to start server:', err);
+  });
