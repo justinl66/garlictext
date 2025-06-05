@@ -113,3 +113,6 @@ The frontend will start on **http://localhost:5173**
 1. **Open your browser** and navigate to **http://localhost:5173**
 
 2. **Create or join a game** and start playing!
+
+Play fair.
+IRLOYOGQKEGVHLGTDTNRKLKEXOTNSUMHNPGTGKBMAPBRPOLIGEPGQHCV
