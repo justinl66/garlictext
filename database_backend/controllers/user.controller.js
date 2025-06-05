@@ -74,7 +74,6 @@ exports.findOne = async (req, res) => {
 };
 
 
-
 exports.update = async (req, res) => {
   const id = req.params.id; //
 
