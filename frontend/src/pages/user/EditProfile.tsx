@@ -1,9 +1,10 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { AuthContext } from "../../firebase/firebaseAuth";
 import { updateProfile } from "firebase/auth";
 import { auth } from "../../firebase/firebaseConfig";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useNavigate } from "react-router-dom";
+import { startBubbleAnimation } from '../../utils/bubbleAnimation.ts';
 
 const defaultAvatars = [
   "/vampire.png",
@@ -36,6 +37,11 @@ function dataURLtoBlob(dataURL: string): Blob {
 export default function EditProfile() {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const cleanup = startBubbleAnimation();
+    return cleanup;
+  }, []);
 
   const [displayName, setDisplayName] = useState(user?.displayName || "");
   const [selectedAvatar, setSelectedAvatar] = useState<string>(user?.photoURL || "");
@@ -79,8 +85,9 @@ export default function EditProfile() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-[#9B5DE5] via-[#00BBF9] to-[#F15BBF5] flex justify-center px-4 py-12">
-      <div className="bg-white w-full max-w-xl rounded-2xl shadow-2xl p-8 relative overflow-hidden flex flex-col min-h-[80vh]">
+    <div className="min-h-screen w-full bg-gradient-to-br from-[#9B5DE5] via-[#00BBF9] to-[#F15BB5] flex justify-center px-4 py-12 relative">
+      <div id="bubble-container" className="absolute inset-0 z-0"></div>
+      <div className="bg-white w-full max-w-xl rounded-2xl shadow-2xl p-8 relative overflow-hidden flex flex-col min-h-[80vh] z-10">
         <div className="space-y-6 flex-grow">
           <h1 className="text-3xl font-bold text-[#9B5DE5]">Edit Profile</h1>
 

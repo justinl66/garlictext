@@ -1,7 +1,8 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { AuthContext } from "../../firebase/firebaseAuth";
 import { useNavigate } from "react-router-dom";
 import { sendEmailVerification } from "firebase/auth";
+import { startBubbleAnimation } from "../../utils/bubbleAnimation.ts";
 
 export default function VerifyEmail() {
   const { user } = useContext(AuthContext);
@@ -10,6 +11,11 @@ export default function VerifyEmail() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const cleanup = startBubbleAnimation();
+    return cleanup;
+  }, []);
 
   const handleSendVerification = async () => {
     setLoading(true);
@@ -27,8 +33,9 @@ export default function VerifyEmail() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#9B5DE5] via-[#00BBF9] to-[#F15BBF5] px-4">
-      <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md space-y-6 text-base">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#9B5DE5] via-[#00BBF9] to-[#F15BBF5] px-4 relative">
+      <div id="bubble-container" className="absolute inset-0 z-0"></div>
+      <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md space-y-6 text-base relative z-10">
         <h1 className="text-3xl font-bold text-[#9B5DE5] mb-2">Verify Your Email</h1>
 
         <p className="text-gray-700">

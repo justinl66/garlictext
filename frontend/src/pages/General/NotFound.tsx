@@ -1,18 +1,29 @@
 import { useNavigate } from 'react-router-dom';
 import NavBar from './NavBar';
+import { useEffect } from 'react';
+import { startBubbleAnimation } from '../../utils/bubbleAnimation';
 
 export default function NotFound() {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const cleanup = startBubbleAnimation();
+    return cleanup;
+  }, []);
 
   const handleGoHome = () => {
     navigate('/');
   };
 
   return (
-    <div className="w-full min-h-screen flex flex-col bg-gradient-to-br from-[#9B5DE5] to-[#F15BB5] via-[#00BBF9]">
-      <NavBar />
+    <div className="w-full min-h-screen flex flex-col bg-gradient-to-br from-[#9B5DE5] to-[#F15BB5] via-[#00BBF9] relative overflow-hidden">
+      <div id="bubble-container" className="absolute inset-0 z-0"></div>
       
-      <div className="w-full flex flex-col items-center justify-center flex-grow py-10 px-4">
+      <div className="relative z-10">
+        <NavBar />
+      </div>
+      
+      <div className="w-full flex flex-col items-center justify-center flex-grow py-10 px-4 relative z-10">
         <div className="w-full max-w-2xl bg-white rounded-xl shadow-2xl p-8 relative overflow-hidden text-center">
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#FEE440] rounded-full opacity-20"></div>
           <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-[#F15BB5] rounded-full opacity-20"></div>

@@ -1,7 +1,8 @@
-import {useState, useRef, useContext} from "react";
+import {useState, useRef, useContext, useEffect} from "react";
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from "../../firebase/firebaseAuth.tsx";
 import NavBar from "../General/NavBar.tsx";
+import { startBubbleAnimation } from '../../utils/bubbleAnimation.ts';
 
 export default function LoginPage() {
     const navigate = useNavigate();
@@ -20,6 +21,11 @@ export default function LoginPage() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const passwordRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        const cleanup = startBubbleAnimation();
+        return cleanup;
+    }, []);
 
     const handleLogin = async () =>{
         // Handle login logic here
@@ -62,25 +68,16 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="w-screen min-h-screen pb-10 flex flex-col bg-linear-to-br from-[#9B5DE5] to-[#F15BB5] via-[#00BBF9] ">
-            < NavBar />
-            <div className="w-full flex flex-row justify-center mt-8 items-center">
+        <div className="w-screen min-h-screen pb-10 flex flex-col bg-linear-to-br from-[#9B5DE5] to-[#F15BB5] via-[#00BBF9] relative">
+            <div id="bubble-container" className="absolute inset-0 z-0"></div>
+            <NavBar />
+            <div className="w-full flex flex-row justify-center mt-8 items-center relative z-10">
                 <h2 className="text-5xl font-sans font-semibold text-[#FEE440] text-shadow-md text-shadow-slate-500">Garlic Text</h2>
                 <img src={"/garlicTextNoBackground.png"} alt="garlicTextIcon" width={60} height={60} className=" animate-[--custom-bounce_0.65s_ease-in-out_infinite] ml-2"/>
             </div>
-            <div className="w-full max-w-96 shadow-xl shadow-slate-600 flex flex-col items-center mt-10 p-8 self-center bg-white rounded-xl transition duration-700 ease-in-out">
+            <div className="w-full max-w-96 shadow-xl shadow-slate-600 flex flex-col items-center mt-10 p-8 self-center bg-white rounded-xl transition duration-700 ease-in-out relative z-10">
                 <h1 className="text-[#00B8F5] text-4xl font-sans font-bold self-start">Sign in</h1>
                 {loading ? 
-                    <div className="w-full flex flex-col items-center mt-20 mb-20">
-                        <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mb-4">
-                            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                        </div>
-                        <h2 className="text-2xl font-bold text-green-600 mb-2">Account Created Successfully!</h2>
-                        <p className="text-gray-600 text-center">Welcome to GarlicText! Redirecting you to the homepage...</p>
-                    </div>
-                : loading ? 
                     <div className="w-24 h-24 mt-36 mb-36 border-8 border-t-[#FEE440] border-white rounded-full animate-spin"></div>
                 :
                 <>

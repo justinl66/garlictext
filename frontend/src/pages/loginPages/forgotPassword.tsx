@@ -1,6 +1,7 @@
-import {useState, useContext} from 'react'
+import {useState, useContext, useEffect} from 'react'
 import { AuthContext } from '../../firebase/firebaseAuth'
 import { useNavigate } from 'react-router-dom'
+import { startBubbleAnimation } from '../../utils/bubbleAnimation.ts'
 
 export default function ForgotPasswordPage(){
     const navigate = useNavigate();
@@ -17,6 +18,11 @@ export default function ForgotPasswordPage(){
 
     const [email, setEmail] = useState("");
     const [error, setError] = useState("");
+
+    useEffect(() => {
+        const cleanup = startBubbleAnimation();
+        return cleanup;
+    }, []);
 
     const handleClick = async ()=>{
         if(email === ""){
@@ -40,15 +46,19 @@ export default function ForgotPasswordPage(){
     }
 
     return(
-         <div className="w-screen h-screen flex flex-col bg-linear-to-br from-[#9B5DE5] to-[#F15BB5] via-[#00BBF9] ">
-            <div className="w-full flex flex-row justify-center mt-8 items-center">
+         <div className="w-screen h-screen flex flex-col bg-linear-to-br from-[#9B5DE5] to-[#F15BB5] via-[#00BBF9] relative overflow-hidden">
+            <div id="bubble-container" className="absolute inset-0 z-0"></div>
+            
+            <div className="w-full flex flex-row justify-center mt-8 items-center relative z-10">
                 <h2 className="text-5xl font-sans font-semibold text-[#FEE440] text-shadow-md text-shadow-slate-500">Garlic Text</h2>
                 <img src={"/garlicTextNoBackground.png"} alt="garlicTextIcon" width={60} height={60} className=" animate-[--custom-bounce_0.65s_ease-in-out_infinite] ml-2"/>
             </div>
-            <div className="w-full max-w-96 shadow-xl shadow-slate-600 flex flex-col items-center mt-10 p-8 self-center bg-white rounded-xl transition duration-700 ease-in-out">
-                <h1 className="text-[#00B8F5] text-4xl font-sans font-bold self-start">Reset Password</h1>
-                {loading? 
-                    <div className="w-24 h-24 mt-36 mb-36 border-8 border-t-[#FEE440] border-white rounded-full animate-spin"></div>
+            <div className="w-full max-w-md mx-auto flex flex-col items-center mt-10 p-8 bg-white rounded-xl shadow-2xl relative z-10">
+                <h1 className="text-[#00B8F5] text-3xl font-sans font-bold self-start mb-6">Reset Password</h1>
+                {loading?
+                    <div className="flex justify-center items-center h-48">
+                        <div className="w-16 h-16 border-8 border-t-[#FEE440] border-gray-200 rounded-full animate-spin"></div>
+                    </div>
                 :
                 <>
                     <div className="w-full flex flex-col mt-7">

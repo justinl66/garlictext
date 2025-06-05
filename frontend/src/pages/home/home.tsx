@@ -3,6 +3,7 @@ import { AuthContext } from '../../firebase/firebaseAuth.tsx';
 import NavBar from '../General/NavBar.tsx';
 import { useNavigate } from 'react-router-dom';
 import { createGame, joinGame } from '../../services/game_backend_interact.ts';
+import { startBubbleAnimation } from '../../utils/bubbleAnimation';
 
 export default function HomePage() {
     const authContext = useContext(AuthContext);
@@ -29,6 +30,12 @@ export default function HomePage() {
             navigate(`/game/lobby/${createdCode}`);
         }
     }, [createdCode]);
+
+    // Add bubble animation effect
+    useEffect(() => {
+        const cleanup = startBubbleAnimation();
+        return cleanup;
+    }, []);
 
     const createGameHandler = async () => {
         if(!roomName || roomName.length < 3) {
@@ -78,9 +85,10 @@ export default function HomePage() {
 
     return(
         <div className="w-full min-h-screen flex flex-col bg-gradient-to-br from-[#9B5DE5] to-[#F15BB5] via-[#00BBF9]">
+            <div id="bubble-container" className="absolute inset-0 z-0"></div>
             <NavBar />
             
-            <div className="w-full flex flex-col items-center justify-center flex-grow py-10">
+            <div className="w-full flex flex-col items-center justify-center flex-grow py-10 relative z-10">
                 <div className="flex flex-row justify-center items-center mb-6">
                     <h2 className="text-6xl font-sans font-bold text-[#FEE440] text-shadow-lg">GarlicText</h2>
                     <img src={"/garlicTextNoBackground.png"} alt="garlicTextIcon" width={80} height={80} className="animate-[--custom-bounce_0.65s_ease-in-out_infinite] ml-3"/>
@@ -181,3 +189,4 @@ export default function HomePage() {
     )
 
 }
+

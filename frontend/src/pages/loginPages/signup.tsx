@@ -1,7 +1,8 @@
-import {useState, useRef, useContext} from "react";
+import {useState, useRef, useContext, useEffect} from "react";
 import { useNavigate } from 'react-router-dom';
-import {AuthContext} from "../../firebase/firebaseAuth";
+import {AuthContext} from "../../firebase/firebaseAuth.tsx";
 import NavBar from "../General/NavBar.tsx";
+import { startBubbleAnimation } from '../../utils/bubbleAnimation.ts';
 
 export default function SignUpPage() {
     const navigate = useNavigate();
@@ -89,14 +90,21 @@ export default function SignUpPage() {
         }, 1500);
     };
 
+    useEffect(() => {
+        const cleanup = startBubbleAnimation();
+        return cleanup;
+    }, []);
+
     return (
-        <div className="w-screen h-full min-h-screen pb-20 flex flex-col bg-linear-to-br from-[#9B5DE5] to-[#F15BB5] via-[#00BBF9] ">
-            < NavBar />
-            <div className="w-full flex flex-row justify-center mt-8 items-center">
+        <div className="w-screen h-full min-h-screen pb-20 flex flex-col bg-linear-to-br from-[#9B5DE5] to-[#F15BB5] via-[#00BBF9] relative">
+            <div id="bubble-container" className="absolute inset-0 z-0"></div>
+            <NavBar />
+            <div className="w-full flex flex-row justify-center mt-8 items-center relative z-10">
                 <h2 className="text-5xl font-sans font-semibold text-[#FEE440] text-shadow-md text-shadow-slate-500">Garlic Text</h2>
                 <img src={"/garlicTextNoBackground.png"} alt="garlicTextIcon" width={60} height={60} className=" animate-[--custom-bounce_0.65s_ease-in-out_infinite] ml-2"/>
             </div>
-            <div className="w-full max-w-4xl shadow-xl shadow-slate-600 flex flex-col items-center mt-10 p-8 self-center bg-white rounded-xl mx-20">                <h1 className="text-[#00B8F5] text-4xl font-sans font-bold self-start">Sign Up</h1>
+            <div className="w-full max-w-4xl shadow-xl shadow-slate-600 flex flex-col items-center mt-10 p-8 self-center bg-white rounded-xl mx-20 relative z-10">
+                <h1 className="text-[#00B8F5] text-4xl font-sans font-bold self-start">Sign Up</h1>
                 {success ? 
                     <div className="w-full flex flex-col items-center mt-20 mb-20">
                         <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mb-4">

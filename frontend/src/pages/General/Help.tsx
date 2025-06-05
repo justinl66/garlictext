@@ -1,14 +1,22 @@
 import { Link, useNavigate } from 'react-router-dom';
 import NavBar from './NavBar.tsx';
+import { useEffect } from 'react';
+import { startBubbleAnimation } from '../../utils/bubbleAnimation.ts';
 
 export default function Help() {
 
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const cleanup = startBubbleAnimation();
+    return cleanup;
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#9B5DE5] to-[#F15BB5] via-[#00BBF9] pt-0.5 pb-10">
+    <div className="min-h-screen bg-gradient-to-br from-[#9B5DE5] to-[#F15BB5] via-[#00BBF9] pt-0.5 pb-10 relative">
+      <div id="bubble-container" className="absolute inset-0 z-0"></div>
       <NavBar />
-      <div className="max-w-4xl mx-auto p-8 bg-white rounded-xl shadow-xl h-full mt-10 pt-10">
+      <div className="max-w-4xl mx-auto p-8 bg-white rounded-xl shadow-xl h-full mt-10 pt-10 relative z-10">
         <h1 className="text-4xl font-bold text-[#00B8F5] mb-6">How to Play</h1>
         
         <div className="space-y-6 text-gray-700">

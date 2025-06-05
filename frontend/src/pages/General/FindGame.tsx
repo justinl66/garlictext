@@ -1,8 +1,9 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from './NavBar';
 import { AuthContext } from '../../firebase/firebaseAuth';
 import { joinGame } from '../../services/game_backend_interact';
+import { startBubbleAnimation } from '../../utils/bubbleAnimation';
 
 // Define a type for a game object (adjust based on your actual game data structure)
 interface Game {
@@ -34,6 +35,12 @@ export default function FindGame() {
   const [joinCode, setJoinCode] = useState('');
 
   const [error, setError] = useState<string | null>(null);
+
+  // bubble animation
+  useEffect(() => {
+    const cleanup = startBubbleAnimation();
+    return cleanup;
+  }, []);
 
   const handleSearchSubmit = async () => {
     setLoading(true);
@@ -93,10 +100,11 @@ export default function FindGame() {
   }
 
   return (
-    <div className="w-full min-h-screen flex flex-col bg-gradient-to-br from-[#9B5DE5] to-[#F15BB5] via-[#00BBF9]">
+    <div className="w-full min-h-screen flex flex-col bg-gradient-to-br from-[#9B5DE5] to-[#F15BB5] via-[#00BBF9] relative">
+      <div id="bubble-container" className="absolute inset-0 z-0"></div>
       <NavBar />
       
-      <div className="w-full flex flex-col items-center justify-center flex-grow py-10 px-4">
+      <div className="w-full flex flex-col items-center justify-center flex-grow py-10 px-4 relative z-10">
         <div className="w-full max-w-2xl bg-white rounded-xl shadow-2xl p-8 relative overflow-hidden">
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#FEE440] rounded-full opacity-20"></div>
           <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-[#F15BB5] rounded-full opacity-20"></div>
@@ -162,22 +170,20 @@ export default function FindGame() {
                 </div>
 
                 {/* Hide Full Games Checkbox */}
-                <div className="flex items-center mb-4">
+                <div className="flex items-center justify-center pt-4 md:pt-0">
                   <input
                     type="checkbox"
                     id="hideFullGames"
                     checked={pendingHideFullGames}
                     onChange={(e) => setPendingHideFullGames(e.target.checked)}
-                    // Hide the native checkbox visually, but keep it accessible
                     className="sr-only peer"
                   />
                   <div
-                    // This div will be our custom checkbox
                     className={`
-                      relative w-5 h-5 rounded border-2 transition-all duration-200 ease-in-out
-                      ${pendingHideFullGames // Apply classes based on the pending state
-                        ? 'bg-gradient-to-br from-[#9B5DE5] via-[#00BBF9] scale-125' // Checked state: gradient background, no border
-                        : 'bg-white border-black' // Unchecked state: white background, black border
+                      relative w-5 h-5 rounded border-2 transition-all duration-200 ease-in-out cursor-pointer
+                      ${pendingHideFullGames 
+                        ? 'bg-gradient-to-br from-[#9B5DE5] via-[#00BBF9] border-transparent scale-110' 
+                        : 'bg-white border-gray-400'
                       }
                       peer-focus:ring-2 peer-focus:ring-[#00BBF9] peer-focus:ring-offset-2
                       flex items-center justify-center
@@ -258,8 +264,8 @@ export default function FindGame() {
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
               <div className="bg-white rounded-xl p-6 w-full max-w-md relative shadow-2xl">
                   <button 
-                      onClick={() => setShowJoinModal(false)}
-                      className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+                      onClick={() => {setShowJoinModal(false); setError(null);}}
+                      className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition"
                   >
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -282,11 +288,11 @@ export default function FindGame() {
                       <p className='font-medium text-red-500 mb-2 text-center'>{error}</p>
                       <button 
                           onClick={handleJoinGameNonAuth}
-                          disabled={playerName.length < 3 || joinCode.length !== 6}
+                          disabled={!playerName.trim()}
                           className={`w-full py-4 rounded-lg font-bold text-lg ${
-                              (playerName.length  >= 3 && joinCode.length === 6)
-                                  ? 'bg-gradient-to-r from-[#9B5DE5] to-[#00BBF9] text-white hover:opacity-90 transition' 
-                                  : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                              playerName.trim()
+                                ? 'bg-gradient-to-r from-[#9B5DE5] to-[#00BBF9] text-white hover:opacity-90 transition' 
+                                : 'bg-gray-200 text-gray-500 cursor-not-allowed'
                           }`}
                       >
                           Join Game

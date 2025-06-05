@@ -38,6 +38,23 @@ button, .text-xl, .text-2xl, .text-3xl, .text-4xl, .text-5xl, .text-6xl {
   
 }
 
+@keyframes float {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  100% {
+    transform: translateY(-100vh) rotate(var(--random-offset));
+  }
+}
+
+.bubble {
+  position: absolute;
+  bottom: 0;
+  border-radius: 50%;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
 /* a {
   font-weight: 500;
   color: #646cff;
