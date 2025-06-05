@@ -45,103 +45,147 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-purple-700 to-pink-500 text-white p-6">
-      <div className="bg-white bg-opacity-10 backdrop-blur-lg rounded-2xl shadow-lg p-8 w-full max-w-md text-center">
-        
-        {/* Avatar or Fallback */}
-        <div className="w-28 h-28 rounded-full bg-white bg-opacity-20 flex items-center justify-center mx-auto text-4xl font-bold overflow-hidden mb-4">
+    <div className="min-h-screen w-full bg-gradient-to-br from-purple-200 via-pink-200 to-sky-200 flex items-center justify-center px-4 py-12">
+      <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-10 pb-10 relative overflow-hidden text-[15px]">
+        <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#FEE440] rounded-full opacity-10 z-0"></div>
+        <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-[#F15BB5] rounded-full opacity-10 z-0"></div>
+
+        <div className="flex justify-between items-center mb-6 relative z-10">
+          <h1 className="text-4xl font-bold text-[#9B5DE5] relative z-10">My Profile</h1>
+          <button
+            onClick={() => navigate("/")}
+            className="rounded-full bg-gradient-to-br from-[#34D399] to-[#059669] flex items-center justify-center text-white text-sm font-semibold px-6 py-2 shadow-lg hover:shadow-xl transition duration-200 relative z-10"
+          >
+            Home
+          </button>
+        </div>
+
+        <div className="flex items-center gap-6 mb-4 relative z-10">
           {user?.photoURL ? (
             <img
               src={user.photoURL}
               alt="Profile"
-              className="w-full h-full object-cover rounded-full"
+              className="w-24 h-24 rounded-full object-cover shadow-md border-2 border-[#9B5DE5]"
             />
           ) : (
-            <span>{user?.displayName?.[0] || "?"}</span>
-          )}
-        </div>
-
-        {/* User Info */}
-        <h1 className="text-3xl font-extrabold mb-1">{user?.displayName || "Anonymous"}</h1>
-        <p className="text-sm text-gray-200 mb-1">{user?.email || "No email"}</p>
-        <p className="text-xs text-gray-300 mb-4">UID: {user?.uid || "N/A"}</p>
-
-        {/* Email Verified */}
-        <div className="mb-4">
-          {user?.emailVerified ? (
-            <p className="text-green-300 font-medium">Email Verified ✅</p>
-          ) : (
-            <button
-              onClick={() => navigate("/profile/verify")}
-              className="bg-yellow-400 hover:bg-yellow-300 text-black font-semibold py-1 px-3 rounded transition"
-            >
-              Verify Email
-            </button>
-          )}
-        </div>
-
-        {/* Bio */}
-        <p className="italic text-gray-200 mb-6">"{bio}"</p>
-
-        {/* Stats */}
-        <div className="bg-white bg-opacity-10 rounded-lg p-4 mb-6">
-          <p>Games Played: <span className="font-bold">placeholder</span></p>
-          <p>Rounds Completed: <span className="font-bold">placeholder</span></p>
-          <p>Wins: <span className="font-bold">placeholder</span></p>
-        </div>
-
-        {/* Edit Profile */}
-        <button
-          onClick={() => navigate("/profile/edit")}
-          className="bg-white text-purple-700 hover:bg-purple-100 font-bold py-2 px-4 rounded-xl transition mb-4"
-        >
-          Edit Profile
-        </button>
-
-        {/* Delete Account Section */}
-        <div className="mt-6">
-          {deleteMessage && (
-            <p className="text-sm text-yellow-200 mb-2">{deleteMessage}</p>
-          )}
-
-          {deleteConfirm ? (
-            <div>
-              <p className="mb-2 text-sm text-red-200">Are you sure?</p>
-              <button
-                onClick={handleDeleteAccount}
-                disabled={deleteLoading}
-                className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded mr-2"
-              >
-                {deleteLoading ? "Deleting..." : "Yes, Delete"}
-              </button>
-              <button
-                onClick={() => setDeleteConfirm(false)}
-                className="bg-gray-300 text-black py-2 px-4 rounded"
-              >
-                Cancel
-              </button>
+            <div className="w-24 h-24 rounded-full bg-gradient-to-r from-[#9B5DE5] to-[#00BBF9] flex items-center justify-center text-white font-bold text-2xl shadow-md">
+              {user?.displayName?.[0] || "?"}
             </div>
-          ) : (
+          )}
+          <div>
+            <div className="flex items-center gap-2">
+              <p className="text-xl font-semibold text-gray-800">
+                {user?.displayName || "Unnamed User"}
+              </p>
+              {badge && (
+                <span className="text-sm bg-[#9B5DE5] text-white px-2 py-1 rounded-md">
+                  {badge}
+                </span>
+              )}
+            </div>
+            <p className="text-gray-500">{user?.email}</p>
+            <p className="italic text-gray-400 mt-1">"{bio}"</p>
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold text-gray-800">Your Stats</h2>
+          <div className="flex flex-col gap-2 mt-2 text-sm text-gray-700">
+            <p>Games Played: <span className="font-bold">placeholder</span></p>
+            <p>Rounds Completed: <span className="font-bold">placeholder</span></p>
+            <p>Wins: <span className="font-bold">placeholder</span></p>
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold text-gray-800">Account Details</h2>
+          <div className="mt-2 space-y-2 text-sm text-gray-700">
+            <div className="flex items-center gap-3">
+              <p className="flex items-center gap-1">
+                <span className="font-semibold">Email Verified:</span>{" "}
+                {user?.emailVerified || localStorage.getItem("emailVerified") === "true" ? (
+                  <span className="text-green-600 font-semibold">✅</span>
+                ) : (
+                  <span className="text-red-500 font-semibold">No</span>
+                )}
+              </p>
+              {!user?.emailVerified && (
+                <button
+                  onClick={() => navigate("/profile/verify")}
+                  className="bg-yellow-400 hover:bg-yellow-500 text-white text-xs font-semibold py-1 px-3 rounded-xl transition"
+                >
+                  Verify Email
+                </button>
+              )}
+            </div>
+            <p><span className="font-semibold">UID:</span> {user?.uid}</p>
+            <p><span className="font-semibold">Last Sign-In:</span> {user?.metadata.lastSignInTime}</p>
+            <p><span className="font-semibold">Account Created:</span> {user?.metadata.creationTime}</p>
+          </div>
+        </div>
+
+        <div className="pt-4 border-t border-gray-200 mt-6 relative z-10">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Actions</h2>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <button
+              onClick={() => navigate("/profile/edit")}
+              className="rounded-full bg-gradient-to-br from-[#06B6D4] to-[#7C3AED] flex items-center justify-center text-white text-sm font-semibold py-4 shadow-lg hover:shadow-xl transition duration-200 relative z-10"
+            >
+              Edit Profile
+            </button>
+            <button
+              onClick={() => navigate("/resetpassword")}
+              className="rounded-full bg-gradient-to-br from-[#60A5FA] to-[#1D4ED8] flex items-center justify-center text-white text-sm font-semibold py-4 shadow-lg hover:shadow-xl transition duration-200 relative z-10"
+            >
+              Reset Password
+            </button>
+            <button
+              onClick={handleSignOut}
+              className="rounded-full bg-gradient-to-br from-[#F87171] to-[#B91C1C] flex items-center justify-center text-white text-sm font-semibold py-4 shadow-lg hover:shadow-xl transition duration-200 relative z-10"
+            >
+              Sign Out
+            </button>
             <button
               onClick={() => setDeleteConfirm(true)}
-              className="text-red-300 text-sm underline"
+              className="rounded-full bg-gradient-to-br from-[#FB923C] to-[#EA580C] flex items-center justify-center text-white text-sm font-semibold py-4 shadow-lg hover:shadow-xl transition duration-200 relative z-10"
             >
               Delete Account
             </button>
-          )}
-        </div>
+          </div>
 
-        {/* Return to Home */}
-        <div className="mt-12">
-          <button
-            onClick={() => navigate("/")}
-            className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-4 rounded-md shadow-sm transition"
-          >
-            Return To Home Page
-          </button>
+          {deleteConfirm && (
+            <div className="bg-red-100 p-4 rounded-lg text-sm text-red-800 mt-6">
+              <p className="font-semibold mb-2">Are you sure you want to delete your account?</p>
+              <p className="mb-4 text-xs">This action is permanent and cannot be undone.</p>
+              <div className="flex gap-4">
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={deleteLoading}
+                  className="bg-red-600 text-white font-semibold py-2 px-4 rounded hover:bg-red-700 transition duration-200 disabled:opacity-50"
+                >
+                  {deleteLoading ? "Deleting..." : "Yes, Delete"}
+                </button>
+                <button
+                  onClick={() => {
+                    setDeleteConfirm(false);
+                    setDeleteMessage("");
+                  }}
+                  disabled={deleteLoading}
+                  className="bg-gray-500 text-white font-semibold py-2 px-4 rounded hover:bg-gray-600 transition duration-200"
+                >
+                  Cancel
+                </button>
+              </div>
+              {deleteMessage && (
+                <div className={`mt-3 p-2 rounded ${deleteMessage.includes("Error") ? "bg-red-200 text-red-800" : "bg-green-200 text-green-800"}`}>
+                  {deleteMessage}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
-}
 }
