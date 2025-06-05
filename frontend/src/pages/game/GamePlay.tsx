@@ -213,7 +213,7 @@ export default function DrawingPage() {
   };
   
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#9B5DE5] to-[#F15BB5] via-[#00BBF9]">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-purple-200 via-pink-200 to-sky-200">
       <NavBar />
       
       <div className="container mx-auto px-4 py-6 flex-grow flex flex-col">

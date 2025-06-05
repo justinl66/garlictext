@@ -45,7 +45,7 @@ export default function ProfilePage(){
     }
 
     return(
-        <div className="flex flex-col w-screen min-h-screen h-full px-10 py-12 items-center  bg-linear-to-br from-[#9B5DE5] to-[#F15BB5] via-[#00BBF9]">
+        <div className="flex flex-col w-screen min-h-screen h-full px-10 py-12 items-center bg-gradient-to-br from-purple-200 via-pink-200 to-sky-200">
             <div className="flex flex-col w-full max-w-2xl bg-white rounded-lg shadow-lg p-8">
                 <h1 className="text-3xl font-semibold text-black">My Profile</h1>
                 <div className="mt-6 ml-4">
