@@ -12,8 +12,8 @@ module.exports = app => {
   router.put("/:id/caption", images.updateCaptionedImage);
 
   router.post("/:id/vote", images.vote);
-  router.get("/round/:roundId", authentication.authenticateFirebaseToken, images.findByRoundId);  
-  router.get("/assigned/:gameId", authentication.authenticateFirebaseToken, images.getAssignedImageForUser);
+  router.get("/round/:roundId", images.findByRoundId);  
+  router.get("/assigned/:gameId", images.getAssignedImageForUser);
 
   router.get("/latest", images.getLatestImage);
 
@@ -23,6 +23,6 @@ module.exports = app => {
 
   router.get("/:id/captioned", images.getCaptionedImage);
 
-  router.get("/:id", authentication.authenticateFirebaseToken, images.findOne);
+  router.get("/:id", images.findOne);
   app.use("/api/images", router);
 };

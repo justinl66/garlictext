@@ -368,7 +368,7 @@ exports.getCaptionedImage = async (req, res) => {
 
 exports.getAssignedImageForUser = async (req, res) => {
   try {
-    const userId = req.user ? req.user.uid : req.body.userId;
+    const userId = req.query.userId;
     const gameId = req.params.gameId || req.body.gameId;
 
     if (!userId || !gameId) {

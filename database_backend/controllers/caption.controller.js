@@ -7,9 +7,10 @@ const { Op } = db.Sequelize;
 
 exports.create = async (req, res) => {
   try {
-    if (!req.user || !req.user.uid) {
+    const uid = req.body.userId
+    if (!uid) {
       return res.status(401).send({
-        message: "Authentication required"
+        message: "User ID required"
       });
     }
 
@@ -20,7 +21,7 @@ exports.create = async (req, res) => {
     }
 
     const caption = {
-      userId: req.user.uid,
+      userId: uid,
       imageId: req.body.imageId,
       roundId: req.body.roundId,
       text: req.body.text

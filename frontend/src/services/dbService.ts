@@ -218,9 +218,9 @@ const imageApi = {
     } catch (error) {
       throw error;
     }  
-  },  getAssignedImageForUser: async (gameId: string) => {
+  },  getAssignedImageForUser: async (gameId: string, userId: string) => {
     try {
-      const response = await dbApi.get(`/images/assigned/${gameId}`);
+      const response = await dbApi.get(`/images/assigned/${gameId}/?userId=${userId}`);
       return response.data;
     } catch (error) {
       throw error;
@@ -252,6 +252,7 @@ const imageApi = {
 };
 
 const captionApi = {  createCaption: async (captionData: {
+    userId: string;
     imageId: string;
     roundId: string;
     text: string;

@@ -4,6 +4,7 @@ import NavBar from '../General/NavBar';
 import { AuthContext } from '../../firebase/firebaseAuth';
 import { createCaptionedImage, calculateOptimalFontSize } from '../../utils/captionOverlay';
 import dbService from '../../services/dbService';
+import Cookies from 'js-cookie';
 
 export default function CaptionPage() {
   const navigate = useNavigate();
@@ -21,11 +22,14 @@ export default function CaptionPage() {
   if (!authContext) {
     return <div>Loading...</div>;
   }
-  const { user: currentUser } = authContext;  useEffect(() => {
+  const { user: currentUser } = authContext;  
+  useEffect(() => {
     if (currentRoomId) {
       const fetchAssignedImage = async () => {
         try {
-          const assignedImageData = await dbService.image.getAssignedImageForUser(currentRoomId);          if (assignedImageData && assignedImageData.image) {
+          const userId = currentUser ? currentUser.uid : Cookies.get('id');
+          const assignedImageData = await dbService.image.getAssignedImageForUser(currentRoomId, userId);         
+          if (assignedImageData && assignedImageData.image) {
             const assignedImage = assignedImageData.image;
             setImageId(assignedImage.id);
             setIsUsingFallback(false);
@@ -42,7 +46,8 @@ export default function CaptionPage() {
           }
         } catch (error) {
           console.error('Error fetching assigned image:', error);
-          try {            const latestImage = await dbService.image.getLatestImage();
+          try {            
+            const latestImage = await dbService.image.getLatestImage();
             if (latestImage && latestImage.id) {
               setImageId(latestImage.id);
               setIsUsingFallback(false);
@@ -81,7 +86,7 @@ export default function CaptionPage() {
     }
   };
     const handleSubmit = async () => {
-    if (isSubmitting || !caption.trim() || !imageId || !currentUser) return;
+    if (isSubmitting || !caption.trim() || !imageId) return;
     
     setIsSubmitting(true);    try {
       if (!imageId) {
@@ -89,9 +94,12 @@ export default function CaptionPage() {
       }      if (!currentRoomId || currentRoomId.trim() === '') {
         throw new Error('Room ID is required');
       }
-      if (!currentUser?.uid) {
-        throw new Error('User authentication required');
-      }      const captionData = {
+      // if (!currentUser?.uid) {
+      //   throw new Error('User authentication required');
+      // }   
+      const currentUserId = currentUser? currentUser.uid : Cookies.get('id')
+      const captionData = {
+        userId: currentUserId,
         imageId,
         text: caption.trim(),
         roundId: currentRoomId
