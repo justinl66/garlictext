@@ -807,7 +807,7 @@ exports.findByCode = async (req, res) => {
 exports.getGameStatus = async (req, res) => {
   const id = req.params.id;
   const version = req.query.version;
-  console.log("getGameStatus called with id:", id, "and version:", version);
+  // console.log("getGameStatus called with id:", id, "and version:", version);
   try{
     if (!id) {
       return res.status(400).send({
