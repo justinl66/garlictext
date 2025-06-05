@@ -340,20 +340,6 @@ const updateWritingTime = async (writingTime: number) => {
                       <option value={12}>12 Players</option>
                     </select>
                   </div>
-                  <div>
-                    <label className="block text-gray-800 font-medium mb-2">Rounds</label>
-                    <select 
-                      value={gameSettings.rounds}
-                      onChange={(e) => updateRounds(+e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9] text-gray-800"
-                      disabled={creator != user?.uid}
-                    >
-                      <option value={2}>2 Rounds</option>
-                      <option value={3}>3 Rounds</option>
-                      <option value={4}>4 Rounds</option>
-                      <option value={5}>5 Rounds</option>
-                    </select>
-                  </div>
                   
                   <div>
                     <label className="block text-gray-800 font-medium mb-2">Drawing Time</label>
