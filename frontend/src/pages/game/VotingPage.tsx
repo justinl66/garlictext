@@ -11,6 +11,7 @@ interface CaptionedImage {
   authorName: string;
   promptText: string;
   isUsingFallback?: boolean;
+  authorAvatar?: string; // Add avatar
 }
 
 export default function VotingPage() {
@@ -36,7 +37,8 @@ export default function VotingPage() {
             dbService.image.getEnhancedImageUrl(image.id) : 
             dbService.image.getOriginalImageUrl(image.id),
           caption: image.captions?.[0]?.text || `Drawing by ${image.user?.username || 'Anonymous'}`,
-          authorName: image.captions?.[0]?.user?.username || image.user?.username || 'Anonymous',
+          authorName: image.user?.username || 'Anonymous',
+          authorAvatar: image.user?.profilePictureUrl || '/garlicTextNoBackground.png', // Add avatar
           promptText: image.prompt || 'No prompt available'        }));
 
         const filteredImages = transformedImages.filter((image: any) => 
@@ -50,6 +52,7 @@ export default function VotingPage() {
             imageUrl: '/garlicTextNoBackground.png',
             caption: "a sweaty person",
             authorName: 'Player 1',
+            authorAvatar: '/garlicTextNoBackground.png', // Mock avatar
             promptText: 'Draw a programmer debugging code'
           }
         ];
@@ -171,7 +174,15 @@ export default function VotingPage() {
           
           <div className="bg-gray-200 rounded-lg p-4 mb-6">
             <p className="text-lg font-medium text-center text-[#9B5DE5]">{currentImage.caption}</p>
-            <p className="text-sm text-gray-600 text-center mt-2">By: {currentImage.authorName}</p>          </div>
+            <div className="flex items-center justify-center mt-2">
+              <img
+                src={currentImage.authorAvatar}
+                alt={currentImage.authorName}
+                className="w-8 h-8 rounded-full mr-2"
+              />
+              <p className="text-sm text-gray-600">{currentImage.authorName}</p>
+            </div>
+          </div>
             <div className="mb-8">            <div className="text-center mb-4">
               <h3 className="text-lg font-semibold text-[#9B5DE5]">Rate this drawing:</h3>
             </div><div className="flex justify-center gap-3">
