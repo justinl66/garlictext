@@ -5,8 +5,10 @@ const Caption = db.Caption;
 const Game = db.Game;
 const { Op } = db.Sequelize;
 
-exports.create = async (req, res) => {  try {
-    if (!req.user || !req.user.uid) {
+exports.create = async (req, res) => {  
+  try {
+    const userId = req.body.userId;
+    if (!userId) {
       return res.status(401).send({
         message: "Authentication required"
       });
@@ -33,15 +35,38 @@ exports.create = async (req, res) => {  try {
       }
     } else {
       originalDrawingBuffer = Buffer.from(req.body.originalDrawingData, 'base64');
-    }    const image = {
-      userId: req.user.uid,
+    }    
+    const image = {
+      userId: userId,
       roundId: req.body.roundId && req.body.roundId !== 'null' ? req.body.roundId : null,
       prompt: req.body.prompt,
       originalDrawingData: originalDrawingBuffer,
       originalDrawingMimeType: mimeType,
       enhancedImageData: req.body.enhancedImageData ? Buffer.from(req.body.enhancedImageData, 'base64') : null,
-      enhancedImageMimeType: req.body.enhancedImageMimeType || 'image/png'
-    };    const data = await Image.create(image);
+      enhancedImageMimeType: req.body.enhancedImageMimeType || 'image/png'    
+    };    
+    const data = await Image.create(image);
+    
+    if (image.roundId) {
+      const game = await Game.findByPk(image.roundId, {
+        include: [
+          {
+            model: User,
+            as: 'participants',
+            attributes: ['id']
+          }
+        ]
+      });
+      if (game) {
+        game.submittedImages = game.submittedImages + 1;
+        if (game.submittedImages >= game.participants.length) {
+          game.status = 'captioning';
+          game.updateNumber = game.updateNumber + 1;
+        }
+        await game.save();
+      }
+    }
+    
     res.status(201).send(data);
   } catch (err) {
     res.status(500).send({
@@ -142,10 +167,30 @@ exports.vote = async (req, res) => {
       return res.status(404).send({
         message: `Image with id=${id} was not found.`
       });
-    }
-    
+    }    
     image.votes += rating;
     await image.save();
+    
+    if (req.body.isLastVote && image.roundId) {
+      // console.log(`Last vote for image ${id} in round ${image.roundId}`);
+      const game = await Game.findByPk(image.roundId, {
+        include: [
+          {
+            model: User,
+            as: 'participants',
+            attributes: ['id']
+          }
+        ]
+      });
+      if (game) {
+        game.votingDoneCount = game.votingDoneCount + 1;
+        if (game.votingDoneCount >= game.participants.length) {
+          game.status = 'trophies';
+          game.updateNumber = game.updateNumber + 1;
+        }
+        await game.save();
+      }
+    }
     
     res.send({
       message: `Vote added successfully with rating ${rating}!`,
@@ -366,7 +411,7 @@ exports.getCaptionedImage = async (req, res) => {
 
 exports.getAssignedImageForUser = async (req, res) => {
   try {
-    const userId = req.user ? req.user.uid : req.body.userId;
+    const userId = req.query.userId;
     const gameId = req.params.gameId || req.body.gameId;
 
     if (!userId || !gameId) {
@@ -409,7 +454,8 @@ exports.getAssignedImageForUser = async (req, res) => {
       return res.status(404).send({
         message: `Game with ID ${gameId} not found.`
       });
-    }    const participants = game.participants.sort((a, b) => a.id.localeCompare(b.id));
+    }    
+    const participants = game.participants.sort((a, b) => a.id.localeCompare(b.id));
     const participantCount = participants.length;
 
     if (participantCount === 0) {
