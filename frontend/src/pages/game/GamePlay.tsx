@@ -68,6 +68,10 @@ export default function DrawingPage() {
           console.warn('No theme found in game data, using fallback');
           setTheme('Draw anything you like!');
         }
+
+        if(gameData && gameData.drawingTime){
+          setTimeLeft(gameData.drawingTime);
+        }
         
       } catch (error) {
         console.error('Error fetching game data:', error);

@@ -568,6 +568,7 @@ exports.getPromptInfo = async (req, res) => {
     return res.status(200).send({
       message: "updated",
       prompterId: game.prompterId,
+      time: game.writingTime,
       status: game.status,
       currentUpdate: game.id + game.updateNumber,
     });
@@ -835,6 +836,8 @@ exports.getGameStatus = async (req, res) => {
     res.status(200).send({
       message: "updated",
       status: game.status,
+      writingTime: game.writingTime,
+      drawingTime: game.drawingTime,
       currentUpdate: game.id + game.updateNumber,
     });
   }catch (err) {

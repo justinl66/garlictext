@@ -170,6 +170,10 @@ export default function CaptionPage() {
             navigate('/');
           }
         }
+
+        if(reloaded && gameData.writingTime){
+          setTimeLeft(gameData.writingTime);
+        }
         
       } catch (error) {
         console.log('Error checking game status:', error);

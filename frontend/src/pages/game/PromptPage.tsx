@@ -68,6 +68,10 @@ export default function PromptPage() {
         }
       }
 
+      if(reload){
+        setTimeLeft(data.time || 60)
+      }
+
       const userId = user? user.uid : Cookies.get('id') // Get user ID from context or cookies
 
       setIsPrompter(data.prompterId == userId); // Check if current user is the prompter
