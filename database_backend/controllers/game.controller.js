@@ -141,9 +141,9 @@ exports.getLobbyInfo = async (req, res) => {
     // }
 
     const players = game.participants.map((participant) => ({
-      id: participant.dataValues.id,
-      name: participant.dataValues.username,
-      avatar: participant.dataValues.profilePictureUrl || '/defaultAvatar.png', // use default if no avatar
+      id: participant.id,
+      name: participant.username,
+      avatar: participant.profilePictureUrl || '/garlicTextNoBackground.png', // Use garlicTextNoBackground as default
       isReady: true,
     }));
 
