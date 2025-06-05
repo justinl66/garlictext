@@ -19,25 +19,24 @@ export default function NavBar() {
               <Link to="/" className='hover:text-amber-100 transition'>Home</Link>
               <Link to="/findGame" className='hover:text-amber-100 transition'>Find Game</Link>
               <Link to="/help" className='hover:text-amber-100 transition'>Help</Link>
-              {
-                user?
-                <Link to="/profile" className='hover:text-amber-100 transition flex flex-row items-center'>
-                  {user.displayName}                  <div className='w-10 h-10 rounded-full bg-gradient-to-r from-[#9B5DE5] to-[#00BBF9] flex items-center justify-center text-white font-bold ml-4'>
-                    {
-                      user.photoUrl?
-                      <img src={user.photoUrl} alt="user photo" width={40} height={40} className='ml-6 rounded-full '/>
-                      :
-                      (user.displayName && user.displayName.charAt(0).toUpperCase()) || 'U'
-                    }
-                  </div>
-                </Link>
+              {user ? (
+              <Link to="/profile" className='hover:text-amber-100 transition flex flex-row items-center gap-2'>
+                <div className='w-10 h-10 rounded-full bg-gradient-to-r from-[#9B5DE5] to-[#00BBF9] flex items-center justify-center text-white font-bold'>
+                  {user.photoURL ? (
+                    <img src={user.photoURL} alt="user photo" className='w-full h-full rounded-full object-cover' />
+                  ) : (
+                    (user.displayName && user.displayName.charAt(0).toUpperCase()) || 'U'
+                  )}
+                </div>
+                <span>{user.displayName || "User"}</span>
+              </Link>
+            ) : (
+              <>
+                <Link to="/Login" className='hover:text-amber-100 transition'>Login</Link>
+                <Link to="/signup" className='hover:text-amber-100 transition'>Signup</Link>
+              </>
+            )}
 
-                :
-                <>
-                  <Link to="/Login" className='hover:text-amber-100 transition'>Login</Link>
-                  <Link to="/signup" className='hover:text-amber-100 transition'>Signup</Link>
-                </>
-              }
               </div>
       </nav>
     </div>
