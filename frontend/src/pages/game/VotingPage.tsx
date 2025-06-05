@@ -38,7 +38,7 @@ export default function VotingPage() {
             dbService.image.getOriginalImageUrl(image.id),
           caption: image.captions?.[0]?.text || `Drawing by ${image.user?.username || 'Anonymous'}`,
           authorName: image.user?.username || 'Anonymous',
-          authorAvatar: image.user?.profilePictureUrl || '/garlicTextNoBackground.png', // Add avatar
+          authorAvatar: image.user?.profilePictureUrl || undefined,
           promptText: image.prompt || 'No prompt available'        }));
 
         const filteredImages = transformedImages.filter((image: any) => 
@@ -175,11 +175,18 @@ export default function VotingPage() {
           <div className="bg-gray-200 rounded-lg p-4 mb-6">
             <p className="text-lg font-medium text-center text-[#9B5DE5]">{currentImage.caption}</p>
             <div className="flex items-center justify-center mt-2">
-              <img
-                src={currentImage.authorAvatar}
-                alt={currentImage.authorName}
-                className="w-8 h-8 rounded-full mr-2"
-              />
+            {currentImage.authorAvatar ? (
+                <img
+                  src={currentImage.authorAvatar}
+                  alt={currentImage.authorName}
+                  className="w-8 h-8 rounded-full mr-2"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-[#00BBF9] text-white font-bold flex items-center justify-center mr-2">
+                  {currentImage.authorName.charAt(0).toUpperCase()}
+                </div>
+              )}
+
               <p className="text-sm text-gray-600">{currentImage.authorName}</p>
             </div>
           </div>

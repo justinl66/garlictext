@@ -43,7 +43,7 @@ export default function ResultsPage() {
               dbService.image.getOriginalImageUrl(image.id),
             caption: image.captions?.[0]?.text || `Drawing ${index + 1}`,
             authorName: image.user?.username || 'Anonymous',
-            authorAvatar: image.user?.profilePictureUrl || '/garlicTextNoBackground.png', // Add avatar
+            authorAvatar: image.user?.profilePictureUrl || undefined,
             votes: totalVotes,
             rank: index + 1,
             medal: null
@@ -280,11 +280,17 @@ export default function ResultsPage() {
                    '🥉 Third Place! 🥉'}
                 </h1>
                 <div className="flex items-center justify-center mt-2">
-                  <img
-                    src={currentResult?.authorAvatar}
-                    alt={currentResult?.authorName}
-                    className="w-10 h-10 rounded-full mr-2"
-                  />
+                {currentResult?.authorAvatar ? (
+                    <img
+                      src={currentResult.authorAvatar}
+                      alt={currentResult.authorName}
+                      className="w-10 h-10 rounded-full mr-2"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-[#00BBF9] text-white font-bold flex items-center justify-center mr-2">
+                      {currentResult.authorName.charAt(0).toUpperCase()}
+                    </div>
+                  )}
                   <p className="text-gray-600">{currentResult?.authorName}</p>
                 </div>
                 <p className="text-2xl font-bold text-[#00BBF9] mt-2">

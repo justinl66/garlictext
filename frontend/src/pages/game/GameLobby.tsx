@@ -70,7 +70,7 @@ export default function GameLobby() {
           ...player,
           id: String(player.id),
           name: player.name, // Ensure updated username is displayed
-          avatar: player.avatar || '/garlicTextNoBackground.png', // Ensure avatar is displayed
+          avatar: player.avatar ?? undefined,
         }));
         for (let i = data.players.length; i < 4; i++) {
           newPlayers.push({
@@ -303,11 +303,15 @@ const updateWritingTime = async (writingTime: number) => {
                 {players.map((player:Player) => (
                 <div key={player.id} className="flex items-center p-3 bg-gray-50 rounded-lg">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#9B5DE5] to-[#00BBF9] flex items-center justify-center text-white font-bold">
-                      {player.avatar ? (
+                    {player.name === "Waiting for player..." ? (
+                        <img src="/garlicTextNoBackground.png" alt="Waiting" className="w-10 h-10 rounded-full object-cover" />
+                        ) : player.avatar && player.avatar !== '/garlicTextNoBackground.png' ? (
                         <img src={player.avatar} alt={player.name} className="w-10 h-10 rounded-full object-cover" />
-                      ) : (
-                        player.name.charAt(0).toUpperCase()
-                      )}
+                        ) : (
+                        <div className="w-10 h-10 rounded-full bg-[#00BBF9] text-white flex items-center justify-center font-bold">
+                            {player.name.charAt(0).toUpperCase()}
+                        </div>
+                        )}
                     </div>
                     <div className="ml-3 flex-1">
                       <p className="font-medium text-gray-800">{player.name}</p>
