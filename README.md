@@ -26,28 +26,7 @@ git clone https://github.com/justinl66/garlictext.git
 cd garlictext
 ```
 
-### 2. Database Setup
-First, install PostgreSQL if you haven't already, then set up the database:
-
-**On Windows:**
-```cmd
-cd database_backend
-setup_db.bat
-```
-
-**On macOS/Linux:**
-```bash
-cd database_backend
-chmod +x setup_db.sh
-./setup_db.sh
-```
-
-This script will:
-- Create the `garlictext` database
-- Set up all required tables
-- Configure the database schema
-
-### 3. Environment Configuration
+### 2. Environment Configuration
 Set up the required environment variables for the backend:
 
 **Copy and configure the backend environment file:**
@@ -92,6 +71,29 @@ The application uses Firebase for authentication and requires both client-side a
    - **Important**: This file contains sensitive credentials and should never be committed to version control
 
 **Note:** The frontend already has the correct environment files (`.env.development` and `.env.production`) configured for local development, but you'll need to add the Firebase variables above.
+
+### 3. Database Setup
+First, install PostgreSQL if you haven't already, then set up the database:
+
+**On Windows:**
+```cmd
+cd database_backend
+npm install
+setup_db.bat
+```
+
+**On macOS/Linux:**
+```bash
+cd database_backend
+npm install
+chmod +x setup_db.sh
+./setup_db.sh
+```
+
+This script will:
+- Create the `garlictext` database
+- Set up all required tables
+- Configure the database schema
 
 ### 4. Backend Setup
 Install dependencies and start the database server:
