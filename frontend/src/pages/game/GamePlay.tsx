@@ -309,7 +309,7 @@ export default function DrawingPage() {
                   {isLoadingTheme ? 'Loading theme...' : theme}
                 </span>
               </p>
-              <p className="text-gray-500 text-sm mt-1">Your drawing will be enhanced by AI before others caption it</p>
+              {/* <p className="text-gray-500 text-sm mt-1">Your drawing will be enhanced by AI before others caption it</p> */}
             </div>
             <div className="flex items-center">
               <div className={`text-2xl font-bold ${timeLeft <= 10 ? 'text-red-500 animate-pulse' : 'text-[#9B5DE5]'}`}>
@@ -430,14 +430,14 @@ export default function DrawingPage() {
                   )}
                 </div>
               )}
-              
+              {/* The code is here but we aren't doing it for the sake of your computer */}
               {submitStage === 'enhancing' && (
                 <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center z-10">
                   <div className="bg-white p-6 rounded-lg shadow-lg text-center">
                     <div className="w-16 h-16 border-4 border-t-[#FEE440] border-[#00BBF9] rounded-full animate-spin mx-auto mb-4"></div>
                     <h3 className="text-xl font-bold text-[#9B5DE5]">AI Enhancing in Progress</h3>
                     <p className="text-gray-600 mt-2">Enhancing your drawing with AI...</p>
-                    <p className="text-gray-500 text-sm mt-4">Other players will caption your enhanced drawing</p>
+                    <p className="text-gray-500 text-sm mt-4">Other players will caption your drawing</p>
                   </div>
                 </div>
               )}
@@ -576,7 +576,7 @@ export default function DrawingPage() {
             {/* Instructions/tips footer */}
           <div className="mt-4 p-3 bg-gray-50 rounded-lg">
             <p className="text-sm text-gray-600">
-              <span className="font-semibold">Tip:</span> Keep your drawing simple and creative! After submission, your drawing will be enhanced by AI and sent to other players who will add captions to it.
+              <span className="font-semibold">Tip:</span> Keep your drawing simple and creative! After submission, your drawing will be sent to other players who will add captions to it.
             </p>
           </div>
         </div>

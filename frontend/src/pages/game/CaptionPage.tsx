@@ -228,7 +228,7 @@ export default function CaptionPage() {
             <div className="flex justify-between items-center mb-4">
               <div>
                 <h2 className="text-2xl font-bold text-[#9B5DE5]">Add a caption!</h2>
-                <p className="text-gray-600">Be creative and funny with your caption for this AI-enhanced drawing</p>
+                <p className="text-gray-600">Be creative and funny!</p>
               </div>
               <div className="flex items-center">
                 <div className={`text-2xl font-bold ${timeLeft <= 10 ? 'text-red-500 animate-pulse' : 'text-[#9B5DE5]'}`}>
@@ -239,7 +239,7 @@ export default function CaptionPage() {
             <div className="flex-1 flex items-center justify-center border-2 border-gray-200 rounded-lg overflow-hidden bg-gray-50">              {image ? (
                 <img 
                   src={image} 
-                  alt="AI-enhanced drawing" 
+                  alt="drawing" 
                   className="max-w-full max-h-full object-contain"
                   onError={handleImageError}
                 />
@@ -247,7 +247,7 @@ export default function CaptionPage() {
                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300">
                   <p className="text-gray-500 text-center p-4">
                     Image is loading or not available.<br/>
-                    In actual gameplay, this would be another player's AI-enhanced drawing.
+                    In actual gameplay, this would be another player's drawing.
                   </p>
                 </div>
               )}            </div>
