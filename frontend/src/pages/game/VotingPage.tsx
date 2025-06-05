@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import NavBar from '../General/NavBar';
 import dbService from '../../services/dbService';
@@ -107,32 +107,9 @@ export default function VotingPage() {
           }
         ];
         setImages(mockImages);
-      }    };
-      fetchImages();
+      }    };      fetchImages();
   }, [roomId, currentUser]);
 
-  useEffect(() => {
-    if (isSubmitting) return;
-    
-    const duration = 10000;
-    const interval = 100;
-    let elapsed = 0;
-    
-    const timer = setInterval(() => {
-      elapsed += interval;
-      const remaining = Math.max(0, duration - elapsed);
-      const seconds = Math.ceil(remaining / 1000);
-      const progressPercent = (elapsed / duration) * 100;
-      
-      setTimeLeft(seconds);
-      setProgress(Math.min(progressPercent, 100));
-        if (remaining <= 0) {
-        clearInterval(timer);
-        handleSubmit(); // Use default rating when timer expires
-      }
-    }, interval);
-      return () => clearInterval(timer);
-  }, [currentIndex, isSubmitting]);
     const handleImageError = (imageId: string) => {
     setImages(prevImages => 
       prevImages.map(img => {
@@ -145,8 +122,7 @@ export default function VotingPage() {
         }
         return img;
       })
-    );
-  };const handleSubmit = async (ratingValue?: number) => {
+    );  };const handleSubmit = useCallback(async (ratingValue?: number) => {
     if (isSubmitting) return;
     
     setIsSubmitting(true);
@@ -176,9 +152,34 @@ export default function VotingPage() {
         setIsWaitingForOthers(true);
         
       }
-      setIsSubmitting(false);
-    }
-  };
+      setIsSubmitting(false);    }
+  }, [images, currentIndex, rating, isSubmitting]);
+  
+  // Timer useEffect - placed after handleSubmit to avoid hoisting issues
+  useEffect(() => {
+    if (isSubmitting || isWaitingForOthers) return;
+    
+    const duration = 10000;
+    const interval = 100;
+    let elapsed = 0;
+    
+    const timer = setInterval(() => {
+      elapsed += interval;
+      const remaining = Math.max(0, duration - elapsed);
+      const seconds = Math.ceil(remaining / 1000);
+      const progressPercent = (elapsed / duration) * 100;
+      
+      setTimeLeft(seconds);
+      setProgress(Math.min(progressPercent, 100));
+      
+      if (remaining <= 0) {
+        clearInterval(timer);
+        handleSubmit(); // Use default rating when timer expires
+      }
+    }, interval);
+    
+    return () => clearInterval(timer);
+  }, [currentIndex, isSubmitting, isWaitingForOthers, handleSubmit]);
   
   const currentImage = images[currentIndex];
   
