@@ -3,13 +3,15 @@ const Caption = db.Caption;
 const Image = db.Image;
 const User = db.User;
 const Prompt = db.Prompt;
+const Game = db.Game;
 const { Op } = db.Sequelize;
 
 exports.create = async (req, res) => {
   try {
-    if (!req.user || !req.user.uid) {
+    const uid = req.body.userId
+    if (!uid) {
       return res.status(401).send({
-        message: "Authentication required"
+        message: "User ID required"
       });
     }
 
@@ -20,13 +22,33 @@ exports.create = async (req, res) => {
     }
 
     const caption = {
-      userId: req.user.uid,
+      userId: uid,
       imageId: req.body.imageId,
       roundId: req.body.roundId,
-      text: req.body.text
-    };
+      text: req.body.text    };
 
     const data = await Caption.create(caption);
+    
+    if (req.body.roundId) {
+      const game = await Game.findByPk(req.body.roundId, {
+        include: [
+          { 
+            model: User,
+            as: 'participants',
+            attributes: ['id']
+          }
+        ]
+      });
+      if (game) {
+        game.submittedCaptions = game.submittedCaptions + 1;
+        if(game.submittedCaptions >= game.participants.length) {
+          game.status = 'voting';
+          game.updateNumber = game.updateNumber + 1;
+        }
+        await game.save();
+      }
+    }
+    
     res.status(201).send(data);
   } catch (err) {
     res.status(500).send({
@@ -94,9 +116,28 @@ exports.vote = async (req, res) => {
         message: `Caption with id=${id} was not found.`
       });
     }
-    
-    caption.votes += rating;
+      caption.votes += rating;
     await caption.save();
+    
+    if (req.body.isLastVote && caption.roundId) {
+      const game = await Game.findByPk(caption.roundId, {
+        include: [
+          { 
+            model: User,
+            as: 'participants',
+            attributes: ['id']
+          }
+        ]
+      });
+      if (game) {
+        game.votingDoneCount = game.votingDoneCount + 1;
+        if (game.votingDoneCount >= game.participants.length) {
+          game.status = 'trophies';
+          game.updateNumber = game.updateNumber + 1;
+        }
+        await game.save();
+      }
+    }
     
     res.send({
       message: "Vote added successfully!",

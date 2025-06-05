@@ -152,23 +152,6 @@ export default function FindGame() {
                   </select>
                 </div>
 
-                {/* Number of Rounds Filter */}
-                <div>
-                  <label htmlFor="numRounds" className="block text-gray-700 font-medium mb-2">Number of Rounds</label>
-                  <select
-                    id="numRounds"
-                    value={pendingNumRoundsFilter}
-                    onChange={(e) => setPendingNumRoundsFilter(e.target.value)}
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00BBF9] text-gray-900"
-                  >
-                    <option value="">Any</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                  </select>
-                </div>
-
                 {/* Hide Full Games Checkbox */}
                 <div className="flex items-center justify-center pt-4 md:pt-0">
                   <input

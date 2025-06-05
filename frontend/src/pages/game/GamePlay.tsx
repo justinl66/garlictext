@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useContext } from 'react';
+import { useState, useRef, useEffect, useContext, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ReactSketchCanvas, ReactSketchCanvasRef } from 'react-sketch-canvas';
 import NavBar from '../General/NavBar';
@@ -13,6 +13,7 @@ import { RiKnifeBloodLine } from "react-icons/ri";
 import { TiDelete } from "react-icons/ti";
 import { PiPaintBucket } from "react-icons/pi";
 import { ImCross, ImCheckmark } from "react-icons/im";
+import Cookies from 'js-cookie';
 
 
 export default function DrawingPage() {
@@ -33,11 +34,10 @@ export default function DrawingPage() {
   const [isLoadingTheme, setIsLoadingTheme] = useState(true);
   const [timeLeft, setTimeLeft] = useState(60);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStage, setSubmitStage] = useState<'not_submitted' | 'submitting' | 'enhancing'>('not_submitted');
+  const [submitStage, setSubmitStage] = useState<'not_submitted' | 'submitting' | 'enhancing' | 'waiting_for_others'>('not_submitted');
   const [showClearConfirmation, setShowClearConfirmation] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [isMouseOverCanvas, setIsMouseOverCanvas] = useState(false);
-  const [showToolbar, setShowToolbar] = useState(false);
+  const [isMouseOverCanvas, setIsMouseOverCanvas] = useState(false);  const [showToolbar, setShowToolbar] = useState(false);  const [hasSubmitted, setHasSubmitted] = useState(false);
   const [activePowerUps, setActivePowerUps] = useState({
     sabotage: false,
     delete: false,
@@ -66,6 +66,11 @@ export default function DrawingPage() {
           console.warn('No theme found in game data, using fallback');
           setTheme('Draw anything you like!');
         }
+
+        if(gameData && gameData.drawingTime){
+          setTimeLeft(gameData.drawingTime);
+        }
+        
       } catch (error) {
         console.error('Error fetching game data:', error);
         setTheme('Draw anything you like!');
@@ -75,21 +80,49 @@ export default function DrawingPage() {
     };
 
     fetchGameData();
+    checkGameStatus(true); // Initial check on mount
+     const pingServer = setInterval(async () => {
+      await checkGameStatus(false);
+      // alert(creator)
+    }, 3000);    return () => clearInterval(pingServer);
   }, [roomId]);
-  
-  // Timer countdown
-  useEffect(() => {
-    if (timeLeft <= 0) {
-      handleSubmit();
+
+  const checkGameStatus = async (reloaded:boolean) =>{
+    if (!roomId) {
       return;
     }
-    
-    const timer = setTimeout(() => {
-      setTimeLeft(prev => prev - 1);
-    }, 1000);
-    
-    return () => clearTimeout(timer);
-  }, [timeLeft]);
+
+    try {
+      let currentUpdate = reloaded? '0' : (Cookies.get('currentUpdate') || '0');
+      const result = await fetch(`http://localhost:5001/api/games/${roomId}/status?version=${currentUpdate}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+      if(!result.ok) {
+        throw new Error(`HTTP error! status: ${result.status}`);
+      }
+
+      const gameData = await result.json();
+
+      if(gameData.message === 'good') {
+        return;
+      }
+      Cookies.set('currentUpdate', gameData.currentUpdate);
+      // alert(gameData.status)
+      if (gameData.status && gameData.status !== 'drawing') {
+        if (gameData.status == 'captioning') {
+          navigate(`/game/caption/${roomId}`);
+        } else {
+          alert(`Stale game: ${gameData.status}`);
+          navigate('/');
+        }
+      }
+      
+    } catch (error) {
+      console.log('Error checking game status:', error);    }
+  }
   
   // Updated colors to color scheme but aesthetics
   const colors = [
@@ -106,9 +139,11 @@ export default function DrawingPage() {
     '#5A5A5A', // Deep Gray
     '#000000', // Black
   ];
-    const handleClearCanvas = () => {
+  
+  const handleClearCanvas = () => {
     setShowClearConfirmation(true);
   };
+  
   const confirmClearCanvas = () => {
     canvasRef.current?.clearCanvas();
     canvasRef.current?.resetCanvas();
@@ -131,14 +166,15 @@ export default function DrawingPage() {
       canvasRef.current?.eraseMode(false);
     }
   };
-  const handleSubmit = async () => {
+  
+  const handleSubmit = useCallback(async () => {
     if (isSubmitting) return;
     
-    if (!currentUser) {
-      console.error('User not authenticated');
-      alert('Please log in to submit your drawing');
-      return;
-    }
+    // if (!currentUser) {
+    //   console.error('User not authenticated');
+    //   alert('Please log in to submit your drawing');
+    //   return;
+    // }
     
     setIsSubmitting(true);
     setSubmitStage('submitting');
@@ -149,7 +185,11 @@ export default function DrawingPage() {
         if (!dataURL) {
         throw new Error('Failed to export canvas image');
       }    
+
+      const userId = currentUser? currentUser.uid:Cookies.get('id')
+      
       const submissionData: any = {
+        userId: userId,
         prompt: theme,
         drawingDataURL: dataURL
       };
@@ -157,23 +197,36 @@ export default function DrawingPage() {
       // Only include roundId if it's available
       if (roomId) {
         submissionData.roundId = roomId;
-      }      const result = await imageStorageService.submitDrawing(submissionData);
-        setSubmitStage('enhancing');
-        setTimeout(() => {
-        navigate(`/game/caption/${roomId}`, { 
-          state: { 
-            imageId: result.imageId,
-            originalImageUrl: result.originalImageUrl,
-            roomId: roomId
-          } 
-        });
+      }      
+      await imageStorageService.submitDrawing(submissionData);
+
+      // setSubmitStage('enhancing');
+      setHasSubmitted(true);
+      
+      // After a short enhancement period, set to waiting for others
+      setTimeout(() => {
+        setSubmitStage('waiting_for_others');
+        setIsSubmitting(false); // Allow the component to show waiting state
       }, 2000);
         } catch (error) {
       alert('Failed to submit drawing. Please try again.');
       setIsSubmitting(false);
-      setSubmitStage('not_submitted');
+      setSubmitStage('not_submitted');    }
+  }, [isSubmitting, currentUser, theme, roomId]);
+  
+  // Timer countdown - must be after handleSubmit definition
+  useEffect(() => {
+    if (timeLeft <= 0 && !hasSubmitted) {
+      handleSubmit();
+      return;
     }
-  };
+    
+    const timer = setTimeout(() => {
+      setTimeLeft(prev => prev - 1);
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, [timeLeft, hasSubmitted, handleSubmit]);
   
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -187,34 +240,20 @@ export default function DrawingPage() {
       x: e.clientX - rect.left,
       y: e.clientY - rect.top
     });
-  };
-  
-  const handleSabotage = () => {
-    setActivePowerUps(prev => ({
-      ...prev,
-      sabotage: !prev.sabotage
-    }));
+  };  const handleSabotage = () => {
+    // Future power-up functionality
   };
   
   const handleDelete = () => {
-    setActivePowerUps(prev => ({
-      ...prev,
-      delete: !prev.delete
-    }));
+    // Future power-up functionality
   };
   
   const handleSwitch = () => {
-    setActivePowerUps(prev => ({
-      ...prev,
-      switch: !prev.switch
-    }));
+    // Future power-up functionality
   };
   
   const handleFog = () => {
-    setActivePowerUps(prev => ({
-      ...prev,
-      fog: !prev.fog
-    }));
+    // Future power-up functionality
   };
   
   const handlePaintBucket = () => {
@@ -251,14 +290,15 @@ export default function DrawingPage() {
           {/* Header with theme and timer */}
           <div className="flex justify-between items-center mb-4">
             <div>              <h2 className="text-2xl font-bold text-[#9B5DE5]">
-                {timeLeft <= 10 ? 'Draw! 10 Second Remaining!' : 'Draw!'}
+                {hasSubmitted ? 'Drawing Submitted!' :
+                 timeLeft <= 10 ? 'Draw! 10 Seconds Remaining!' : 'Draw!'}
               </h2>
               <p className="text-gray-600">Theme: {' '}
                 <span className="font-bold text-[#F15BB5]">
                   {isLoadingTheme ? 'Loading theme...' : theme}
                 </span>
               </p>
-              <p className="text-gray-500 text-sm mt-1">Your drawing will be enhanced by AI before others caption it</p>
+              {/* <p className="text-gray-500 text-sm mt-1">Your drawing will be enhanced by AI before others caption it</p> */}
             </div>
             <div className="flex items-center">
               <div className={`text-2xl font-bold ${timeLeft <= 10 ? 'text-red-500 animate-pulse' : 'text-[#9B5DE5]'}`}>
@@ -266,14 +306,15 @@ export default function DrawingPage() {
               </div>
               <button 
                 onClick={handleSubmit}
-                disabled={isSubmitting}
+                disabled={isSubmitting || hasSubmitted}
                 className={`ml-4 px-6 py-2 rounded-lg font-bold transition ${
-                  isSubmitting 
+                  isSubmitting || hasSubmitted
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
                     : 'bg-[#00CCB1] text-white hover:bg-[#00B8A0]'
                 }`}
               >
-                {submitStage === 'enhancing' ? 'AI Enhancing...' : 
+                {submitStage === 'waiting_for_others' ? 'Submitted!' :
+                 submitStage === 'enhancing' ? 'AI Enhancing...' : 
                  submitStage === 'submitting' ? 'Submitting...' : 
                  'Submit Drawing'}
               </button>
@@ -283,7 +324,9 @@ export default function DrawingPage() {
           {/* Main drawing area */}
           <div className="flex flex-grow">
             <div 
-              className="flex-grow relative border-2 border-gray-200 rounded-lg overflow-hidden bg-white"
+              className={`flex-grow relative border-2 border-gray-200 rounded-lg overflow-hidden bg-white ${
+                hasSubmitted ? 'opacity-50 pointer-events-none' : ''
+              }`}
               onMouseMove={handleMouseMove}
               onMouseEnter={() => setIsMouseOverCanvas(true)}
               onMouseLeave={() => setIsMouseOverCanvas(false)}
@@ -376,14 +419,32 @@ export default function DrawingPage() {
                   )}
                 </div>
               )}
-              
+              {/* The code is here but we aren't doing it for the sake of your computer */}
               {submitStage === 'enhancing' && (
                 <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center z-10">
                   <div className="bg-white p-6 rounded-lg shadow-lg text-center">
                     <div className="w-16 h-16 border-4 border-t-[#FEE440] border-[#00BBF9] rounded-full animate-spin mx-auto mb-4"></div>
                     <h3 className="text-xl font-bold text-[#9B5DE5]">AI Enhancing in Progress</h3>
                     <p className="text-gray-600 mt-2">Enhancing your drawing with AI...</p>
-                    <p className="text-gray-500 text-sm mt-4">Other players will caption your enhanced drawing</p>
+                    <p className="text-gray-500 text-sm mt-4">Other players will caption your drawing</p>
+                  </div>
+                </div>
+              )}
+              
+              {submitStage === 'waiting_for_others' && (
+                <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center z-10">
+                  <div className="bg-white p-6 rounded-lg shadow-lg text-center">
+                    <div className="w-16 h-16 border-4 border-t-[#9B5DE5] border-[#F15BB5] rounded-full animate-spin mx-auto mb-4"></div>
+                    <h3 className="text-xl font-bold text-[#9B5DE5]">Drawing Submitted!</h3>
+                    <p className="text-gray-600 mt-2">Waiting for other players to finish their drawings...</p>
+                    <p className="text-gray-500 text-sm mt-4">You'll automatically move to the next round when everyone is ready</p>
+                    <div className="mt-4 flex items-center justify-center">
+                      <div className="animate-pulse flex space-x-2">
+                        <div className="w-2 h-2 bg-[#9B5DE5] rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-[#F15BB5] rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                        <div className="w-2 h-2 bg-[#00BBF9] rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -402,7 +463,9 @@ export default function DrawingPage() {
             </div>
             
             {/* Tools sidebar */}
-            <div className="w-24 ml-4 flex flex-col space-y-4">
+            <div className={`w-24 ml-4 flex flex-col space-y-4 ${
+              hasSubmitted ? 'opacity-50 pointer-events-none' : ''
+            }`}>
               {/* Color palette */}
               <div className="bg-gray-100 p-2 rounded-lg">
                 <h3 className="text-xs font-semibold text-gray-500 mb-2 text-center">COLORS</h3>
@@ -502,7 +565,7 @@ export default function DrawingPage() {
             {/* Instructions/tips footer */}
           <div className="mt-4 p-3 bg-gray-50 rounded-lg">
             <p className="text-sm text-gray-600">
-              <span className="font-semibold">Tip:</span> Keep your drawing simple and creative! After submission, your drawing will be enhanced by AI and sent to other players who will add captions to it.
+              <span className="font-semibold">Tip:</span> Keep your drawing simple and creative! After submission, your drawing will be sent to other players who will add captions to it.
             </p>
           </div>
         </div>

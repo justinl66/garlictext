@@ -35,7 +35,19 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true,
     },
-
+    submittedImages:{
+      type: DataTypes.INTEGER,
+      defaultValue: 0
+    },
+    submittedCaptions: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0
+    },
+    votingDoneCount:{
+      type: DataTypes.INTEGER,
+      defaultValue: 0
+    },
+    
     maxPlayers: {
       type: DataTypes.INTEGER,
       defaultValue: 8

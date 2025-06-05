@@ -22,7 +22,7 @@ export default function Help() {
         <div className="space-y-6 text-gray-700">
           <section>
             <h2 className="text-2xl font-semibold text-[#9B5DE5] mb-3">Getting Started</h2>
-            <p className="mb-4">Welcome to Garlic Text! Create lobbies with friends and draw up some fun! AI-powered drawings can make any group of friends into funny, weird, and creative meme-makers!</p>
+            <p className="mb-4">Welcome to Garlic Text! Create lobbies with friends and draw up some fun! Cartoonish drawings can make any group of friends into funny, weird, and creative meme-makers!</p>
           </section>
 
           <section>
@@ -30,7 +30,7 @@ export default function Help() {
             <ul className="list-disc pl-6 space-y-2">
               <li>Create a game or join an existing one</li>
               <li>Choose or generate a prompt</li>
-              <li>Draw picture based on the prompt, with AI-powered boosts</li>
+              <li>Draw picture based on the prompt, with boosts that sabotage others!</li>
               <li>View everyone's drawings, and vote for the best!</li>
             </ul>
           </section>
@@ -39,7 +39,6 @@ export default function Help() {
             <h2 className="text-2xl font-semibold text-[#9B5DE5] mb-3">Tips & Tricks</h2>
             <ul className="list-disc pl-6 space-y-2">
               <li>Be quick, the timer is ticking!</li>
-              <li>Write open-ended prompts to get the best out of the AI</li>
               <li>Surprise other players with unexpected twists</li>
               <li>Have fun and be creative!</li>
             </ul>

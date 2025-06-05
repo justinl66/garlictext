@@ -3,6 +3,7 @@ import dbService from './dbService';
 const AI_API_URL = import.meta.env.VITE_AI_API_URL || 'http://localhost:8000';
 
 export interface DrawingSubmissionData {
+  userId: string;
   roundId?: string;
   prompt: string;
   drawingDataURL: string;
@@ -18,6 +19,7 @@ export interface ImageSubmissionResult {
 class ImageStorageService {  async submitDrawing(submissionData: DrawingSubmissionData): Promise<ImageSubmissionResult> {
     try {
       const imageData: any = {
+        userId: submissionData.userId,
         prompt: submissionData.prompt,
         originalDrawingData: submissionData.drawingDataURL
       };
