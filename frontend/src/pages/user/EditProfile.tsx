@@ -2,7 +2,6 @@ import { useContext, useState } from "react";
 import { AuthContext } from "../../firebase/firebaseAuth";
 import { updateProfile } from "firebase/auth";
 import { auth } from "../../firebase/firebaseConfig";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useNavigate } from "react-router-dom";
 
 const defaultAvatars = [
@@ -55,10 +54,11 @@ export default function EditProfile() {
         const blob = dataURLtoBlob(selectedAvatar);
         const timestamp = Date.now();
         const fileName = `avatars/${user.uid}_${timestamp}.jpg`;
-        const storageRef = ref(storage, fileName);
 
-        const snapshot = await uploadBytes(storageRef, blob);
-        finalPhotoURL = await getDownloadURL(snapshot.ref);
+        // Remove storage-related code
+        // const storageRef = ref(storage, fileName);
+        // const snapshot = await uploadBytes(storageRef, blob);
+        // finalPhotoURL = await getDownloadURL(snapshot.ref);
       }
 
       await updateProfile(auth.currentUser!, {
@@ -66,14 +66,17 @@ export default function EditProfile() {
         photoURL: finalPhotoURL,
       });
 
-      // Send avatar URL to the backend
-      await fetch(`http://localhost:5001/api/users/${user.uid}`, { // Include user ID in the URL
+      // Send updated username and avatar URL to the backend
+      await fetch(`http://localhost:5001/api/users/${user.uid}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${user.stsTokenManager.accessToken}`,
         },
-        body: JSON.stringify({ profilePictureUrl: finalPhotoURL }),
+        body: JSON.stringify({
+          profilePictureUrl: finalPhotoURL,
+          username: displayName, // Include updated username
+        }),
       });
 
       localStorage.setItem("bio", bio);
