@@ -161,6 +161,7 @@ const gameApi = {
 
 const imageApi = {
   createImage: async (imageData: {
+    userId: string;
     roundId?: string;
     prompt: string;
     originalDrawingData: string;

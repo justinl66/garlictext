@@ -13,6 +13,7 @@ import { RiKnifeBloodLine } from "react-icons/ri";
 import { TiDelete } from "react-icons/ti";
 import { PiPaintBucket } from "react-icons/pi";
 import { ImCross, ImCheckmark } from "react-icons/im";
+import Cookies from 'js-cookie';
 
 
 export default function DrawingPage() {
@@ -75,7 +76,34 @@ export default function DrawingPage() {
     };
 
     fetchGameData();
+
+     const pingServer = setInterval(async () => {
+      await checkGameStatus();
+      // alert(creator)
+    }, 3000);    return () => clearInterval(pingServer);
   }, [roomId]);
+
+  const checkGameStatus = async () =>{
+    if (!roomId) {
+      return;
+    }
+
+    try {
+      const gameData = await dbService.game.getGameByCode(roomId);
+      
+      if (gameData.status && gameData.status !== 'drawing') {
+        if (gameData.status === 'captioning') {
+          navigate(`/game/caption/${roomId}`);
+        } else {
+          alert(`Stale game: ${gameData.status}`);
+          navigate('/');
+        }
+      }
+      
+    } catch (error) {
+      console.log('Error checking game status:', error);
+    }
+  }
   
   // Timer countdown
   useEffect(() => {
@@ -134,11 +162,11 @@ export default function DrawingPage() {
   const handleSubmit = async () => {
     if (isSubmitting) return;
     
-    if (!currentUser) {
-      console.error('User not authenticated');
-      alert('Please log in to submit your drawing');
-      return;
-    }
+    // if (!currentUser) {
+    //   console.error('User not authenticated');
+    //   alert('Please log in to submit your drawing');
+    //   return;
+    // }
     
     setIsSubmitting(true);
     setSubmitStage('submitting');
@@ -149,7 +177,11 @@ export default function DrawingPage() {
         if (!dataURL) {
         throw new Error('Failed to export canvas image');
       }    
+
+      const userId = currentUser? currentUser.uid:Cookies.get('id')
+      
       const submissionData: any = {
+        userId: userId,
         prompt: theme,
         drawingDataURL: dataURL
       };
@@ -157,7 +189,9 @@ export default function DrawingPage() {
       // Only include roundId if it's available
       if (roomId) {
         submissionData.roundId = roomId;
-      }      const result = await imageStorageService.submitDrawing(submissionData);
+      }      
+      const result = await imageStorageService.submitDrawing(submissionData);
+
         setSubmitStage('enhancing');
         setTimeout(() => {
         navigate(`/game/caption/${roomId}`, { 

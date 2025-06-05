@@ -5,8 +5,10 @@ const Caption = db.Caption;
 const Game = db.Game;
 const { Op } = db.Sequelize;
 
-exports.create = async (req, res) => {  try {
-    if (!req.user || !req.user.uid) {
+exports.create = async (req, res) => {  
+  try {
+    const userId = req.body.userId;
+    if (!userId) {
       return res.status(401).send({
         message: "Authentication required"
       });
@@ -34,7 +36,7 @@ exports.create = async (req, res) => {  try {
     } else {
       originalDrawingBuffer = Buffer.from(req.body.originalDrawingData, 'base64');
     }    const image = {
-      userId: req.user.uid,
+      userId: userId,
       roundId: req.body.roundId && req.body.roundId !== 'null' ? req.body.roundId : null,
       prompt: req.body.prompt,
       originalDrawingData: originalDrawingBuffer,
@@ -409,7 +411,8 @@ exports.getAssignedImageForUser = async (req, res) => {
       return res.status(404).send({
         message: `Game with ID ${gameId} not found.`
       });
-    }    const participants = game.participants.sort((a, b) => a.id.localeCompare(b.id));
+    }    
+    const participants = game.participants.sort((a, b) => a.id.localeCompare(b.id));
     const participantCount = participants.length;
 
     if (participantCount === 0) {
