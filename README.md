@@ -63,7 +63,7 @@ The application uses Firebase for authentication and requires both client-side a
    VITE_APP_ID="1:734733266033:web:f26afa8be82faa09e6ffd0"
    VITE_MEASUREMENT_ID="G-0F1K50L53J"
    ```
-**Note:** The frontend already has the correct environment files (`.env.development` and `.env.production` and firebase-credentials.json) configured for local development.
+**Note:** The frontend already has the correct environment files (`.env.development` and firebase-credentials.json) configured for local development.
 
 ### 3. Database Setup
 First, install PostgreSQL if you haven't already, then set up the database:
