@@ -515,12 +515,15 @@ exports.startGame = async (req, res) => {
       return res.status(400).send({
         message: "At least 1 player is required to start the game."
       });
-    }
-
+    }    
     game.prompterId = game.participants[Math.floor(Math.random() * (game.participants.length))].id;
     // Simplified game start - no longer creating GameRound records
     game.status = 'prompting';
 
+    game.submittedImages = 0;
+    game.submittedCaptions = 0;
+    game.votingDoneCount = 0;
+    
     game.currentRound = 1;
     game.updateNumber += 1; // Increment update number
     await game.save();
@@ -601,11 +604,10 @@ exports.updatePrompt = async (req, res) => {
       return res.status(400).send({
         message: "Game is not in prompting status."
       });
-    }
-
-    game.promptString = promptString;
+    }    game.promptString = promptString;
     game.status = 'drawing';
-    game.updateNumber += 1; // Increment update number
+    game.submittedImages = 0;
+    game.updateNumber += 1;
     await game.save();
     res.status(200).send({
       message: "Prompt updated successfully!",

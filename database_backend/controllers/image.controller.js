@@ -42,8 +42,16 @@ exports.create = async (req, res) => {
       originalDrawingData: originalDrawingBuffer,
       originalDrawingMimeType: mimeType,
       enhancedImageData: req.body.enhancedImageData ? Buffer.from(req.body.enhancedImageData, 'base64') : null,
-      enhancedImageMimeType: req.body.enhancedImageMimeType || 'image/png'
-    };    const data = await Image.create(image);
+      enhancedImageMimeType: req.body.enhancedImageMimeType || 'image/png'    };    const data = await Image.create(image);
+    
+    if (image.roundId) {
+      const game = await Game.findByPk(image.roundId);
+      if (game) {
+        game.submittedImages = game.submittedImages + 1;
+        await game.save();
+      }
+    }
+    
     res.status(201).send(data);
   } catch (err) {
     res.status(500).send({
@@ -144,10 +152,17 @@ exports.vote = async (req, res) => {
       return res.status(404).send({
         message: `Image with id=${id} was not found.`
       });
-    }
-    
+    }    
     image.votes += rating;
     await image.save();
+    
+    if (req.body.isLastVote && image.roundId) {
+      const game = await Game.findByPk(image.roundId);
+      if (game) {
+        game.votingDoneCount = game.votingDoneCount + 1;
+        await game.save();
+      }
+    }
     
     res.send({
       message: `Vote added successfully with rating ${rating}!`,
