@@ -90,7 +90,7 @@ export default function SignUpPage() {
     };
 
     return (
-        <div className="w-screen h-full min-h-screen pb-20 flex flex-col bg-linear-to-br from-[#9B5DE5] to-[#F15BB5] via-[#00BBF9] ">
+        <div className="w-screen h-full min-h-screen pb-20 flex flex-col bg-gradient-to-br from-purple-200 via-pink-200 to-sky-200">
             < NavBar />
             <div className="w-full flex flex-row justify-center mt-8 items-center">
                 <h2 className="text-5xl font-sans font-semibold text-[#FEE440] text-shadow-md text-shadow-slate-500">Garlic Text</h2>

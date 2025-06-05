@@ -12,33 +12,36 @@ export default function NavBar() {
   
   const { user } = authContext;
   return (
-    <div className='w-full bg-transparent px-5'>
-      <nav className='self-center w-full mt-3 bg-white/20 backdrop-blur-md shadow-sm z-50 py-3.5 px-10 flex flex-row items-center rounded-2xl'>
-          <Link to="/" className='text-amber-50 font-medium font-sans text-3xl hover:text-amber-100 transition cursor-pointer'>GarlicText</Link>
-          <div className='flex flex-row ml-auto space-x-10 items-center text-amber-50 font-sans font-semibold text-lg mr-5'>
-              <Link to="/" className='hover:text-amber-100 transition'>Home</Link>
-              <Link to="/findGame" className='hover:text-amber-100 transition'>Find Game</Link>
-              <Link to="/help" className='hover:text-amber-100 transition'>Help</Link>
-              {user ? (
-              <Link to="/profile" className='hover:text-amber-100 transition flex flex-row items-center gap-2'>
-                <div className='w-10 h-10 rounded-full bg-gradient-to-r from-[#9B5DE5] to-[#00BBF9] flex items-center justify-center text-white font-bold'>
-                  {user.photoURL ? (
-                    <img src={user.photoURL} alt="user photo" className='w-full h-full rounded-full object-cover' />
-                  ) : (
-                    (user.displayName && user.displayName.charAt(0).toUpperCase()) || 'U'
-                  )}
+        <div className='w-full bg-transparent px-5'>
+            <nav className='self-center w-full mt-3 bg-white/30 backdrop-blur-md shadow-lg z-50 py-4 px-10 flex flex-row items-center rounded-3xl border border-purple-300'>
+                <Link to="/" className='text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 font-bold font-sans text-4xl hover:opacity-90 transition cursor-pointer'>GarlicText</Link>
+                <div className='flex flex-row ml-auto space-x-8 items-center text-purple-500 font-sans font-semibold text-lg'>
+                    <Link to="/" className='hover:text-purple-700 transition'>Home</Link>
+                    <Link to="/findGame" className='hover:text-purple-700 transition'>Find Game</Link>
+                    <Link to="/help" className='hover:text-purple-700 transition'>Help</Link>
+                    {
+                        user ? (
+                            <Link to="/profile" className='hover:text-purple-700 transition flex flex-row items-center'>
+                                {user.displayName}
+                                <div className='w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold ml-4'>
+                                    {
+                                        user.photoUrl ? (
+                                            <img src={user.photoUrl} alt="user photo" width={40} height={40} className='rounded-full' />
+                                        ) : (
+                                            (user.displayName && user.displayName.charAt(0).toUpperCase()) || 'U'
+                                        )
+                                    }
+                                </div>
+                            </Link>
+                        ) : (
+                            <>
+                                <Link to="/login" className='hover:text-purple-700 transition'>Login</Link>
+                                <Link to="/signup" className='hover:text-purple-700 transition'>Signup</Link>
+                            </>
+                        )
+                    }
                 </div>
-                <span>{user.displayName || "User"}</span>
-              </Link>
-            ) : (
-              <>
-                <Link to="/Login" className='hover:text-amber-100 transition'>Login</Link>
-                <Link to="/signup" className='hover:text-amber-100 transition'>Signup</Link>
-              </>
-            )}
-
-              </div>
-      </nav>
-    </div>
-  );
+            </nav>
+        </div>
+    );
 }

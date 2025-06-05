@@ -260,7 +260,7 @@ const updateWritingTime = async (writingTime: number) => {
   // const canStart = players.filter(p => p.isReady).length >= 2 && isCreator;
 
   return (
-    <div className="w-full min-h-screen flex flex-col bg-gradient-to-br from-[#9B5DE5] to-[#F15BB5] via-[#00BBF9]">
+    <div className="w-full min-h-screen flex flex-col bg-gradient-to-br from-purple-200 via-pink-200 to-sky-200">
       <NavBar />
       
       <div className="w-full flex flex-col items-center justify-center flex-grow py-10 px-4">
