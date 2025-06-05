@@ -803,6 +803,47 @@ exports.findByCode = async (req, res) => {
   }
 };
 
+exports.getGameStatus = async (req, res) => {
+  const id = req.params.id;
+  const version = req.query.version;
+  console.log("getGameStatus called with id:", id, "and version:", version);
+  try{
+    if (!id) {
+      return res.status(400).send({
+        message: "Game ID is required!"
+      });
+    }
+    if (!version) {
+      return res.status(400).send({
+        message: "Version is required!"
+      });
+    }
+
+    const game = await Game.findByPk(id);
+    if (!game) {
+      return res.status(404).send({
+        message: `Game with ID ${id} not found.`
+      });
+    }
+    
+    if(id + game.updateNumber == version){
+      return res.status(200).send({
+        message: "good",
+      });
+    }
+
+    res.status(200).send({
+      message: "updated",
+      status: game.status,
+      currentUpdate: game.id + game.updateNumber,
+    });
+  }catch (err) {
+    res.status(500).send({
+      message: err.message || "Some error occurred while retrieving the game status."
+    });
+  }
+}
+
 exports.endGame = async (req, res) => {
   try {
     const { gameId } = req.params;

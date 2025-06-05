@@ -26,7 +26,8 @@ export default function GameLobby() {
 
 
   const updateLobbyFromServer = async (reloaded: boolean) => {
-    let currentUpdate = reloaded? "0" : (Cookies.get('currentUpdate') || "0");        try{
+    let currentUpdate = reloaded? "0" : (Cookies.get('currentUpdate') || "0");        
+    try{
             const response = await fetch(`http://localhost:5001/api/games/${urlRoomId}/lobbyInfo?version=${currentUpdate}`, {
             method: 'GET',
             headers: {

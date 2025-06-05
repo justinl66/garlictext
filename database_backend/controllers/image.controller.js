@@ -35,19 +35,34 @@ exports.create = async (req, res) => {
       }
     } else {
       originalDrawingBuffer = Buffer.from(req.body.originalDrawingData, 'base64');
-    }    const image = {
+    }    
+    const image = {
       userId: userId,
       roundId: req.body.roundId && req.body.roundId !== 'null' ? req.body.roundId : null,
       prompt: req.body.prompt,
       originalDrawingData: originalDrawingBuffer,
       originalDrawingMimeType: mimeType,
       enhancedImageData: req.body.enhancedImageData ? Buffer.from(req.body.enhancedImageData, 'base64') : null,
-      enhancedImageMimeType: req.body.enhancedImageMimeType || 'image/png'    };    const data = await Image.create(image);
+      enhancedImageMimeType: req.body.enhancedImageMimeType || 'image/png'    
+    };    
+    const data = await Image.create(image);
     
     if (image.roundId) {
-      const game = await Game.findByPk(image.roundId);
+      const game = await Game.findByPk(image.roundId, {
+        include: [
+          {
+            model: User,
+            as: 'participants',
+            attributes: ['id']
+          }
+        ]
+      });
       if (game) {
         game.submittedImages = game.submittedImages + 1;
+        if (game.submittedImages >= game.participants.length) {
+          game.status = 'captioning';
+          game.updateNumber = game.updateNumber + 1;
+        }
         await game.save();
       }
     }
@@ -157,9 +172,22 @@ exports.vote = async (req, res) => {
     await image.save();
     
     if (req.body.isLastVote && image.roundId) {
-      const game = await Game.findByPk(image.roundId);
+      // console.log(`Last vote for image ${id} in round ${image.roundId}`);
+      const game = await Game.findByPk(image.roundId, {
+        include: [
+          {
+            model: User,
+            as: 'participants',
+            attributes: ['id']
+          }
+        ]
+      });
       if (game) {
         game.votingDoneCount = game.votingDoneCount + 1;
+        if (game.votingDoneCount >= game.participants.length) {
+          game.status = 'trophies';
+          game.updateNumber = game.updateNumber + 1;
+        }
         await game.save();
       }
     }

@@ -30,9 +30,21 @@ exports.create = async (req, res) => {
     const data = await Caption.create(caption);
     
     if (req.body.roundId) {
-      const game = await Game.findByPk(req.body.roundId);
+      const game = await Game.findByPk(req.body.roundId, {
+        include: [
+          { 
+            model: User,
+            as: 'participants',
+            attributes: ['id']
+          }
+        ]
+      });
       if (game) {
         game.submittedCaptions = game.submittedCaptions + 1;
+        if(game.submittedCaptions >= game.participants.length) {
+          game.status = 'voting';
+          game.updateNumber = game.updateNumber + 1;
+        }
         await game.save();
       }
     }
@@ -108,9 +120,21 @@ exports.vote = async (req, res) => {
     await caption.save();
     
     if (req.body.isLastVote && caption.roundId) {
-      const game = await Game.findByPk(caption.roundId);
+      const game = await Game.findByPk(caption.roundId, {
+        include: [
+          { 
+            model: User,
+            as: 'participants',
+            attributes: ['id']
+          }
+        ]
+      });
       if (game) {
         game.votingDoneCount = game.votingDoneCount + 1;
+        if (game.votingDoneCount >= game.participants.length) {
+          game.status = 'trophies';
+          game.updateNumber = game.updateNumber + 1;
+        }
         await game.save();
       }
     }

@@ -195,9 +195,9 @@ const imageApi = {
   
   getEnhancedImageUrl: (imageId: string) => {
     return `${API_BASE_URL}/images/${imageId}/enhanced`;  },
-  voteForImage: async (imageId: string, rating: number = 1) => {
+  voteForImage: async (imageId: string, rating: number = 1, isLastVote:boolean) => {
     try {
-      const response = await dbApi.post(`/images/${imageId}/vote`, { rating });
+      const response = await dbApi.post(`/images/${imageId}/vote`, { rating, isLastVote });
       return response.data;
     } catch (error) {
       throw error;
