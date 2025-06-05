@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useContext } from 'react';
+import { useState, useRef, useEffect, useContext, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ReactSketchCanvas, ReactSketchCanvasRef } from 'react-sketch-canvas';
 import NavBar from '../General/NavBar';
@@ -37,9 +37,7 @@ export default function DrawingPage() {
   const [submitStage, setSubmitStage] = useState<'not_submitted' | 'submitting' | 'enhancing' | 'waiting_for_others'>('not_submitted');
   const [showClearConfirmation, setShowClearConfirmation] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [isMouseOverCanvas, setIsMouseOverCanvas] = useState(false);
-  const [showToolbar, setShowToolbar] = useState(false);
-  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [isMouseOverCanvas, setIsMouseOverCanvas] = useState(false);  const [showToolbar, setShowToolbar] = useState(false);  const [hasSubmitted, setHasSubmitted] = useState(false);
   const [activePowerUps, setActivePowerUps] = useState({
     sabotage: false,
     delete: false,
@@ -123,23 +121,8 @@ export default function DrawingPage() {
       }
       
     } catch (error) {
-      console.log('Error checking game status:', error);
-    }
+      console.log('Error checking game status:', error);    }
   }
-  
-  // Timer countdown
-  useEffect(() => {
-    if (timeLeft <= 0 && !hasSubmitted) {
-      handleSubmit();
-      return;
-    }
-    
-    const timer = setTimeout(() => {
-      setTimeLeft(prev => prev - 1);
-    }, 1000);
-    
-    return () => clearTimeout(timer);
-  }, [timeLeft, hasSubmitted]);
   
   // Updated colors to color scheme but aesthetics
   const colors = [
@@ -156,9 +139,11 @@ export default function DrawingPage() {
     '#5A5A5A', // Deep Gray
     '#000000', // Black
   ];
-    const handleClearCanvas = () => {
+  
+  const handleClearCanvas = () => {
     setShowClearConfirmation(true);
   };
+  
   const confirmClearCanvas = () => {
     canvasRef.current?.clearCanvas();
     canvasRef.current?.resetCanvas();
@@ -181,7 +166,8 @@ export default function DrawingPage() {
       canvasRef.current?.eraseMode(false);
     }
   };
-  const handleSubmit = async () => {
+  
+  const handleSubmit = useCallback(async () => {
     if (isSubmitting) return;
     
     // if (!currentUser) {
@@ -225,9 +211,22 @@ export default function DrawingPage() {
         } catch (error) {
       alert('Failed to submit drawing. Please try again.');
       setIsSubmitting(false);
-      setSubmitStage('not_submitted');
+      setSubmitStage('not_submitted');    }
+  }, [isSubmitting, currentUser, theme, roomId]);
+  
+  // Timer countdown - must be after handleSubmit definition
+  useEffect(() => {
+    if (timeLeft <= 0 && !hasSubmitted) {
+      handleSubmit();
+      return;
     }
-  };
+    
+    const timer = setTimeout(() => {
+      setTimeLeft(prev => prev - 1);
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, [timeLeft, hasSubmitted, handleSubmit]);
   
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -241,34 +240,20 @@ export default function DrawingPage() {
       x: e.clientX - rect.left,
       y: e.clientY - rect.top
     });
-  };
-  
-  const handleSabotage = () => {
-    setActivePowerUps(prev => ({
-      ...prev,
-      sabotage: !prev.sabotage
-    }));
+  };  const handleSabotage = () => {
+    // Future power-up functionality
   };
   
   const handleDelete = () => {
-    setActivePowerUps(prev => ({
-      ...prev,
-      delete: !prev.delete
-    }));
+    // Future power-up functionality
   };
   
   const handleSwitch = () => {
-    setActivePowerUps(prev => ({
-      ...prev,
-      switch: !prev.switch
-    }));
+    // Future power-up functionality
   };
   
   const handleFog = () => {
-    setActivePowerUps(prev => ({
-      ...prev,
-      fog: !prev.fog
-    }));
+    // Future power-up functionality
   };
   
   const handlePaintBucket = () => {

@@ -80,8 +80,7 @@ export default function PromptPage() {
       // Handle error (e.g., show a message, redirect, etc.)
     }
   }
-
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     if (isSubmitting || !prompt.trim()) return;
 
     setIsSubmitting(true);
@@ -107,8 +106,7 @@ export default function PromptPage() {
       setError('Error submitting prompt:' + e.message);
       setIsSubmitting(false); // Reset on error to allow retry
     }
-  }
-
+  }, [isSubmitting, prompt, roomId, navigate]);
   // Timer countdown
   useEffect(() => {
     if (timeLeft <= 0) {

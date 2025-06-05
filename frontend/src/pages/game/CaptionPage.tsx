@@ -179,7 +179,6 @@ export default function CaptionPage() {
         console.log('Error checking game status:', error);
       }
     }
-
   useEffect(() => {
     if (hasSubmitted) { // If already submitted, do nothing with the timer
       return;
