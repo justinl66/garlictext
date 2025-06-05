@@ -55,22 +55,15 @@ The application uses Firebase for authentication and requires both client-side a
 1. **Client-side (Frontend)**: Add Firebase config to `frontend/.env.development`:
    ```bash
    # Firebase Client Configuration
-   VITE_API_KEY=your_firebase_api_key
-   VITE_AUTH_DOMAIN=your_project_id.firebaseapp.com
-   VITE_PROJECT_ID=your_project_id
-   VITE_STORAGE_BUCKET=your_project_id.appspot.com
-   VITE_MESSAGING_SENDER_ID=your_messaging_sender_id
-   VITE_APP_ID=your_app_id
-   VITE_MEASUREMENT_ID=your_measurement_id
+   VITE_API_KEY="AIzaSyDf_dA9Yc-lZpkdd46Uf6LIBeJH2xB9OLM"
+   VITE_AUTH_DOMAIN="garlic-text.firebaseapp.com"
+   VITE_PROJECT_ID="garlic-text"
+   VITE_STORAGE_BUCKET="garlic-text.firebasestorage.app"
+   VITE_MESSAGING_SENDER_ID="734733266033"
+   VITE_APP_ID="1:734733266033:web:f26afa8be82faa09e6ffd0"
+   VITE_MEASUREMENT_ID="G-0F1K50L53J"
    ```
-
-2. **Server-side (Backend)**: Download your Firebase Admin SDK service account key:
-   - Go to [Firebase Console](https://console.firebase.google.com/) → Project Settings → Service Accounts
-   - Click "Generate new private key" and download the JSON file
-   - Place the downloaded file at: `database_backend/cute_dog_pics/garlic-text-firebase-adminsdk-fbsvc-[your-key-id].json`
-   - **Important**: This file contains sensitive credentials and should never be committed to version control
-
-**Note:** The frontend already has the correct environment files (`.env.development` and `.env.production`) configured for local development, but you'll need to add the Firebase variables above.
+**Note:** The frontend already has the correct environment files (`.env.development` and `.env.production` and firebase-credentials.json) configured for local development.
 
 ### 3. Database Setup
 First, install PostgreSQL if you haven't already, then set up the database:
