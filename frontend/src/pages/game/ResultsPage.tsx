@@ -8,6 +8,7 @@ interface Result {
   imageUrl: string;
   caption: string;
   authorName: string;
+  authorAvatar: string; // Add avatar
   votes: number;
   rank: number;
   medal: 'gold' | 'silver' | 'bronze' | null;
@@ -42,6 +43,7 @@ export default function ResultsPage() {
               dbService.image.getOriginalImageUrl(image.id),
             caption: image.captions?.[0]?.text || `Drawing ${index + 1}`,
             authorName: image.user?.username || 'Anonymous',
+            authorAvatar: image.user?.profilePictureUrl || '/garlicTextNoBackground.png', // Add avatar
             votes: totalVotes,
             rank: index + 1,
             medal: null
@@ -70,6 +72,7 @@ export default function ResultsPage() {
       imageUrl: '/garlicTextNoBackground.png',
       caption: "A sweaty programmer debugging code",
       authorName: 'Justin',
+      authorAvatar: '/garlicTextNoBackground.png', // Add avatar
       votes: 5,
       rank: 1,
       medal: null
@@ -79,6 +82,7 @@ export default function ResultsPage() {
       imageUrl: '/garlicTextNoBackground.png',
       caption: "The legendary Eggert",
       authorName: 'Andrew',
+      authorAvatar: '/garlicTextNoBackground.png', // Add avatar
       votes: 3,
       rank: 2,
       medal: null
@@ -88,6 +92,7 @@ export default function ResultsPage() {
       imageUrl: '/garlicTextNoBackground.png',
       caption: "CS 35L student in their natural habitat",
       authorName: 'Mason',
+      authorAvatar: '/garlicTextNoBackground.png', // Add avatar
       votes: 1,
       rank: 3,
       medal: null
@@ -274,7 +279,15 @@ export default function ResultsPage() {
                    currentResult?.medal === 'silver' ? '🥈 Second Place! 🥈' : 
                    '🥉 Third Place! 🥉'}
                 </h1>
-                <p className="text-gray-600">By {currentResult?.authorName}</p>                <p className="text-2xl font-bold text-[#00BBF9] mt-2">
+                <div className="flex items-center justify-center mt-2">
+                  <img
+                    src={currentResult?.authorAvatar}
+                    alt={currentResult?.authorName}
+                    className="w-10 h-10 rounded-full mr-2"
+                  />
+                  <p className="text-gray-600">{currentResult?.authorName}</p>
+                </div>
+                <p className="text-2xl font-bold text-[#00BBF9] mt-2">
                   Total Rating Points: {currentResult?.votes}
                 </p>
               </div>
